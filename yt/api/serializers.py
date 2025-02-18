@@ -6,7 +6,6 @@ from django.utils.text import slugify
 
 """
 TODO:    - searching videos
-TODO:    - videos: watching, edit/delete
 TODO:    - likes: add, delete
 TODO:    - comments: add, delete
 TODO:    - posts: add, detail, delete
@@ -18,6 +17,19 @@ TODO:    - следить за запросами в БД
 
 class VideoSerializer(serializers.ModelSerializer):
     author_name = serializers.StringRelatedField(source='author')
+    author_link = serializers.HyperlinkedRelatedField(
+        view_name='api:channel-show',
+        lookup_field = 'slug',
+        lookup_url_kwarg = 'slug',
+        source='author',
+        read_only=True
+    )
+    video_link = serializers.HyperlinkedIdentityField(
+        view_name='api:video-detail',
+        lookup_field = 'video_id',
+        lookup_url_kwarg = 'video_id',
+    )
+    likes_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Video
@@ -25,14 +37,15 @@ class VideoSerializer(serializers.ModelSerializer):
             'name', 
             'description', 
             'status', 
-            'yt_link', 
+            'video_link',
+            'yt_link',
             'author_name',
-            'created_at', 
-            'yt_link', 
+            'author_link',
+            'created_at',
             'status',
             'likes_count'
         ]
-        read_only_fields = ['created_at', 'yt-link', 'get_likes_count']
+        read_only_fields = ['created_at', 'yt-link']
 
     def create(self, validated_data):
         request = self.context.get('request')
@@ -40,22 +53,77 @@ class VideoSerializer(serializers.ModelSerializer):
 
         return super().create(validated_data)
 
-    
+
+class VideoForChannelSerializer(serializers.ModelSerializer):
+    video_link = serializers.HyperlinkedIdentityField(
+        view_name='api:video-detail',
+        lookup_field='video_id',
+        lookup_url_kwarg='video_id',
+    )
+
+    class Meta:
+        model = Video
+        fields = [
+            'name',
+            'created_at',
+            'yt_link',
+            'video_link'
+        ]
+
 
 class ChannelSerializer(serializers.ModelSerializer):
     """
     Channel serializer for user creation and detail endpoints
     """
 
-    videos = VideoSerializer(read_only=True, many=True)
-
     class Meta:
         model = Channel
-        fields = ['name', 'slug', 'description', 'videos']
+        fields = ['name', 'slug', 'description', 'country']
         read_only_fields = ['user']
         extra_kwargs = {
             'name': {'required': False, },
+            'country': {'write_only': True, }
         }
+
+
+class ChannelAndVideosSerializer(ChannelSerializer):
+    """
+    Channel serializer for detail endpoints with extra video field
+    """
+
+    videos = VideoForChannelSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = ChannelSerializer.Meta.model
+        fields = ChannelSerializer.Meta.fields + ['videos']
+
+
+class ChannelAboutSerializer(serializers.ModelSerializer):
+    """
+    Channel about data serializer
+    """
+
+    total_videos = serializers.IntegerField(read_only=True)
+    total_views = serializers.IntegerField(read_only=True)
+    total_subs = serializers.IntegerField(read_only=True)
+    date_joined = serializers.DateTimeField(source='user.date_joined', read_only=True)
+    channel_link = serializers.HyperlinkedIdentityField(
+        view_name='api:channel-show',
+        lookup_field='slug',
+        lookup_url_kwarg='slug',
+    )
+
+    class Meta:
+        model = Channel
+        fields = [
+            'description', 
+            'date_joined', 
+            'country', 
+            'channel_link', 
+            'total_views', 
+            'total_videos',
+            'total_subs'
+        ]
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
@@ -72,7 +140,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 
         # if 'slug' fields in missing in data, it'll be created based on 'name' + uuid
         if not channel_data.get('slug'):
-            base_slug = '@' + channel_data.get('name').replace(' ', '')
+            base_slug = channel_data.get('name').replace(' ', '')
             unique_slug = base_slug
 
             if Channel.objects.filter(slug=unique_slug).exists():
@@ -80,7 +148,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
     
             channel_data['slug'] = unique_slug
         else:
-            channel_data['slug'] = '@' + channel_data.get('slug')
+            channel_data['slug'] = channel_data.get('slug')
 
         # create user instance
         user = super().create(validated_data)

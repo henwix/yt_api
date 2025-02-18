@@ -9,10 +9,20 @@ from django.db.models import Count
 # Create your models here.
 
 
+class PublicAndUnlistedVideosManager(models.Manager):
+    """
+    Custom manager to return public and unlisted videos.
+    """
+    
+    def get_queryset(self):
+        return super().get_queryset().filter(status__in=[Video.VideoStatus.UNLISTED, Video.VideoStatus.PUBLIC])
+
+
 class Channel(models.Model):
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, related_name='channel')
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=40, unique=True, blank=True)
+    country = models.CharField(max_length=40)
     subscriptions = models.ManyToManyField(
         to="self",
         symmetrical=False, # TODO: write to obsidian
@@ -31,7 +41,7 @@ class SubscriptionItem(models.Model):
     subscribed_to = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='followers')
     created_at = models.DateTimeField(auto_now_add=True)
 
-    class Model:
+    class Meta:
         # TODO: узнать шо это
         constraints = [
             models.UniqueConstraint(fields=['subscriber', 'subscribed_to'], name='unique_subscription')
@@ -71,12 +81,20 @@ class Video(models.Model):
     yt_link = models.CharField(max_length=255, blank=True)
     status = models.CharField(max_length=10, choices=VideoStatus.choices, default=VideoStatus.PUBLIC)
 
+    # managers
+    objects = models.Manager()
+    public_unlisted_videos = PublicAndUnlistedVideosManager()
+
     def __str__(self):
         return self.name
-    
-    @property
-    def likes_count(self):
-        return self.likes.count()
+
+
+
+class VideoView(models.Model):
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='views')
+    created_at = models.DateTimeField(auto_now_add=True)
+    # ip_address = models.GenericIPAddressField()
+    # user_agent = models.TextField()
 
 
 class VideoComment(models.Model):

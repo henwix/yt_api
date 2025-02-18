@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'djoser',
     'silk',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -152,6 +153,15 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
+
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'YT Pet Project API',
+    'DESCRIPTION': 'API Description',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
 
 DJOSER = {

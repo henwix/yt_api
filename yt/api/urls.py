@@ -12,6 +12,9 @@ app_name = 'api'
 router = DefaultRouter()
 router.register("users", views.CustomUserViewSet)
 
+video_router = DefaultRouter()
+video_router.register("video", views.VideoViewSet, basename='video')
+
 urlpatterns = [
     #  djoser user endpoints
     re_path(r'^auth/', include(router.urls)),
@@ -22,6 +25,8 @@ urlpatterns = [
     path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
 
     # custom API
-    path('channel/', views.ChannelDetailUpdateView().as_view(), name='channel-detail'),
-    path('video-upload/', views.VideoUploadView().as_view(), name='video-upload')
+    path('channel/', views.ChannelRetrieveUpdateDeleteView.as_view(), name='channel-detail'),
+    path('c/<slug:slug>', views.ChannelMainView.as_view(), name='channel-show'),
+    path('c/<slug:slug>/about/', views.ChannelAboutView.as_view(), name='channel-about'),
+    path('', include(video_router.urls)),
 ]

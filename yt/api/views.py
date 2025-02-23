@@ -4,15 +4,23 @@ from django.contrib.auth import get_user_model
 from rest_framework import generics, viewsets
 from .models import Channel, Video
 from . import serializers
-from .permissions import IsAuthorOrReadOnly, IsAdminOrAuthenticated
+from .permissions import IsAuthenticatedOrAdminOrReadOnly
 from rest_framework import permissions
-from django.db.models import Count
-from django.db.models import Prefetch
+from django.db.models import Count, Sum, Prefetch
+from rest_framework import filters
+from rest_framework.response import Response
+from rest_framework.status import HTTP_400_BAD_REQUEST
+from rest_framework.pagination import PageNumberPagination
+
+class CustomPageNumberPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 50
 
 
 class CustomUserViewSet(UserViewSet):
     """
-    Customized UserViewSet from Djoser: queryset attr has been changed to add prefetch_related('channel')
+    Customized UserViewSet from Djoser: prefetch_related('channel') has been added to queryset
     """
 
     queryset = get_user_model().objects.all().prefetch_related("channel")
@@ -20,7 +28,7 @@ class CustomUserViewSet(UserViewSet):
 
 class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     """
-    Channel view for instance detail and update info.
+    API endpoint for detail, update and delete instance.
     [!] If the request method is DELETE, related/associated user will also be deleted
     """
 
@@ -37,11 +45,15 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
 
 class ChannelMainView(generics.RetrieveAPIView):
     """
-    Channel main page view
+    API endpoint to get channel main page.
+    Example: /api/v1/c/henwixchannel
     """
 
     queryset = Channel.objects.all().prefetch_related(
-        Prefetch("videos", Video.objects.filter(status=Video.VideoStatus.PUBLIC))
+        Prefetch(
+            "videos",
+            Video.objects.filter(status=Video.VideoStatus.PUBLIC).annotate(views_count=Count("views")),
+        )
     )
     serializer_class = serializers.ChannelAndVideosSerializer
     lookup_url_kwarg = "slug"
@@ -50,7 +62,8 @@ class ChannelMainView(generics.RetrieveAPIView):
 
 class ChannelAboutView(generics.RetrieveAPIView):
     """
-    Channel about info view
+    API endpoint to get info about channel.
+    Example: /api/v1/c/henwixchannel/about/
     """
 
     queryset = (
@@ -65,19 +78,60 @@ class ChannelAboutView(generics.RetrieveAPIView):
 
 
 class VideoViewSet(viewsets.ModelViewSet):
-    serializer_class = serializers.VideoSerializer
+    # TODO: FILTERING & ORDERING
+    """
+    API endpoint for listing, retrieving, creating, editing and deleting Video instances.
+    Supports searching by 'name', 'description', 'author__name', 'author__slug' fields.
+    Returns nothing if 'search' query-param was not provided - ?search param for listing is required.
+    """
+
     lookup_field = "video_id"
     lookup_url_kwarg = "video_id"
+    permission_classes = [IsAuthenticatedOrAdminOrReadOnly]
+    filter_backends = [
+        filters.SearchFilter,
+        filters.OrderingFilter
+    ]
+    pagination_class = CustomPageNumberPagination
+    search_fields = ['@name', '@description', '@author__name', '@author__slug']
+    ordering_fields = ['created_at', 'views_count']
+
+    def get_serializer_class(self):
+        """
+        Custom get_serializer_class method.
+        If action is list - return VideoPreviewSerializer else VideoSerializer
+        """
+
+        if self.action == 'list':
+            return serializers.VideoPreviewSerializer
+        return serializers.VideoSerializer
 
     def get_queryset(self):
-        if self.request.method == "GET":
-            return Video.objects.select_related("author").all().annotate(likes_count=Count("likes"))
+        """
+        Custom get_queryset method.
 
+        """
+
+        if self.action == 'list':
+            if not self.request.query_params.get('search'):
+                return []
+            return (
+                Video.objects.select_related("author")
+                .filter(status=Video.VideoStatus.PUBLIC)
+                .annotate(views_count=Count("views"))
+            )
+        if self.action == "retrieve":
+            return (
+                Video.objects.select_related("author")
+                .all()
+                .annotate(views_count=Count("views"), likes_count=Count("likes"))
+            )
         return Video.objects.all()
-    
-    def get_permissions(self):
-        if self.action in ['list', 'create']:
-            return [IsAdminOrAuthenticated()]
-        
-        return [IsAuthorOrReadOnly()]
+
+    def list(self, request, *args, **kwargs):
+        if not request.query_params.get('search'):
+            return Response(
+                {'None': "No results found. Try different keywords or remove search filters"}
+            )
+        return super().list(request, *args, **kwargs)
 

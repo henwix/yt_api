@@ -5,8 +5,8 @@ from .models import Channel, Video
 from django.utils.text import slugify
 
 """
-TODO:    - searching videos
 TODO:    - likes: add, delete
+TODO:    - views: add, delete
 TODO:    - comments: add, delete
 TODO:    - posts: add, detail, delete
 TODO:    - subscriptions
@@ -30,6 +30,7 @@ class VideoSerializer(serializers.ModelSerializer):
         lookup_url_kwarg = 'video_id',
     )
     likes_count = serializers.IntegerField(read_only=True)
+    views_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Video
@@ -43,7 +44,8 @@ class VideoSerializer(serializers.ModelSerializer):
             'author_link',
             'created_at',
             'status',
-            'likes_count'
+            'likes_count',
+            'views_count',
         ]
         read_only_fields = ['created_at', 'yt-link']
 
@@ -54,12 +56,13 @@ class VideoSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class VideoForChannelSerializer(serializers.ModelSerializer):
+class VideoPreviewSerializer(serializers.ModelSerializer):
     video_link = serializers.HyperlinkedIdentityField(
         view_name='api:video-detail',
         lookup_field='video_id',
         lookup_url_kwarg='video_id',
     )
+    views_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Video
@@ -67,7 +70,8 @@ class VideoForChannelSerializer(serializers.ModelSerializer):
             'name',
             'created_at',
             'yt_link',
-            'video_link'
+            'video_link',
+            'views_count'
         ]
 
 
@@ -91,7 +95,7 @@ class ChannelAndVideosSerializer(ChannelSerializer):
     Channel serializer for detail endpoints with extra video field
     """
 
-    videos = VideoForChannelSerializer(read_only=True, many=True)
+    videos = VideoPreviewSerializer(read_only=True, many=True)
 
     class Meta:
         model = ChannelSerializer.Meta.model

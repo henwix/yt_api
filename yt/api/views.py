@@ -6,15 +6,24 @@ from .models import Channel, Video
 from . import serializers
 from .permissions import IsAuthenticatedOrAdminOrReadOnly
 from rest_framework import permissions
-from django.db.models import Count, Sum, Prefetch
+from django.db.models import Count, Sum, Prefetch, Subquery, OuterRef, Value, IntegerField, Case, When
 from rest_framework import filters
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import PageNumberPagination, CursorPagination
+
 
 class CustomPageNumberPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
+    max_page_size = 50
+
+
+class CustomCursorPagination(CursorPagination):
+    page_size = 2
+    page_size_query_param = 'page_size'
+    ordering = 'created_at'
     max_page_size = 50
 
 
@@ -49,15 +58,23 @@ class ChannelMainView(generics.RetrieveAPIView):
     Example: /api/v1/c/henwixchannel
     """
 
-    queryset = Channel.objects.all().prefetch_related(
-        Prefetch(
-            "videos",
-            Video.objects.filter(status=Video.VideoStatus.PUBLIC).annotate(views_count=Count("views")),
-        )
-    )
     serializer_class = serializers.ChannelAndVideosSerializer
     lookup_url_kwarg = "slug"
     lookup_field = "slug"
+
+    def get_queryset(self):
+        second_query = Video.objects.select_related('author').filter(
+            author__slug=OuterRef('author__slug'), status=Video.VideoStatus.PUBLIC
+        ).values('pk')[:5]
+
+        queryset = Channel.objects.all().prefetch_related(
+            Prefetch(
+                "videos",
+                Video.objects.filter(pk__in=Subquery(second_query))
+                .annotate(views_count=Count("views"))
+            )
+        )
+        return queryset
 
 
 class ChannelAboutView(generics.RetrieveAPIView):
@@ -66,15 +83,23 @@ class ChannelAboutView(generics.RetrieveAPIView):
     Example: /api/v1/c/henwixchannel/about/
     """
 
-    queryset = (
-        Channel.objects.all()
-        .select_related("user")
-        .prefetch_related("videos")
-        .annotate(total_views=Count("videos__views"), total_videos=Count("videos"), total_subs=Count("followers"))
-    )
     serializer_class = serializers.ChannelAboutSerializer
     lookup_url_kwarg = "slug"
     lookup_field = "slug"
+
+    def get_queryset(self):
+        queryset = (
+            Channel.objects.all()
+            .select_related("user")
+            .annotate(
+                total_views=Count("videos__views"),
+                total_videos=Count(
+                    Case(When(videos__status=Video.VideoStatus.PUBLIC, then=1), output_field=IntegerField())
+                ),
+                total_subs=Count("followers"),
+            )
+        )
+        return queryset
 
 
 class VideoViewSet(viewsets.ModelViewSet):
@@ -92,9 +117,14 @@ class VideoViewSet(viewsets.ModelViewSet):
         filters.SearchFilter,
         filters.OrderingFilter
     ]
-    pagination_class = CustomPageNumberPagination
+    pagination_class = CustomCursorPagination
     search_fields = ['@name', '@description', '@author__name', '@author__slug']
     ordering_fields = ['created_at', 'views_count']
+
+    # TODO: доделать постановку/удаление лайков
+    @action(url_path='like', methods=['post', 'delete'])
+    def like(self, request):
+        pass
 
     def get_serializer_class(self):
         """
@@ -109,7 +139,6 @@ class VideoViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """
         Custom get_queryset method.
-
         """
 
         if self.action == 'list':
@@ -134,4 +163,3 @@ class VideoViewSet(viewsets.ModelViewSet):
                 {'None': "No results found. Try different keywords or remove search filters"}
             )
         return super().list(request, *args, **kwargs)
-

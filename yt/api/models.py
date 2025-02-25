@@ -25,7 +25,7 @@ class Channel(models.Model):
     country = models.CharField(max_length=40)
     subscriptions = models.ManyToManyField(
         to="self",
-        symmetrical=False, # TODO: write to obsidian
+        symmetrical=False,
         through="SubscriptionItem", 
         related_name='subscribers', 
         blank=True
@@ -42,13 +42,13 @@ class SubscriptionItem(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        # TODO: узнать шо это
         constraints = [
             models.UniqueConstraint(fields=['subscriber', 'subscribed_to'], name='unique_subscription')
         ]
 
     def __str__(self):
         return f"{self.subscriber} subscribed to {self.subscribed_to}"
+
 
 def generate_video_link():
     chars = string.digits + string.ascii_letters
@@ -85,10 +85,27 @@ class Video(models.Model):
     objects = models.Manager()
     public_unlisted_videos = PublicAndUnlistedVideosManager()
 
+    class Meta:
+        ordering = ['-created_at']
+
     def __str__(self):
         return self.name
 
+# TODO: дописать модель для лайков/дизлайков, заменить ею связанные M2M поля в других меделях, дизлайк будет устанавливаться через поле is_like, а уникальность проверяться через class Meta: constraints
+#  
+class VideoLike(models.Model):
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE,  related_name='liked_videos')
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='likes')
+    is_like = models.BooleanField()
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['channel', 'video'], 
+                name='unique_channel_video_like'
+            ),
+        ]
+        
 
 class VideoView(models.Model):
     video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='views')

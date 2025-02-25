@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'djoser',
     'silk',
     'drf_spectacular',
+	'django.contrib.postgres',
 ]
 
 MIDDLEWARE = [

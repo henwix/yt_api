@@ -19,12 +19,12 @@ urlpatterns = [
     #  djoser user endpoints
     re_path(r'^auth/', include(router.urls)),
 
-    #  simpleJWT tokens endpoints
+    #  JWT tokens endpoints
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
 
-    # custom API
+    # API
     path('channel/', views.ChannelRetrieveUpdateDeleteView.as_view(), name='channel-detail'),
     path('c/<slug:slug>', views.ChannelMainView.as_view(), name='channel-show'),
     path('c/<slug:slug>/about/', views.ChannelAboutView.as_view(), name='channel-about'),

@@ -5,17 +5,21 @@ from .models import Channel, Video
 from django.utils.text import slugify
 
 """
-TODO:    - likes: add, delete
-TODO:    - views: add, delete
+TODO:    - likes to comments and posts: add, delete
 TODO:    - comments: add, delete
 TODO:    - posts: add, detail, delete
 TODO:    - subscriptions
+TODO:    - watch history
 TODO:    - playlists
 TODO:    - следить за запросами в БД
 """
 
 
 class VideoSerializer(serializers.ModelSerializer):
+    """
+    Video serializer for video creation, updating and retrieving.
+    """
+
     author_name = serializers.StringRelatedField(source='author')
     author_link = serializers.HyperlinkedRelatedField(
         view_name='api:channel-show',
@@ -57,6 +61,10 @@ class VideoSerializer(serializers.ModelSerializer):
 
 
 class VideoPreviewSerializer(serializers.ModelSerializer):
+    """
+    Video serializer for preview.
+    """
+
     video_link = serializers.HyperlinkedIdentityField(
         view_name='api:video-detail',
         lookup_field='video_id',
@@ -77,7 +85,7 @@ class VideoPreviewSerializer(serializers.ModelSerializer):
 
 class ChannelSerializer(serializers.ModelSerializer):
     """
-    Channel serializer for user creation and detail endpoints
+    Channel serializer for user creation and detail endpoints.
     """
 
     class Meta:
@@ -92,7 +100,8 @@ class ChannelSerializer(serializers.ModelSerializer):
 
 class ChannelAndVideosSerializer(ChannelSerializer):
     """
-    Channel serializer for detail endpoints with extra video field
+    Channel serializer for detail endpoints with extra video field.
+    Used in 'ChannelMainView'.
     """
 
     videos = VideoPreviewSerializer(read_only=True, many=True)
@@ -104,7 +113,7 @@ class ChannelAndVideosSerializer(ChannelSerializer):
 
 class ChannelAboutSerializer(serializers.ModelSerializer):
     """
-    Channel about data serializer
+    Channel serializer for /about/ page.
     """
 
     total_videos = serializers.IntegerField(read_only=True)
@@ -132,8 +141,8 @@ class ChannelAboutSerializer(serializers.ModelSerializer):
 
 class CustomUserCreateSerializer(UserCreateSerializer):
     """
-    Inherited from base UserCreateSerializer from Djoser.
-    Added Channel model instance creation in create() method.
+    Custom serializer for user creation. Inherited from UserCreateSerializer by Djoser.
+    Added Channel instance creation in create() method.
     """
 
     def create(self, validated_data):
@@ -167,7 +176,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
     
     def validate(self, attrs):
         """
-        Need to .pop 'channel' attribute to fix error
+        Need to .pop 'channel' attribute to fix error of unexpected field
         """
         
         channel_data = attrs.pop('channel', {})
@@ -178,7 +187,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 
     def get_fields(self):
         """
-        New field to serializer for Channel creation
+        Custom 'get_fields' method to add nested 'ChannelSerializer serializer'. 
         """
         
         fields = super().get_fields()

@@ -77,7 +77,6 @@ class Video(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    likes = models.ManyToManyField(Channel, related_name='liked_videos', blank=True)
     yt_link = models.CharField(max_length=255, blank=True)
     status = models.CharField(max_length=10, choices=VideoStatus.choices, default=VideoStatus.PUBLIC)
 
@@ -91,8 +90,7 @@ class Video(models.Model):
     def __str__(self):
         return self.name
 
-# TODO: дописать модель для лайков/дизлайков, заменить ею связанные M2M поля в других меделях, дизлайк будет устанавливаться через поле is_like, а уникальность проверяться через class Meta: constraints
-#  
+
 class VideoLike(models.Model):
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE,  related_name='liked_videos')
     video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='likes')
@@ -101,17 +99,23 @@ class VideoLike(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['channel', 'video'], 
+                fields=['channel', 'video'],
                 name='unique_channel_video_like'
             ),
         ]
-        
+    
+    def __str__(self):
+        return f"Like on video: {self.video}, by {self.channel}"
+
 
 class VideoView(models.Model):
     video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='views')
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='video_views', blank=True, null=True)
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    # ip_address = models.GenericIPAddressField()
-    # user_agent = models.TextField()
+
+    def __str__(self):
+        return f"View on video: {self.video}, by ch: {getattr(self, 'channel')} | ip: {getattr(self, 'ip_address')}"
 
 
 class VideoComment(models.Model):

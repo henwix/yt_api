@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from django.contrib.auth import get_user_model
 from rest_framework import generics, viewsets
@@ -6,7 +6,7 @@ from .models import Channel, Video, VideoLike, VideoView
 from . import serializers
 from .permissions import IsAuthenticatedOrAdminOrReadOnly
 from rest_framework import permissions
-from django.db.models import Count, Sum, Prefetch, Subquery, OuterRef, Value, IntegerField, Case, When, Q
+from django.db.models import Count, Prefetch, Subquery, OuterRef, IntegerField, Q
 from rest_framework import filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -20,6 +20,9 @@ from rest_framework.status import (
 from rest_framework.pagination import PageNumberPagination, CursorPagination
 from django.utils import timezone
 from datetime import timedelta
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 
 
 class CustomPageNumberPagination(PageNumberPagination):
@@ -59,7 +62,26 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
             return self.request.user
 
         return get_object_or_404(self.get_queryset(), user=self.request.user)
+    
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Custom 'retrieve' method with caching.
+        """
+        
+        cache_key = f"retrieve_channel_{self.request.user.pk}"
 
+        cached_response = cache.get(cache_key)
+
+        if cached_response:
+            return Response(cached_response)
+        
+        response = super().retrieve(request, *args, **kwargs)
+        cache.set(
+            key=cache_key,
+            value=response.data,
+            timeout=60*15
+        )
+        return response
 
 class ChannelMainView(generics.RetrieveAPIView):
     """
@@ -70,6 +92,7 @@ class ChannelMainView(generics.RetrieveAPIView):
     serializer_class = serializers.ChannelAndVideosSerializer
     lookup_url_kwarg = "slug"
     lookup_field = "slug"
+    throttle_scope = 'channel'
 
     def get_queryset(self):
         second_query = (
@@ -87,6 +110,7 @@ class ChannelMainView(generics.RetrieveAPIView):
 class ChannelAboutView(generics.RetrieveAPIView):
     """
     API endpoint to get info about channel.
+    Supports caching. Cache available in 15 minutes.
     Example: /api/v1/c/henwixchannel/about/
     """
 
@@ -105,6 +129,14 @@ class ChannelAboutView(generics.RetrieveAPIView):
             )
         )
         return queryset
+    
+    @method_decorator(cache_page(60*15, key_prefix="channel_about"))
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Custom 'retrieve' method with @cache_page decorator caching.
+        """
+
+        return super().retrieve(request, *args, **kwargs)
 
 
 class VideoViewSet(viewsets.ModelViewSet):
@@ -123,6 +155,9 @@ class VideoViewSet(viewsets.ModelViewSet):
     pagination_class = CustomCursorPagination
     search_fields = ["@name", "@description", "@author__name", "@author__slug"]
     ordering_fields = ["created_at", "views_count"]
+    throttle_scope = 'video'
+
+    
 
     @action(url_path="like", methods=["post", "delete"], detail=True)
     def like(self, request, video_id):

@@ -2,7 +2,6 @@ import uuid
 from rest_framework import serializers
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from .models import Channel, Video
-from django.utils.text import slugify
 
 """
 TODO:    - likes to comments and posts: add, delete
@@ -94,7 +93,6 @@ class ChannelSerializer(serializers.ModelSerializer):
         read_only_fields = ['user']
         extra_kwargs = {
             'name': {'required': False, },
-            'country': {'write_only': True, }
         }
 
 

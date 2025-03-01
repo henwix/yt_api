@@ -10,6 +10,8 @@ services:
       - .env
     command: >
       sh -c "python manage.py runserver 0.0.0.0:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
     depends_on:
       - postgres
       - redis

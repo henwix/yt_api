@@ -156,6 +156,20 @@ REST_FRAMEWORK = {
     ),
 
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+
+    'DEFAULT_THROTTLE_CLASSES': [
+        'api.throttles.AnonBurstRateThrottle',
+        'api.throttles.AnonSustainedRateThrottle',
+        
+        'api.throttles.UserBurstRateThrottle',
+        'api.throttles.UserSustainedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon_burst': '1000/day',
+        'anon_sustained': '100/hour',
+        'user_burst': '1000/day',
+        'user_sustained': '100/minute'
+    }
 }
 
 SPECTACULAR_SETTINGS = {
@@ -218,3 +232,17 @@ SIMPLE_JWT = {
 }
 
 LOGIN_REDIRECT_URL = 'api:user-me'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+}

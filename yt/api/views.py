@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from django.contrib.auth import get_user_model
 from rest_framework import generics, viewsets
-from .models import Channel, Video, VideoLike, VideoView
+from .models import Channel, Video, VideoLike, VideoView, VideoComment
 from . import serializers
 from .permissions import IsAuthenticatedOrAdminOrReadOnly
 from rest_framework import permissions
@@ -157,8 +157,6 @@ class VideoViewSet(viewsets.ModelViewSet):
     ordering_fields = ["created_at", "views_count"]
     throttle_scope = 'video'
 
-    
-
     @action(url_path="like", methods=["post", "delete"], detail=True)
     def like(self, request, video_id):
         """
@@ -279,3 +277,14 @@ class VideoViewSet(viewsets.ModelViewSet):
         if not request.query_params.get("search"):
             return Response({"None": "No results found. Try different keywords or remove search filters"})
         return super().list(request, *args, **kwargs)
+
+class CommentAPIView(viewsets.ModelViewSet):
+    # create
+    # update
+    # delete
+    # list
+
+    queryset = VideoComment.objects.all().select_related('author')
+    serializer_class = serializers.VideoCommentSerializer
+    # permission_classes = [IsAuthenticatedOrAuthor]
+

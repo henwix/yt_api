@@ -1,7 +1,7 @@
 import uuid
 from rest_framework import serializers
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from .models import Channel, Video
+from .models import Channel, Video, VideoComment
 
 """
 TODO:    - likes to comments and posts: add, delete
@@ -12,6 +12,31 @@ TODO:    - watch history
 TODO:    - playlists
 TODO:    - следить за запросами в БД
 """
+
+
+
+class VideoCommentSerializer(serializers.ModelSerializer):
+    video = serializers.SlugRelatedField(queryset=Video.objects.all(), write_only=True)
+    author = serializers.HiddenField(default=None)
+    author_link = serializers.HyperlinkedRelatedField(
+        view_name='api:channel-show',
+        lookup_field = 'slug',
+        lookup_url_kwarg = 'slug',
+        source='author',
+        many=False,
+        read_only=True
+    )
+    author_slug = serializers.CharField(source='author.slug', read_only=True)
+
+    class Meta:
+        model = VideoComment
+        fields = ['author_slug', 'author_link', 'author', 'video', 'text']
+
+    def create(self, validated_data):
+        user = self.context.get('request')
+        validated_data['author'] = user.channel
+
+        return super().create(validated_data)
 
 
 class VideoSerializer(serializers.ModelSerializer):

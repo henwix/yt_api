@@ -19,16 +19,15 @@ from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 urlpatterns = [
+    # other
     path('admin/', admin.site.urls),
-
-    # api
-    path('api/v1/', include('api.urls', namespace='api')),
+    path('silk/', include('silk.urls', namespace='silk')),
     path('auth/', include('rest_framework.urls')),
 
-    # other
-    path('silk/', include('silk.urls', namespace='silk')),
+    # API v1
+    path('api/v1/', include('api.v1.urls')),
 
-    #  documentation
+    # documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),

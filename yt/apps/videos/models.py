@@ -1,53 +1,16 @@
-from django.db import models
-from django.contrib.auth import get_user_model
-from django.dispatch import receiver
-from django.db.models.signals import post_save
-import string
 import random
-import uuid
-from django.db.models import Count
-# Create your models here.
+import string
+from django.db import models
+from apps.channels.models import Channel
 
 
 class PublicAndUnlistedVideosManager(models.Manager):
     """
     Custom manager to return public and unlisted videos.
     """
-    
+
     def get_queryset(self):
         return super().get_queryset().filter(status__in=[Video.VideoStatus.UNLISTED, Video.VideoStatus.PUBLIC])
-
-
-class Channel(models.Model):
-    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, related_name='channel')
-    name = models.CharField(max_length=100)
-    slug = models.SlugField(max_length=40, unique=True, blank=True)
-    country = models.CharField(max_length=40)
-    subscriptions = models.ManyToManyField(
-        to="self",
-        symmetrical=False,
-        through="SubscriptionItem", 
-        related_name='subscribers', 
-        blank=True
-    )
-    description = models.TextField(blank=True)
-
-    def __str__(self):
-        return f"{self.name} | {self.slug}"
-
-
-class SubscriptionItem(models.Model):
-    subscriber = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='following')
-    subscribed_to = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='followers')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=['subscriber', 'subscribed_to'], name='unique_subscription')
-        ]
-
-    def __str__(self):
-        return f"{self.subscriber} subscribed to {self.subscribed_to}"
 
 
 def generate_video_link():
@@ -128,31 +91,3 @@ class VideoComment(models.Model):
 
     def __str__(self):
         return f"Comment by {self.author}, video: {self.video}"
-
-
-# TODO:
-# class PlayList(models.Model):
-#     name = models.CharField(max_length=100)
-
-
-class Post(models.Model):
-    post_id = models.UUIDField(unique=True, primary_key=True, default=uuid.uuid4, editable=False)
-    author = models.ForeignKey(to=Channel, on_delete=models.CASCADE, related_name='posts')
-    text = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    likes = models.ManyToManyField(Channel, related_name='liked_posts', blank=True)
-
-    def __str__(self):
-        return f"Post: {self.post_id}, author: {self.author}"
-
-
-class PostComment(models.Model):
-    author = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='post_comments')
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
-    text = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    likes = models.ManyToManyField(Channel, related_name='liked_post_comments', blank=True)
-
-    def __str__(self):
-        return f"Comment by {self.author}, post: {self.post}"

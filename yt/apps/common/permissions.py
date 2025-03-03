@@ -1,5 +1,5 @@
 from rest_framework import permissions
-from .models import Video
+from apps.videos.models import Video
 
         
 class IsAuthenticatedOrAdminOrReadOnly(permissions.BasePermission):

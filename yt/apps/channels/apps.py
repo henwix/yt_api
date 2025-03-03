@@ -1,9 +1,9 @@
 from django.apps import AppConfig
 
 
-class ApiConfig(AppConfig):
+class ChannelsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'api'
+    name = 'apps.channels'
 
     def ready(self):
         from . import signals

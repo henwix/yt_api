@@ -5,10 +5,10 @@ from . import views
 app_name = 'videos'
 
 
-video_router = DefaultRouter()
-video_router.register("video", views.VideoViewSet, basename='video')
-
+router = DefaultRouter()
+router.register("video", views.VideoViewSet, basename='video')
+router.register("video-comment", views.CommentVideoAPIView, basename='video-comment')
 
 urlpatterns = [
-    path('', include(video_router.urls)),
+    path('', include(router.urls)),
 ]

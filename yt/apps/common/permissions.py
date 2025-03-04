@@ -32,4 +32,4 @@ class IsAuthenticatedOrAuthorOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         
-        return request.user == obj.author
+        return hasattr(request.user, 'channel') and request.user.channel == obj.author

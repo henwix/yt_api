@@ -188,10 +188,6 @@ SPECTACULAR_SETTINGS = {
          'deepLinking': True, 
          'persistAuthorization': True
     }
-
-
-
-
 }
 
 DJOSER = {
@@ -255,3 +251,6 @@ LOGGING = {
         "level": "DEBUG",
     },
 }
+
+MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/media/'

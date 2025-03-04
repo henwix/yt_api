@@ -14,13 +14,18 @@ class VideoCommentSerializer(serializers.ModelSerializer):
         read_only=True,
     )
     author_slug = serializers.CharField(source="author.slug", read_only=True)
+    update_link = serializers.HyperlinkedIdentityField(
+        view_name="v1:videos:video-comment-detail",
+        many=False,
+        read_only=True
+    )
 
     class Meta:
         model = VideoComment
-        fields = ["author_slug", "author_link", "author", "video", "text"]
+        fields = ["pk", "author_slug", "author_link", "author", "video", "text", "update_link"]
 
     def create(self, validated_data):
-        user = self.context.get("request")
+        user = self.context.get("request").user
         validated_data["author"] = user.channel
 
         return super().create(validated_data)

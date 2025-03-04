@@ -4,12 +4,13 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT, HTTP_404_NOT_FOUND, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 from rest_framework.decorators import action
 from rest_framework import viewsets, filters
-from apps.common.permissions import IsAuthenticatedOrAdminOrReadOnly
+from apps.common.permissions import IsAuthenticatedOrAdminOrReadOnly, IsAuthenticatedOrAuthorOrReadOnly
 from .models import Video, VideoLike, VideoView, VideoComment
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Count, Subquery, OuterRef, IntegerField
 from . import serializers
+
 # Create your views here.
 
 
@@ -20,9 +21,9 @@ class CustomPageNumberPagination(PageNumberPagination):
 
 
 class CustomCursorPagination(CursorPagination):
-    page_size = 2
+    page_size = 10
     page_size_query_param = "page_size"
-    ordering = "created_at"
+    ordering = "-created_at"
     max_page_size = 50
 
 
@@ -134,7 +135,6 @@ class VideoViewSet(viewsets.ModelViewSet):
         Add 'views_count' annotated field if action == 'list' for 'Video' preview.
         If action == 'retrieve' - add views_count and likes_count for 'Video' detail info.
         """
-        print(self.request.version)
 
         if self.action == "list":
             if not self.request.query_params.get("search"):
@@ -166,12 +166,26 @@ class VideoViewSet(viewsets.ModelViewSet):
             return Response({"None": "No results found. Try different keywords or remove search filters"})
         return super().list(request, *args, **kwargs)
 
-# class CommentVideoAPIView(viewsets.ModelViewSet):
-#     # create
-#     # update
-#     # delete
-#     # list
+# TODO: add comments to channel and videos endpoints
 
-#     queryset = VideoComment.objects.all().select_related('author')
-#     serializer_class = serializers.VideoCommentSerializer
-#     # permission_classes = [IsAuthenticatedOrAuthor]
+class CommentVideoAPIView(viewsets.ModelViewSet):
+    """
+    # TODO: finish docs for CommentVideoAPIView
+    """
+
+    serializer_class = serializers.VideoCommentSerializer
+    pagination_class = CustomCursorPagination
+    permission_classes = [IsAuthenticatedOrAuthorOrReadOnly]
+
+    def get_queryset(self):
+        if self.action == 'list':
+            video = self.request.query_params.get('v')
+            if not video:
+                return []
+            return VideoComment.objects.all().select_related('author', 'video').filter(video__video_id=video)
+        return VideoComment.objects.all().select_related('author', 'video')
+
+    def list(self, request, *args, **kwargs):
+        if not request.query_params.get('v'):
+            return Response({"None": "No comments found."})
+        return super().list(request, *args, **kwargs)

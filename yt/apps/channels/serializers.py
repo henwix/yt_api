@@ -18,16 +18,22 @@ class ChannelSerializer(serializers.ModelSerializer):
     """
     Channel serializer for user creation and detail endpoints.
     """
-
+    
     class Meta:
         model = Channel
-        fields = ["name", "slug", "description", "country"]
+        fields = ["name", "slug", "description", "country", "channel_avatar"]
         read_only_fields = ["user"]
         extra_kwargs = {
             "name": {
                 "required": False,
             },
         }
+
+    def validate_channel_avatar(self, value):
+        if value and value.size > 1 * 1024 * 1024:
+            raise serializers.ValidationError('File size must be less than 1MB.')
+
+        return value
 
 
 class ChannelAndVideosSerializer(ChannelSerializer):

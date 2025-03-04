@@ -8,6 +8,7 @@ from apps.videos.models import Video
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from . import serializers
+from rest_framework.parsers import MultiPartParser
 
 # Create your views here.
 

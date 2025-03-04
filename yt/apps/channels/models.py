@@ -17,6 +17,7 @@ class Channel(models.Model):
         blank=True
     )
     description = models.TextField(blank=True)
+    channel_avatar = models.ImageField(upload_to='channel_avatars', null=True, blank=True)
 
     def __str__(self):
         return f"{self.name} | {self.slug}"

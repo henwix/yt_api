@@ -1,14 +1,20 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.pagination import PageNumberPagination, CursorPagination
 from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT, HTTP_404_NOT_FOUND, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
+from rest_framework.status import (
+    HTTP_200_OK,
+    HTTP_204_NO_CONTENT,
+    HTTP_404_NOT_FOUND,
+    HTTP_201_CREATED,
+    HTTP_400_BAD_REQUEST,
+)
 from rest_framework.decorators import action
 from rest_framework import viewsets, filters
 from apps.common.permissions import IsAuthenticatedOrAdminOrReadOnly, IsAuthenticatedOrAuthorOrReadOnly
 from .models import Video, VideoLike, VideoView, VideoComment
 from django.utils import timezone
 from datetime import timedelta
-from django.db.models import Count, Subquery, OuterRef, IntegerField, Q
+from django.db.models import Count, Q
 from . import serializers
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 import django_filters
@@ -23,7 +29,7 @@ class CustomPageNumberPagination(PageNumberPagination):
 
 class CustomCursorPagination(CursorPagination):
     page_size = 10
-    cursor_query_param = 'c'
+    cursor_query_param = "c"
     page_size_query_param = "page_size"
     ordering = "-created_at"
     max_page_size = 50
@@ -41,23 +47,19 @@ class VideoViewSet(viewsets.ModelViewSet):
     lookup_field = "video_id"
     lookup_url_kwarg = "video_id"
     permission_classes = [IsAuthenticatedOrAdminOrReadOnly]
-    filter_backends = [
-        filters.SearchFilter, 
-        filters.OrderingFilter,
-        django_filters.rest_framework.DjangoFilterBackend
-    ]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, django_filters.rest_framework.DjangoFilterBackend]
     filterset_class = VideoFilter
     pagination_class = CustomCursorPagination
     search_fields = ["@name", "@description", "@author__name", "@author__slug"]
     ordering_fields = ["created_at", "views_count"]
-    throttle_scope = 'video'
+    throttle_scope = "video"
 
     @action(url_path="like", methods=["post", "delete"], detail=True)
     def like(self, request, video_id):
         """
         API endpoint for 'likes' and 'dislikes' actions.
         'POST' and 'DELETE' methods are available for setting 'likes'/'dislikes' and removing them.
-        
+
         POST: Only one field can be provided: 'is_like' - true by default and means like, but false - dislike.
         DELETE: Have no required fields.
         Related video determines by 'video_id' query-param.
@@ -97,7 +99,7 @@ class VideoViewSet(viewsets.ModelViewSet):
     def view(self, request, video_id):
         """
         API endpoint for adding views to videos.
-        
+
         Have no required fields.
         Allows add a view if the previous one was more than 24 hours ago.
 
@@ -165,7 +167,7 @@ class VideoViewSet(viewsets.ModelViewSet):
                     views_count=Count("views", distinct=True),
                     # likes_count=Subquery(second_query, output_field=IntegerField()),
                     likes_count=Count("likes", filter=Q(likes__is_like=True), distinct=True),
-                    comments_count=Count("comments")
+                    comments_count=Count("comments"),
                 )
             )
         return Video.objects.all()
@@ -175,7 +177,7 @@ class VideoViewSet(viewsets.ModelViewSet):
             return Response({"None": "No results found. Try different keywords or remove search filters"})
         return super().list(request, *args, **kwargs)
 
-    
+
 class CommentVideoAPIView(viewsets.ModelViewSet):
     """
     API endpoint for listing, retrieving, updating and deleting Video Comments.
@@ -184,7 +186,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet):
         GET - Everyone
         POST - Authenticated only
         DELETE/POST/PUT - Comment's author only
-    
+
     Supports pagination by cursor.
 
     Example: /api/v1/video-comment/?v=uN9qVyjTrO6
@@ -195,24 +197,24 @@ class CommentVideoAPIView(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrAuthorOrReadOnly]
 
     def get_queryset(self):
-        if self.action == 'list':
-            video = self.request.query_params.get('v')
+        if self.action == "list":
+            video = self.request.query_params.get("v")
             if not video:
                 return []
-            return VideoComment.objects.all().select_related('author', 'video').filter(video__video_id=video)
-        return VideoComment.objects.all().select_related('author', 'video')
+            return VideoComment.objects.all().select_related("author", "video").filter(video__video_id=video)
+        return VideoComment.objects.all().select_related("author", "video")
 
     @extend_schema(
-            parameters=[
-                OpenApiParameter(
-                    name='v',
-                    description="*Required. To get video's related comments, you need to provide 'video_id' in this parameter",
-                    required=True,
-                    type=str
-                )
-            ]
+        parameters=[
+            OpenApiParameter(
+                name="v",
+                description="*Required. To get video's related comments, you need to provide 'video_id' in this parameter",
+                required=True,
+                type=str,
+            )
+        ]
     )
     def list(self, request, *args, **kwargs):
-        if not request.query_params.get('v'):
+        if not request.query_params.get("v"):
             return Response({"None": "No comments found."})
         return super().list(request, *args, **kwargs)

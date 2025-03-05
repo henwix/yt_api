@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404
 from rest_framework.pagination import PageNumberPagination, CursorPagination
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT, HTTP_404_NOT_FOUND, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
@@ -8,10 +8,11 @@ from apps.common.permissions import IsAuthenticatedOrAdminOrReadOnly, IsAuthenti
 from .models import Video, VideoLike, VideoView, VideoComment
 from django.utils import timezone
 from datetime import timedelta
-from django.db.models import Count, Subquery, OuterRef, IntegerField
+from django.db.models import Count, Subquery, OuterRef, IntegerField, Q
 from . import serializers
-
-# Create your views here.
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+import django_filters
+from .filters import VideoFilter
 
 
 class CustomPageNumberPagination(PageNumberPagination):
@@ -22,6 +23,7 @@ class CustomPageNumberPagination(PageNumberPagination):
 
 class CustomCursorPagination(CursorPagination):
     page_size = 10
+    cursor_query_param = 'c'
     page_size_query_param = "page_size"
     ordering = "-created_at"
     max_page_size = 50
@@ -39,7 +41,12 @@ class VideoViewSet(viewsets.ModelViewSet):
     lookup_field = "video_id"
     lookup_url_kwarg = "video_id"
     permission_classes = [IsAuthenticatedOrAdminOrReadOnly]
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [
+        filters.SearchFilter, 
+        filters.OrderingFilter,
+        django_filters.rest_framework.DjangoFilterBackend
+    ]
+    filterset_class = VideoFilter
     pagination_class = CustomCursorPagination
     search_fields = ["@name", "@description", "@author__name", "@author__slug"]
     ordering_fields = ["created_at", "views_count"]
@@ -146,17 +153,19 @@ class VideoViewSet(viewsets.ModelViewSet):
             )
         if self.action == "retrieve":
 
-            second_query = VideoLike.objects.filter(
-                is_like=True,
-                video__video_id=OuterRef('video_id')
-            ).values('video').annotate(count=Count('pk')).values('count')
+            # second_query = VideoLike.objects.filter(
+            #     is_like=True,
+            #     video__video_id=OuterRef('video_id')
+            # ).values('video').annotate(count=Count('pk')).values('count')
 
             return (
                 Video.objects.select_related("author")
                 .all()
                 .annotate(
-                    views_count=Count("views"),
-                    likes_count=Subquery(second_query, output_field=IntegerField()),
+                    views_count=Count("views", distinct=True),
+                    # likes_count=Subquery(second_query, output_field=IntegerField()),
+                    likes_count=Count("likes", filter=Q(likes__is_like=True), distinct=True),
+                    comments_count=Count("comments")
                 )
             )
         return Video.objects.all()
@@ -166,11 +175,19 @@ class VideoViewSet(viewsets.ModelViewSet):
             return Response({"None": "No results found. Try different keywords or remove search filters"})
         return super().list(request, *args, **kwargs)
 
-# TODO: add comments to channel and videos endpoints
-
+    
 class CommentVideoAPIView(viewsets.ModelViewSet):
     """
-    # TODO: finish docs for CommentVideoAPIView
+    API endpoint for listing, retrieving, updating and deleting Video Comments.
+
+    Permissions:
+        GET - Everyone
+        POST - Authenticated only
+        DELETE/POST/PUT - Comment's author only
+    
+    Supports pagination by cursor.
+
+    Example: /api/v1/video-comment/?v=uN9qVyjTrO6
     """
 
     serializer_class = serializers.VideoCommentSerializer
@@ -185,6 +202,16 @@ class CommentVideoAPIView(viewsets.ModelViewSet):
             return VideoComment.objects.all().select_related('author', 'video').filter(video__video_id=video)
         return VideoComment.objects.all().select_related('author', 'video')
 
+    @extend_schema(
+            parameters=[
+                OpenApiParameter(
+                    name='v',
+                    description="*Required. To get video's related comments, you need to provide 'video_id' in this parameter",
+                    required=True,
+                    type=str
+                )
+            ]
+    )
     def list(self, request, *args, **kwargs):
         if not request.query_params.get('v'):
             return Response({"None": "No comments found."})

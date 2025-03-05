@@ -50,8 +50,10 @@ class VideoSerializer(serializers.ModelSerializer):
         lookup_url_kwarg="video_id",
     )
     likes_count = serializers.IntegerField(read_only=True)
+    # likes_count_two = serializers.IntegerField(read_only=True)
     views_count = serializers.IntegerField(read_only=True)
-
+    comments_count = serializers.IntegerField(read_only=True)
+    
     class Meta:
         model = Video
         fields = [
@@ -65,7 +67,9 @@ class VideoSerializer(serializers.ModelSerializer):
             "created_at",
             "status",
             "likes_count",
+            # "likes_count_two",
             "views_count",
+            "comments_count"
         ]
         read_only_fields = ["created_at", "yt-link"]
 
@@ -87,7 +91,16 @@ class VideoPreviewSerializer(serializers.ModelSerializer):
         lookup_url_kwarg="video_id",
     )
     views_count = serializers.IntegerField(read_only=True)
+    author_name = serializers.CharField(source='author.slug')
+    author_link = serializers.HyperlinkedRelatedField(
+        view_name="v1:channels:channel-show",
+        source='author',
+        many=False,
+        read_only=True,
+        lookup_field='slug',
+        lookup_url_kwarg='slug'
+    )
 
     class Meta:
         model = Video
-        fields = ["name", "created_at", "yt_link", "video_link", "views_count"]
+        fields = ["name", "created_at", "yt_link", "video_link", "author_name", "author_link", "views_count"]

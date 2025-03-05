@@ -11,6 +11,7 @@ decorator==5.1.1
 defusedxml==0.7.1
 Django==5.1.6
 django-extensions==3.2.3
+django-filter==25.1
 django-redis==5.4.0
 django-silk==5.3.2
 djangorestframework==3.15.2
@@ -36,6 +37,7 @@ pycodestyle==2.12.1
 pycparser==2.22
 Pygments==2.19.1
 PyJWT==2.10.1
+python-dateutil==2.9.0.post0
 python3-openid==3.2.0
 PyYAML==6.0.2
 redis==5.2.1
@@ -43,6 +45,7 @@ referencing==0.36.2
 requests==2.32.3
 requests-oauthlib==2.0.0
 rpds-py==0.22.3
+six==1.17.0
 social-auth-app-django==5.4.3
 social-auth-core==4.5.6
 sqlparse==0.5.3

@@ -23,8 +23,6 @@ def generate_video_link():
 
 
 class Video(models.Model):
-    # TODO: add dislikes to videos, comments and posts
-
     class VideoStatus(models.TextChoices):
         PRIVATE = 'PRIVATE', 'Private'
         UNLISTED = 'UNLISTED', 'Unlisted'

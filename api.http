@@ -11,3 +11,20 @@ Content-Type: application/json
 
 ###
 
+GET http://127.0.0.1:8001/api/v1/video-comment/?v=uN9qVyjTrO6 HTTP/1.1
+Content-Type: application/application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQxMjExOTU5LCJpYXQiOjE3NDExMjU1NTksImp0aSI6ImZiOTQ2ZDFlMzE0NjRiZGY4OTc2ODBmZGNhZDg2OTVhIiwidXNlcl9pZCI6MX0.BiypGFi7aQz6BACfaq3GbwyJmGKJZOxyDiP-BxvoVoc
+
+###
+
+PATCH http://127.0.0.1:8001/api/v1/video-comment/52/ HTTP/1.1
+Content-Type: application/application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQxMjExOTU5LCJpYXQiOjE3NDExMjU1NTksImp0aSI6ImZiOTQ2ZDFlMzE0NjRiZGY4OTc2ODBmZGNhZDg2OTVhIiwidXNlcl9pZCI6MX0.BiypGFi7aQz6BACfaq3GbwyJmGKJZOxyDiP-BxvoVoc
+
+
+###
+
+DELETE http://127.0.0.1:8001/api/v1/video/uN9qVyjTrO6/like/ HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQxMjExOTU5LCJpYXQiOjE3NDExMjU1NTksImp0aSI6ImZiOTQ2ZDFlMzE0NjRiZGY4OTc2ODBmZGNhZDg2OTVhIiwidXNlcl9pZCI6MX0.BiypGFi7aQz6BACfaq3GbwyJmGKJZOxyDiP-BxvoVoc
+

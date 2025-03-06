@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from rest_framework import generics, permissions
+from rest_framework.views import APIView
 from .models import Channel
 from rest_framework.response import Response
 from django.core.cache import cache
@@ -9,8 +10,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from . import serializers
 from rest_framework.parsers import MultiPartParser
+from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_204_NO_CONTENT
 
-# Create your views here.
 
 class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     """
@@ -26,7 +27,7 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         if self.request.method == "DELETE":
             return self.request.user
 
-        return get_object_or_404(self.get_queryset(), user=self.request.user)
+        return get_object_or_404(self.get_queryset(), user=self.request.user)   
     
     def retrieve(self, request, *args, **kwargs):
         """
@@ -102,3 +103,17 @@ class ChannelAboutView(generics.RetrieveAPIView):
         """
 
         return super().retrieve(request, *args, **kwargs)
+
+
+class ChannelAvatarDestroy(APIView):
+    def delete(self, request):
+        channel = request.user.channel
+
+        if not hasattr(channel, 'channel_avatar'):
+            return Response({"error": "Avatar does not exists"}, status=HTTP_404_NOT_FOUND)
+        
+        channel.channel_avatar.delete()
+        channel.channel_avatar = None
+        channel.save()
+
+        return Response({"status": "Success"}, status=HTTP_204_NO_CONTENT)

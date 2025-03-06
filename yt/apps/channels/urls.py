@@ -6,6 +6,7 @@ app_name = 'channels'
 
 urlpatterns = [
     path('channel/', views.ChannelRetrieveUpdateDeleteView.as_view(), name='channel-detail'),
+    path('channel/delete-avatar/', views.ChannelAvatarDestroy.as_view(), name='channel-avatar-destroy'),
     path('c/<slug:slug>', views.ChannelMainView.as_view(), name='channel-show'),
     path('c/<slug:slug>/about/', views.ChannelAboutView.as_view(), name='channel-about'),
 ]

@@ -1,3 +1,4 @@
+from attr import has
 from rest_framework import serializers
 from .models import Channel
 from apps.videos.serializers import VideoPreviewSerializer
@@ -34,6 +35,17 @@ class ChannelSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('File size must be less than 1MB.')
 
         return value
+    # TODO: что происходит с фото если аккаунт удаляется
+    def update(self, instance, validated_data):
+        uploaded_avatar = validated_data.get('channel_avatar')
+
+        if uploaded_avatar and instance.channel_avatar:
+            instance.channel_avatar.delete(save=False)
+        
+        if uploaded_avatar is None:
+            validated_data.pop('channel_avatar')
+
+        return super().update(instance, validated_data)
 
 
 class ChannelAndVideosSerializer(ChannelSerializer):

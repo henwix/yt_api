@@ -60,6 +60,7 @@ class VideoSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "status",
+            "file",
             "video_link",
             "yt_link",
             "author_name",

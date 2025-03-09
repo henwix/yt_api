@@ -11,4 +11,5 @@ router.register("video-comment", views.CommentVideoAPIView, basename='video-comm
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('get-upload-link/<str:filename>/', views.GeneratePresignedUrlView.as_view(), name='upload-link')
 ]

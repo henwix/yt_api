@@ -1,3 +1,5 @@
+import boto3
+import os
 from django.shortcuts import get_object_or_404
 from rest_framework.pagination import PageNumberPagination, CursorPagination
 from rest_framework.response import Response
@@ -19,6 +21,7 @@ from . import serializers
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 import django_filters
 from .filters import VideoFilter
+from rest_framework.views import APIView
 
 
 class CustomPageNumberPagination(PageNumberPagination):
@@ -218,3 +221,36 @@ class CommentVideoAPIView(viewsets.ModelViewSet):
         if not request.query_params.get("v"):
             return Response({"None": "No comments found."})
         return super().list(request, *args, **kwargs)
+
+
+class GeneratePresignedUrlView(APIView):
+    """
+    API endpoint to generate presigned URL for channel_avatar uploading to S3.
+    Takes one required parameter: 'filename' to generate URL based on that name.
+    Example: /api/v1/get-upload-link/17388dff.jpg/
+    """
+
+    def get(self, request, filename):
+        if filename and filename[-4:] not in ['.png', '.jpg']:
+            return Response({'error': "Unsupported file format"}, status=HTTP_400_BAD_REQUEST)
+        
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+            region_name=os.environ.get("AWS_S3_REGION_NAME")
+        )
+
+        url = s3_client.generate_presigned_url(
+            'put_object',
+            Params = {
+                'Bucket': os.environ.get('AWS_STORAGE_BUCKET_NAME'),
+                'Key': f"channel_avatars/{filename}",
+            },
+            ExpiresIn=120,
+            HttpMethod='PUT'
+        )
+
+        return Response({'put_url': url}, status=HTTP_200_OK)
+
+

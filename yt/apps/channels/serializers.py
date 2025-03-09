@@ -5,11 +5,10 @@ from apps.videos.serializers import VideoPreviewSerializer
 
 """
 TODO:    - likes to comments and posts: add, delete
-TODO:    - comments: add, delete
 TODO:    - posts: add, detail, delete
 TODO:    - subscriptions
 TODO:    - watch history
-TODO:    - playlists
+TODO:    - playlistsz
 TODO:    - следить за запросами в БД
 """
 

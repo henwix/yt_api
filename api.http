@@ -24,9 +24,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 ###
 
-DELETE http://127.0.0.1:8001/api/v1/video/uN9qVyjTrO6/like/ HTTP/1.1
+POST http://127.0.0.1:8001/api/v1/video/uN9qVyjTrO6/view/ HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQxMjExOTU5LCJpYXQiOjE3NDExMjU1NTksImp0aSI6ImZiOTQ2ZDFlMzE0NjRiZGY4OTc2ODBmZGNhZDg2OTVhIiwidXNlcl9pZCI6MX0.BiypGFi7aQz6BACfaq3GbwyJmGKJZOxyDiP-BxvoVoc
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQxNjQ0Mzc3LCJpYXQiOjE3NDE1NTc5NzcsImp0aSI6ImMzNjk0Y2E2M2M0ZjRjZDdiZTU4OWI1ZTA5ZDNlYmIzIiwidXNlcl9pZCI6MTN9.POXck9q7hxwGFfWbQP985RnN9WRpooOW6rAXWnZXmVg
 
 
 ###
@@ -51,3 +51,33 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 DELETE http://127.0.0.1:8001/api/v1/channel/ HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQxMzk4ODEwLCJpYXQiOjE3NDEzMTI0MTAsImp0aSI6IjViYzJhOTI1NTE2ZTRlYmY4ZTEyMzFkODVjNmRmMDAyIiwidXNlcl9pZCI6OX0.Q8i7eFzlqv5GF7RVi-8ZV1HNgEGOXmQrMj7lNHaNjLg
+
+###
+
+POST http://127.0.0.1:8001/api/v1/token/ HTTP/1.1
+Content-Type: application/json
+
+{
+    "username": "root",
+    "password": "1234q1234q"
+}
+
+###
+
+POST http://127.0.0.1:8001/api/v1/subscription/unsubscribe/ HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQxNjQyODQwLCJpYXQiOjE3NDE1NTY0NDAsImp0aSI6IjBiY2NhNzVhMTI2NDQ1N2FhZjc5YWVmMTlmZDM2M2M0IiwidXNlcl9pZCI6MTJ9.2s0pVzX5nyENPVXZhMuqrCzJm0aqnKuJNWgvyq1ztVo
+
+{
+    "to": "henwix"
+}
+
+###
+
+POST http://127.0.0.1:8001/api/v1/subscription/subscribe/ HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQxNjU2OTU3LCJpYXQiOjE3NDE1NzA1NTcsImp0aSI6ImFiNjc0YjI1MDVjMTQ1Zjk5NzU4NDk5ZjBjNTM2NGQ1IiwidXNlcl9pZCI6MTYxfQ.JxnQlkdqoYpSP33P2t4t8xrLsQRQqrwSuv3Dn7pbUU0
+
+{
+    "to": "henwix"
+}

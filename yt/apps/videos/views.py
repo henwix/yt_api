@@ -1,7 +1,6 @@
 import boto3
 import os
 from django.shortcuts import get_object_or_404
-from rest_framework.pagination import PageNumberPagination, CursorPagination
 from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
@@ -22,24 +21,9 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter
 import django_filters
 from .filters import VideoFilter
 from rest_framework.views import APIView
-
-
-class CustomPageNumberPagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = "page_size"
-    max_page_size = 50
-
-
-class CustomCursorPagination(CursorPagination):
-    page_size = 10
-    cursor_query_param = "c"
-    page_size_query_param = "page_size"
-    ordering = "-created_at"
-    max_page_size = 50
-
+from apps.common.pagination import CustomCursorPagination
 
 class VideoViewSet(viewsets.ModelViewSet):
-    # TODO: FILTERING & ORDERING
     """
     API endpoint for listing, retrieving, creating, editing and deleting 'Video' instances.
     Supports searching by 'name', 'description', 'author__name', 'author__slug' fields.
@@ -154,23 +138,17 @@ class VideoViewSet(viewsets.ModelViewSet):
             return (
                 Video.objects.select_related("author")
                 .filter(status=Video.VideoStatus.PUBLIC)
-                .annotate(views_count=Count("views"))
+                .annotate(views_count=Count("views", distinct=True))
             )
         if self.action == "retrieve":
-
-            # second_query = VideoLike.objects.filter(
-            #     is_like=True,
-            #     video__video_id=OuterRef('video_id')
-            # ).values('video').annotate(count=Count('pk')).values('count')
-
             return (
                 Video.objects.select_related("author")
                 .all()
                 .annotate(
                     views_count=Count("views", distinct=True),
-                    # likes_count=Subquery(second_query, output_field=IntegerField()),
                     likes_count=Count("likes", filter=Q(likes__is_like=True), distinct=True),
                     comments_count=Count("comments"),
+                    subs_count=Count("author__followers", distinct=True)
                 )
             )
         return Video.objects.all()

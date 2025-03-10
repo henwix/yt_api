@@ -1,15 +1,13 @@
 from rest_framework import serializers
-from .models import Channel
+from .models import Channel, SubscriptionItem
 from apps.videos.serializers import VideoPreviewSerializer
 
 
 """
 TODO:    - likes to comments and posts: add, delete
 TODO:    - posts: add, detail, delete
-TODO:    - subscriptions
 TODO:    - watch history
-TODO:    - playlistsz
-TODO:    - следить за запросами в БД
+TODO:    - playlists
 """
 
 
@@ -34,7 +32,7 @@ class ChannelSerializer(serializers.ModelSerializer):
 
         return value
         
-    # TODO: что происходит с фото если аккаунт удаляется
+
     def update(self, instance, validated_data):
         uploaded_avatar = validated_data.get('channel_avatar')
 
@@ -54,10 +52,11 @@ class ChannelAndVideosSerializer(ChannelSerializer):
     """
 
     videos = VideoPreviewSerializer(read_only=True, many=True)
+    subs_count=serializers.IntegerField(read_only=True)
 
     class Meta:
         model = ChannelSerializer.Meta.model
-        fields = ChannelSerializer.Meta.fields + ["videos"]
+        fields = ChannelSerializer.Meta.fields + ['subs_count', "videos"]
 
 
 class ChannelAboutSerializer(serializers.ModelSerializer):
@@ -78,3 +77,18 @@ class ChannelAboutSerializer(serializers.ModelSerializer):
     class Meta:
         model = Channel
         fields = ["description", "date_joined", "country", "channel_link", "total_views", "total_videos", "total_subs"]
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    sub_slug = serializers.CharField(source='subscriber.slug', read_only=True)
+    sub_link = serializers.HyperlinkedRelatedField(
+        view_name='v1:channels:channel-show',
+        lookup_field='slug',
+        lookup_url_kwarg='slug',
+        source='subscriber',
+        read_only=True
+    )
+
+    class Meta:
+        model = SubscriptionItem
+        fields = ['sub_slug', 'sub_link', 'created_at']

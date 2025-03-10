@@ -14,5 +14,7 @@ def invalidate_channel_cache_and_delete_avatar(sender, instance, **kwargs):
 
     if signal is pre_delete and instance.channel_avatar:
         instance.channel_avatar.delete()
+        # FIXME: видосы не удаляются
+        instance.videos.delete()
 
     

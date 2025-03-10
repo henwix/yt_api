@@ -50,9 +50,9 @@ class VideoSerializer(serializers.ModelSerializer):
         lookup_url_kwarg="video_id",
     )
     likes_count = serializers.IntegerField(read_only=True)
-    # likes_count_two = serializers.IntegerField(read_only=True)
     views_count = serializers.IntegerField(read_only=True)
     comments_count = serializers.IntegerField(read_only=True)
+    subs_count = serializers.IntegerField(read_only=True)
     
     class Meta:
         model = Video
@@ -64,11 +64,11 @@ class VideoSerializer(serializers.ModelSerializer):
             "video_link",
             "yt_link",
             "author_name",
+            "subs_count",
             "author_link",
             "created_at",
             "status",
             "likes_count",
-            # "likes_count_two",
             "views_count",
             "comments_count"
         ]

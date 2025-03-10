@@ -118,7 +118,7 @@ def generate_video_link():
 
 def run():
     videos = []
-    author = Channel.objects.get(slug='root')
+    author = Channel.objects.get(slug='henwix')
 
     for i in range(48):
         v = Video(

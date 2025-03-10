@@ -6,6 +6,10 @@ APP_CONTAINER = web
 MANAGE_PY = python manage.py
 
 
+.PHONY: build
+build:
+	${DC} build
+
 .PHONY: db
 db:
 	${DC} up -d ${DB_CONTAINER}

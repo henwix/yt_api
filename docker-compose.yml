@@ -31,7 +31,17 @@ services:
       - "${REDIS_PORT}:6379"
     volumes:
       - redis_data:/data/
-
+  
+  celery:
+    build: .
+    command: celery -A yt worker -l info
+    volumes:
+      - ./yt:/app/
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - postgres
 
 volumes:
   postgres_data:

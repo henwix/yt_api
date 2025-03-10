@@ -32,7 +32,6 @@ class ChannelSerializer(serializers.ModelSerializer):
 
         return value
         
-
     def update(self, instance, validated_data):
         uploaded_avatar = validated_data.get('channel_avatar')
 

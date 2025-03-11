@@ -76,7 +76,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 POST http://127.0.0.1:8001/api/v1/subscription/subscribe/ HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQxNjU2OTU3LCJpYXQiOjE3NDE1NzA1NTcsImp0aSI6ImFiNjc0YjI1MDVjMTQ1Zjk5NzU4NDk5ZjBjNTM2NGQ1IiwidXNlcl9pZCI6MTYxfQ.JxnQlkdqoYpSP33P2t4t8xrLsQRQqrwSuv3Dn7pbUU0
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQxNzQ4ODEyLCJpYXQiOjE3NDE2NjI0MTIsImp0aSI6IjMwMDk4MDgxYmRhNjRjN2Y5YmMwMDgxNmIzMjJhNDhjIiwidXNlcl9pZCI6MTYxfQ.F1B45br5fmt1wtbPIbxXK__jxz8ELA16agjB-YRmsEs
 
 {
     "to": "henwix"

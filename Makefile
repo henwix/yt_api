@@ -2,6 +2,7 @@ DC = docker compose
 EXEC = docker compose exec -it
 LOGS = docker compose logs
 DB_CONTAINER = postgres
+CELERY_CONTAINER = celery
 APP_CONTAINER = web
 MANAGE_PY = python manage.py
 
@@ -53,3 +54,7 @@ migrate:
 .PHONY: superuser
 superuser:
 	${EXEC} ${APP_CONTAINER} ${MANAGE_PY} createsuperuser
+
+.PHONY: celery-logs
+celery-logs:
+	${LOGS} ${CELERY_CONTAINER} -f

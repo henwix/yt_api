@@ -40,6 +40,7 @@ class CustomUserViewSet(UserViewSet):
 
     def perform_update(self, serializer, *args, **kwargs):
         # FIXME: сделать переброс активации при смене почты через Celery в этом методе
+        # FIXME: дочекать почту
         return super().perform_update(serializer, *args, **kwargs)
 
     def _serializer_validation(self, request):

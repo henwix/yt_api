@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -192,12 +192,21 @@ SPECTACULAR_SETTINGS = {
 }
 
 DJOSER = {
-    "PASSWORD_RESET_CONFIRM_URL": "#/password/reset/confirm/{uid}/{token}",
-    "USERNAME_RESET_CONFIRM_URL": "#/username/reset/confirm/{uid}/{token}",
-    "ACTIVATION_URL": "#/activate/{uid}/{token}",
-    "SEND_ACTIVATION_EMAIL": False,
+    "SEND_ACTIVATION_EMAIL": True,
+    "SEND_CONFIRMATION_EMAIL": True,
+    "PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND": True,
+    # "USER_CREATE_PASSWORD_RETYPE": True,
+
+    "PASSWORD_RESET_CONFIRM_URL": "password/reset/confirm?uid={uid}&token={token}",
+    "USERNAME_RESET_CONFIRM_URL": "username/reset/confirm?uid={uid}&token={token}",
+    "ACTIVATION_URL": "activate/?uid={uid}&token={token}",
+
+    "EMAIL_FRONTEND_DOMAIN": "front-domain.com",
+    "EMAIL_FRONTEND_SITE_NAME": "YT",
+
     "SERIALIZERS": {
         "user_create": "apps.users.serializers.CustomUserCreateSerializer",
+        "user_create_password_retype": "apps.users.serializers.CustomUserCreatePasswordRetypeSerializer",
         "user": "apps.users.serializers.CustomUserSerializer",
         "current_user": "apps.users.serializers.CustomUserSerializer",
     },
@@ -295,7 +304,7 @@ CELERY_RESULT_SERIALIZER = 'json'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_USER_TLS = True
+EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 

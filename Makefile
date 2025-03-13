@@ -35,6 +35,10 @@ app:
 app-down:
 	${DC} down
 
+.PHONY: app-restart
+app-restart:
+	${DC} down && ${DC} up -d
+
 .PHONY: app-logs
 app-logs:
 	${LOGS} ${APP_CONTAINER} -f

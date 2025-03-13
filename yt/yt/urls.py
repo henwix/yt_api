@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from django.conf.urls.static import static
-from yt import settings
+from yt.settings import local
 
 
 urlpatterns = [
@@ -23,8 +23,8 @@ urlpatterns = [
 
 #  media root
 
-if settings.DEBUG:  
+if local.DEBUG:
     urlpatterns += static(
-	    settings.MEDIA_URL,
-	    document_root=settings.MEDIA_ROOT
+	    local.MEDIA_URL,
+	    document_root=local.MEDIA_ROOT
 	)

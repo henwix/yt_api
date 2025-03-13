@@ -1,12 +1,16 @@
 
+import os
 from celery import shared_task
-import time
+from django.core.mail import send_mail
 
 
 @shared_task
-def simple_task(name):
-    print(f'Starting task for {name}')
-    time.sleep(5)
-    print(f'Finished task for {name}')
-    
-    return f"Task completed for {name}"
+def simple_task():
+    subject = 'Thanks for signing up on our platform!'
+    message = 'This is simple notification that'
+    from_email = os.environ.get('EMAIL_HOST_USER')
+    recipient_list = ['492b675xhpd1@gmail.com']
+
+    send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+
+    return "Email sent to user."

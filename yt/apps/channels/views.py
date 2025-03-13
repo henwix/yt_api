@@ -14,7 +14,6 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from drf_spectacular.utils import extend_schema, OpenApiTypes, OpenApiExample
-from .tasks import simple_task
 
 
 class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
@@ -212,10 +211,6 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
         JSON-body parameters: 'slug' - channel's slug to subscribe
         Example: api/v1/subscription/subscribe/
         """
-        
-        task = simple_task.delay(getattr(self.request.user, 'username'))
-        print(task.__dict__)
-        print(f"status: {getattr(task, 'status')}")
 
         error, subscriber, subscribed_to = self._sub_validation(request)
         if error:

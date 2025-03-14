@@ -1,5 +1,7 @@
 import uuid
-from djoser.serializers import UserCreateSerializer, UserSerializer, UserCreatePasswordRetypeSerializer
+
+from djoser.serializers import UserCreatePasswordRetypeSerializer, UserCreateSerializer, UserSerializer
+
 from apps.channels.models import Channel
 from apps.channels.serializers import ChannelSerializer
 

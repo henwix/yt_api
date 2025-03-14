@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import VideoComment, Video
+
+from .models import Video, VideoComment
 
 
 class VideoCommentSerializer(serializers.ModelSerializer):
@@ -15,9 +16,7 @@ class VideoCommentSerializer(serializers.ModelSerializer):
     )
     author_slug = serializers.CharField(source="author.slug", read_only=True)
     update_link = serializers.HyperlinkedIdentityField(
-        view_name="v1:videos:video-comment-detail",
-        many=False,
-        read_only=True
+        view_name="v1:videos:video-comment-detail", many=False, read_only=True
     )
 
     class Meta:
@@ -53,7 +52,7 @@ class VideoSerializer(serializers.ModelSerializer):
     views_count = serializers.IntegerField(read_only=True)
     comments_count = serializers.IntegerField(read_only=True)
     subs_count = serializers.IntegerField(read_only=True)
-    
+
     class Meta:
         model = Video
         fields = [
@@ -70,7 +69,7 @@ class VideoSerializer(serializers.ModelSerializer):
             "status",
             "likes_count",
             "views_count",
-            "comments_count"
+            "comments_count",
         ]
         read_only_fields = ["created_at", "yt-link"]
 
@@ -92,14 +91,14 @@ class VideoPreviewSerializer(serializers.ModelSerializer):
         lookup_url_kwarg="video_id",
     )
     views_count = serializers.IntegerField(read_only=True)
-    author_name = serializers.CharField(source='author.slug')
+    author_name = serializers.CharField(source="author.slug")
     author_link = serializers.HyperlinkedRelatedField(
         view_name="v1:channels:channel-show",
-        source='author',
+        source="author",
         many=False,
         read_only=True,
-        lookup_field='slug',
-        lookup_url_kwarg='slug'
+        lookup_field="slug",
+        lookup_url_kwarg="slug",
     )
 
     class Meta:

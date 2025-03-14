@@ -1,13 +1,14 @@
 import logging
+
 from celery import shared_task
-from djoser.conf import settings
 from django.contrib.auth import get_user_model
+from djoser.conf import settings
 
 logger = logging.getLogger(__name__)
 
 
 def _get_user_context(context):
-    user = get_user_model().objects.get(pk=context.get('user_id'))
+    user = get_user_model().objects.get(pk=context.get("user_id"))
     context["user"] = user
     return context
 

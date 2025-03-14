@@ -1,19 +1,19 @@
-from django.shortcuts import get_object_or_404
-from rest_framework import generics, permissions
-from rest_framework.views import APIView
-from apps.common.pagination import CustomCursorPagination
-from .models import Channel, SubscriptionItem
-from rest_framework.response import Response
 from django.core.cache import cache
-from django.db.models import OuterRef, Prefetch, Subquery, Count, Q
-from apps.videos.models import Video
+from django.db.models import Count, OuterRef, Prefetch, Q, Subquery
+from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
-from . import serializers
-from rest_framework import status
-from rest_framework import viewsets
+from drf_spectacular.utils import OpenApiExample, OpenApiTypes, extend_schema
+from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
-from drf_spectacular.utils import extend_schema, OpenApiTypes, OpenApiExample
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from apps.common.pagination import CustomCursorPagination
+from apps.videos.models import Video
+
+from . import serializers
+from .models import Channel, SubscriptionItem
 
 
 class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
@@ -61,9 +61,8 @@ class ChannelSubscribersView(generics.ListAPIView):
     pagination_class = CustomCursorPagination
 
     def get_queryset(self):
-        return (
-            SubscriptionItem.objects.filter(subscribed_to=self.request.user.channel)
-            .select_related("subscriber", "subscribed_to")
+        return SubscriptionItem.objects.filter(subscribed_to=self.request.user.channel).select_related(
+            "subscriber", "subscribed_to"
         )
 
     def list(self, request, *args, **kwargs):
@@ -76,12 +75,11 @@ class ChannelSubscribersView(generics.ListAPIView):
 
         if cached_data:
             return Response(cached_data)
-        
+
         response = super().list(request, *args, **kwargs)
-        cache.set(cache_key, response.data, 60*15)
+        cache.set(cache_key, response.data, 60 * 15)
 
         return response
-
 
 
 class ChannelAvatarDestroy(APIView):
@@ -216,9 +214,7 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
         if error:
             return error
 
-        subscription, created = SubscriptionItem.objects.get_or_create(
-            subscriber=subscriber, subscribed_to=subscribed_to
-        )
+        _, created = SubscriptionItem.objects.get_or_create(subscriber=subscriber, subscribed_to=subscribed_to)
 
         if created:
             return Response({"status": "Success"}, status=status.HTTP_201_CREATED)

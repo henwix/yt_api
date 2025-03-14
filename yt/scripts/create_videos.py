@@ -1,7 +1,8 @@
 import random
 import string
-from apps.videos.models import Video
+
 from apps.channels.models import Channel
+from apps.videos.models import Video
 
 video_urls = [
     "https://www.youtube.com/watch?v=3JZ_D3ELwOQ",
@@ -108,29 +109,28 @@ video_titles = [
     "Claptone - Magic House Night",
 ]
 
+
 def generate_video_link():
     chars = string.digits + string.ascii_letters
 
     while True:
-        link = ''.join(random.choices(chars, k=11))
+        link = "".join(random.choices(chars, k=11))
         if not Video.objects.filter(video_id=link).exists():
             return link
 
+
 def run():
     videos = []
-    author = Channel.objects.get(slug='henwix')
+    author = Channel.objects.get(slug="henwix")
 
     for i in range(48):
         v = Video(
-                video_id=generate_video_link(),
-                author=author,
-                name=video_titles[i],
-                yt_link=video_urls[i],
-            )
+            video_id=generate_video_link(),
+            author=author,
+            name=video_titles[i],
+            yt_link=video_urls[i],
+        )
         videos.append(v)
 
     Video.objects.bulk_create(videos)
-    print('done!')
-
-
-    
+    print("done!")

@@ -1,27 +1,31 @@
-import boto3
 import os
+from datetime import timedelta
+
+import boto3
+import django_filters
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from drf_spectacular.utils import OpenApiParameter, extend_schema
+from rest_framework import filters, viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
-    HTTP_204_NO_CONTENT,
-    HTTP_404_NOT_FOUND,
     HTTP_201_CREATED,
+    HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
+    HTTP_404_NOT_FOUND,
 )
-from rest_framework.decorators import action
-from rest_framework import viewsets, filters
-from apps.common.permissions import IsAuthenticatedOrAdminOrReadOnly, IsAuthenticatedOrAuthorOrReadOnly
-from .models import Video, VideoLike, VideoView, VideoComment
-from django.utils import timezone
-from datetime import timedelta
-from django.db.models import Count, Q
-from . import serializers
-from drf_spectacular.utils import extend_schema, OpenApiParameter
-import django_filters
-from .filters import VideoFilter
 from rest_framework.views import APIView
+
 from apps.common.pagination import CustomCursorPagination
+from apps.common.permissions import IsAuthenticatedOrAdminOrReadOnly, IsAuthenticatedOrAuthorOrReadOnly
+
+from . import serializers
+from .filters import VideoFilter
+from .models import Video, VideoComment, VideoLike, VideoView
+
 
 class VideoViewSet(viewsets.ModelViewSet):
     """
@@ -148,7 +152,7 @@ class VideoViewSet(viewsets.ModelViewSet):
                     views_count=Count("views", distinct=True),
                     likes_count=Count("likes", filter=Q(likes__is_like=True), distinct=True),
                     comments_count=Count("comments"),
-                    subs_count=Count("author__followers", distinct=True)
+                    subs_count=Count("author__followers", distinct=True),
                 )
             )
         return Video.objects.all()
@@ -189,7 +193,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet):
         parameters=[
             OpenApiParameter(
                 name="v",
-                description="*Required. To get video's related comments, you need to provide 'video_id' in this parameter",
+                description="*Required parameter to get related video's comments.",
                 required=True,
                 type=str,
             )
@@ -209,26 +213,24 @@ class GeneratePresignedUrlView(APIView):
     """
 
     def get(self, request, filename):
-        if filename and filename[-4:] not in ['.png', '.jpg']:
-            return Response({'error': "Unsupported file format"}, status=HTTP_400_BAD_REQUEST)
-        
+        if filename and filename[-4:] not in [".png", ".jpg"]:
+            return Response({"error": "Unsupported file format"}, status=HTTP_400_BAD_REQUEST)
+
         s3_client = boto3.client(
-            's3',
-            aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
-            aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
-            region_name=os.environ.get("AWS_S3_REGION_NAME")
+            "s3",
+            aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
+            region_name=os.environ.get("AWS_S3_REGION_NAME"),
         )
 
         url = s3_client.generate_presigned_url(
-            'put_object',
-            Params = {
-                'Bucket': os.environ.get('AWS_STORAGE_BUCKET_NAME'),
-                'Key': f"channel_avatars/{filename}",
+            "put_object",
+            Params={
+                "Bucket": os.environ.get("AWS_STORAGE_BUCKET_NAME"),
+                "Key": f"channel_avatars/{filename}",
             },
             ExpiresIn=120,
-            HttpMethod='PUT'
+            HttpMethod="PUT",
         )
 
-        return Response({'put_url': url}, status=HTTP_200_OK)
-
-
+        return Response({"put_url": url}, status=HTTP_200_OK)

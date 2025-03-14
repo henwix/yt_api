@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.auth import get_user_model
 from djoser import signals
 from djoser.compat import get_user_email
@@ -13,6 +15,8 @@ from .tasks import (
     send_reset_password_email,
     send_reset_username_email,
 )
+
+log = logging.getLogger(__name__)
 
 
 class CustomUserViewSet(UserViewSet):
@@ -30,24 +34,26 @@ class CustomUserViewSet(UserViewSet):
         to = [get_user_email(user)]
         return context, to
 
-    def perform_create(self, serializer, *args, **kwargs):
-        user = serializer.save(*args, **kwargs)
-        signals.user_registered.send(sender=self.__class__, user=user, request=self.request)
-
-        if settings.SEND_ACTIVATION_EMAIL:
-            context, to = self._get_mail_args(user)
-            send_activation_email.apply_async(args=[context, to], ignore_result=True)
-
-    def perform_update(self, serializer, *args, **kwargs):
-        # FIXME: сделать переброс активации при смене почты через Celery в этом методе
-        # FIXME: дочекать почту
-        return super().perform_update(serializer, *args, **kwargs)
-
     def _serializer_validation(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.get_user(is_active=False)
+        user = serializer.get_user(is_active=False if self.action == "resend_activation" else True)
         return user
+
+    def _check_activation_email(self, user):
+        if settings.SEND_ACTIVATION_EMAIL and not user.is_active:
+            context, to = self._get_mail_args(user)
+            send_activation_email.apply_async(args=[context, to], ignore_result=True)
+
+    def perform_create(self, serializer, *args, **kwargs):
+        user = serializer.save(*args, **kwargs)
+        signals.user_registered.send(sender=self.__class__, user=user, request=self.request)
+        self._check_activation_email(user)
+
+    def perform_update(self, serializer, *args, **kwargs):
+        user = serializer.save()
+        signals.user_updated.send(sender=self.__class__, user=user, request=self.request)
+        self._check_activation_email(user)
 
     @action(["post"], detail=False)
     def activation(self, request, *args, **kwargs):

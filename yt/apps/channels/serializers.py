@@ -4,12 +4,12 @@ from apps.videos.serializers import VideoPreviewSerializer
 
 from .models import Channel, SubscriptionItem
 
-"""
-TODO:    - likes to comments and posts: add, delete
-TODO:    - posts: add, detail, delete
-TODO:    - watch history
-TODO:    - playlists
-"""
+
+# TODO:    - likes to comments and posts: add, delete
+# TODO:    - posts: add, detail, delete
+# TODO:    - watch history
+# TODO:    - playlists
+
 
 
 class ChannelSerializer(serializers.ModelSerializer):

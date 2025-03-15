@@ -70,8 +70,9 @@ class VideoSerializer(serializers.ModelSerializer):
             "likes_count",
             "views_count",
             "comments_count",
+            "upload_status"
         ]
-        read_only_fields = ["created_at", "yt-link"]
+        read_only_fields = ["created_at", "yt-link", "upload_status"]
 
     def create(self, validated_data):
         request = self.context.get("request")

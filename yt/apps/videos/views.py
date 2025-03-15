@@ -45,6 +45,19 @@ class VideoViewSet(viewsets.ModelViewSet):
     ordering_fields = ["created_at", "views_count"]
     throttle_scope = "video"
 
+    # TODO: доделать multipart upload
+    # def create(self, request, *args, **kwargs):
+    #     file = request.data.pop('file')
+
+    #     if not file:
+    #         return Response("File field cannot be blank!")
+
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid()
+    #     self.perform_create(serializer)
+
+    #     return super().create(request, *args, **kwargs)
+
     @action(url_path="like", methods=["post", "delete"], detail=True)
     def like(self, request, video_id):
         """

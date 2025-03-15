@@ -30,16 +30,22 @@ class Video(models.Model):
         UNLISTED = "UNLISTED", "Unlisted"
         PUBLIC = "PUBLIC", "Public"
 
+    class UploadStatus(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        IN_PROGRESS = "IN_PROGRESS", "In progress"
+        FINISHED = "FINISHED", "Finished"
+
     video_id = models.CharField(
         max_length=11, unique=True, primary_key=True, default=generate_video_link, editable=False
     )
-    author = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="videos")
-    name = models.CharField(max_length=100)
-    description = models.TextField(blank=True)
+    author = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="videos", db_index=True)
+    name = models.CharField(max_length=100, db_index=True)
+    description = models.TextField(blank=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     yt_link = models.CharField(max_length=255, blank=True)
     status = models.CharField(max_length=10, choices=VideoStatus.choices, default=VideoStatus.PUBLIC)
     file = models.FileField(upload_to="videos", blank=True, null=True)
+    upload_status = models.CharField(choices=UploadStatus.choices, default=UploadStatus.PENDING)
 
     # managers
     objects = models.Manager()
@@ -53,8 +59,8 @@ class Video(models.Model):
 
 
 class VideoLike(models.Model):
-    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="liked_videos")
-    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="likes")
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="liked_videos", db_index=True)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="likes", db_index=True)
     is_like = models.BooleanField()
 
     class Meta:
@@ -67,8 +73,8 @@ class VideoLike(models.Model):
 
 
 class VideoView(models.Model):
-    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="views")
-    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="video_views", blank=True, null=True)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="views", db_index=True)
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="video_views", blank=True, null=True, db_index=True)
     ip_address = models.GenericIPAddressField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -77,8 +83,8 @@ class VideoView(models.Model):
 
 
 class VideoComment(models.Model):
-    author = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="video_comments")
-    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="comments")
+    author = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="video_comments", db_index=True)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="comments", db_index=True)
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

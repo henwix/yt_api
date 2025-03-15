@@ -5,7 +5,7 @@ from django.db import models
 
 
 class Channel(models.Model):
-    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, related_name="channel")
+    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, related_name="channel", db_index=True)
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=40, unique=True, blank=True)
     country = models.CharField(max_length=40)
@@ -20,8 +20,8 @@ class Channel(models.Model):
 
 
 class SubscriptionItem(models.Model):
-    subscriber = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="following")
-    subscribed_to = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="followers")
+    subscriber = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="following", db_index=True)
+    subscribed_to = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="followers", db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

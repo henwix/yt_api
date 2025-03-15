@@ -25,6 +25,7 @@ def invalidate_channel_cache(instance, created, **kwargs):
         # Delete channel's cache
         _delete_channel_cache(instance)
 
+
 # FIXME: починить количество запросов на удаление канала(мб через транзакции или как-то вручную удалять связи)
 @receiver(signal=[pre_delete], sender=Channel)
 def delete_channel_files_signal(instance, **kwargs):

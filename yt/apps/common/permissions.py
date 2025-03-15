@@ -5,7 +5,7 @@ from apps.videos.models import Video
 
 class IsAuthenticatedOrAdminOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
-        if view.action == "view":
+        if view.action == 'view':
             return True
 
         if request.method in permissions.SAFE_METHODS:
@@ -17,7 +17,7 @@ class IsAuthenticatedOrAdminOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS and obj.status != Video.VideoStatus.PRIVATE:
             return True
 
-        return hasattr(request.user, "channel") and obj.author == request.user.channel
+        return hasattr(request.user, 'channel') and obj.author == request.user.channel
 
 
 class IsAuthenticatedOrAuthorOrReadOnly(permissions.BasePermission):
@@ -31,4 +31,4 @@ class IsAuthenticatedOrAuthorOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        return hasattr(request.user, "channel") and request.user.channel == obj.author
+        return hasattr(request.user, 'channel') and request.user.channel == obj.author

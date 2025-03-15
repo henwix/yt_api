@@ -27,7 +27,7 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
-        if self.request.method == "DELETE":
+        if self.request.method == 'DELETE':
             return self.request.user
 
         return get_object_or_404(self.get_queryset(), user=self.request.user)
@@ -37,7 +37,7 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         Custom 'retrieve' method with caching.
         """
 
-        cache_key = f"retrieve_channel_{self.request.user.pk}"
+        cache_key = f'retrieve_channel_{self.request.user.pk}'
 
         cached_response = cache.get(cache_key)
 
@@ -62,7 +62,7 @@ class ChannelSubscribersView(generics.ListAPIView):
 
     def get_queryset(self):
         return SubscriptionItem.objects.filter(subscribed_to=self.request.user.channel).select_related(
-            "subscriber", "subscribed_to"
+            'subscriber', 'subscribed_to'
         )
 
     def list(self, request, *args, **kwargs):
@@ -70,7 +70,7 @@ class ChannelSubscribersView(generics.ListAPIView):
         Custom list method to cache response.
         """
 
-        cache_key = f"cached_subs_page_{request.user.pk}"
+        cache_key = f'cached_subs_page_{request.user.pk}'
         cached_data = cache.get(key=cache_key)
 
         if cached_data:
@@ -86,14 +86,14 @@ class ChannelAvatarDestroy(APIView):
     def delete(self, request):
         channel = request.user.channel
 
-        if not hasattr(channel, "channel_avatar"):
-            return Response({"error": "Avatar does not exists"}, status=status.HTTP_404_NOT_FOUND)
+        if not hasattr(channel, 'channel_avatar'):
+            return Response({'error': 'Avatar does not exists'}, status=status.HTTP_404_NOT_FOUND)
 
         channel.channel_avatar.delete()
         channel.channel_avatar = None
         channel.save()
 
-        return Response({"status": "Success"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'status': 'Success'}, status=status.HTTP_204_NO_CONTENT)
 
 
 class ChannelMainView(generics.RetrieveAPIView):
@@ -103,25 +103,25 @@ class ChannelMainView(generics.RetrieveAPIView):
     """
 
     serializer_class = serializers.ChannelAndVideosSerializer
-    lookup_url_kwarg = "slug"
-    lookup_field = "slug"
-    throttle_scope = "channel"
+    lookup_url_kwarg = 'slug'
+    lookup_field = 'slug'
+    throttle_scope = 'channel'
 
     def get_queryset(self):
         second_query = (
-            Video.objects.select_related("author")
-            .filter(author__slug=OuterRef("author__slug"), status=Video.VideoStatus.PUBLIC)
-            .values("pk")[:5]
+            Video.objects.select_related('author')
+            .filter(author__slug=OuterRef('author__slug'), status=Video.VideoStatus.PUBLIC)
+            .values('pk')[:5]
         )
         # FIXME: почему-то видео выдаются в странном порядке, только что сделал видео, оно выдаётся не последним, а 3м в списке, хотя должно первым. Название видео 'we'
         queryset = (
             Channel.objects.all()
-            .annotate(subs_count=Count("followers", distinct=True))
+            .annotate(subs_count=Count('followers', distinct=True))
             .prefetch_related(
                 Prefetch(
-                    "videos",
+                    'videos',
                     Video.objects.filter(pk__in=Subquery(second_query)).annotate(
-                        views_count=Count("views", distinct=True)
+                        views_count=Count('views', distinct=True)
                     ),
                 )
             )
@@ -137,22 +137,22 @@ class ChannelAboutView(generics.RetrieveAPIView):
     """
 
     serializer_class = serializers.ChannelAboutSerializer
-    lookup_url_kwarg = "slug"
-    lookup_field = "slug"
+    lookup_url_kwarg = 'slug'
+    lookup_field = 'slug'
 
     def get_queryset(self):
         queryset = (
             Channel.objects.all()
-            .select_related("user")
+            .select_related('user')
             .annotate(
-                total_views=Count("videos__views", distinct=True),
-                total_videos=Count("videos", filter=Q(videos__status=Video.VideoStatus.PUBLIC), distinct=True),
-                total_subs=Count("followers", distinct=True),
+                total_views=Count('videos__views', distinct=True),
+                total_videos=Count('videos', filter=Q(videos__status=Video.VideoStatus.PUBLIC), distinct=True),
+                total_subs=Count('followers', distinct=True),
             )
         )
         return queryset
 
-    @method_decorator(cache_page(60 * 15, key_prefix="channel_about"))
+    @method_decorator(cache_page(60 * 15, key_prefix='channel_about'))
     def retrieve(self, request, *args, **kwargs):
         """
         Custom 'retrieve' method with @cache_page decorator caching.
@@ -168,11 +168,11 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
 
     def _sub_validation(self, request):
         subscriber = request.user.channel
-        subscribed_to = get_object_or_404(Channel, slug=request.data.get("to"))
+        subscribed_to = get_object_or_404(Channel, slug=request.data.get('to'))
 
         if subscriber.pk == subscribed_to.pk:
             return (
-                Response({"error": "You cannot subscribe to yourself"}, status=status.HTTP_400_BAD_REQUEST),
+                Response({'error': 'You cannot subscribe to yourself'}, status=status.HTTP_400_BAD_REQUEST),
                 None,
                 None,
             )
@@ -181,16 +181,16 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
 
     @extend_schema(
         request={
-            "application/json": {
-                "type": "object",
-                "properties": {
-                    "to": {
-                        "type": "string",
-                        "description": "'slug' field from channel instance to subscribe",
-                        "example": "henwix",
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'to': {
+                        'type': 'string',
+                        'description': "'slug' field from channel instance to subscribe",
+                        'example': 'henwix',
                     }
                 },
-                "required": ["to"],
+                'required': ['to'],
             }
         },
         responses={
@@ -200,9 +200,9 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
             400: OpenApiTypes.OBJECT,
             404: OpenApiTypes.OBJECT,
         },
-        examples=[OpenApiExample("Example: sub to 'henwix' channel", value={"to": "henwix"}, request_only=True)],
+        examples=[OpenApiExample("Example: sub to 'henwix' channel", value={'to': 'henwix'}, request_only=True)],
     )
-    @action(methods=["post"], url_path="subscribe", detail=False)
+    @action(methods=['post'], url_path='subscribe', detail=False)
     def subscribe(self, request):
         """
         API endpoint to subscribe.
@@ -217,22 +217,22 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
         _, created = SubscriptionItem.objects.get_or_create(subscriber=subscriber, subscribed_to=subscribed_to)
 
         if created:
-            return Response({"status": "Success"}, status=status.HTTP_201_CREATED)
+            return Response({'status': 'Success'}, status=status.HTTP_201_CREATED)
 
-        return Response({"status": "Already subscribed"}, status=status.HTTP_200_OK)
+        return Response({'status': 'Already subscribed'}, status=status.HTTP_200_OK)
 
     @extend_schema(
         request={
-            "application/json": {
-                "type": "object",
-                "properties": {
-                    "to": {
-                        "type": "string",
-                        "description": "'slug' field from channel's instance to unsubscribe",
-                        "example": "henwix",
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'to': {
+                        'type': 'string',
+                        'description': "'slug' field from channel's instance to unsubscribe",
+                        'example': 'henwix',
                     }
                 },
-                "required": ["to"],
+                'required': ['to'],
             }
         },
         responses={
@@ -242,9 +242,9 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
             400: OpenApiTypes.OBJECT,
             404: OpenApiTypes.OBJECT,
         },
-        examples=[OpenApiExample("Example: unsub from 'henwix' channel", value={"to": "henwix"}, request_only=True)],
+        examples=[OpenApiExample("Example: unsub from 'henwix' channel", value={'to': 'henwix'}, request_only=True)],
     )
-    @action(methods=["post"], url_path="unsubscribe", detail=False)
+    @action(methods=['post'], url_path='unsubscribe', detail=False)
     def unsubscribe(self, request):
         """
         API endpoint to unsubscribe.
@@ -259,6 +259,6 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
         deleted, _ = SubscriptionItem.objects.filter(subscriber=subscriber, subscribed_to=subscribed_to).delete()
 
         if deleted:
-            return Response({"status": "Success"}, status=status.HTTP_204_NO_CONTENT)
+            return Response({'status': 'Success'}, status=status.HTTP_204_NO_CONTENT)
 
-        return Response({"error": "Subscription does not exists"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': 'Subscription does not exists'}, status=status.HTTP_404_NOT_FOUND)

@@ -27,17 +27,17 @@ class CustomUserViewSet(UserViewSet):
     Mails for account activation, confirmation, reset_password and reset_username will be send via Celery.
     """
 
-    queryset = get_user_model().objects.all().prefetch_related("channel")
+    queryset = get_user_model().objects.all().prefetch_related('channel')
 
     def _get_mail_args(self, user):
-        context = {"user_id": user.pk}
+        context = {'user_id': user.pk}
         to = [get_user_email(user)]
         return context, to
 
     def _serializer_validation(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.get_user(is_active=False if self.action == "resend_activation" else True)
+        user = serializer.get_user(is_active=False if self.action == 'resend_activation' else True)
         return user
 
     def _check_activation_email(self, user):
@@ -55,7 +55,7 @@ class CustomUserViewSet(UserViewSet):
         signals.user_updated.send(sender=self.__class__, user=user, request=self.request)
         self._check_activation_email(user)
 
-    @action(["post"], detail=False)
+    @action(['post'], detail=False)
     def activation(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -68,9 +68,9 @@ class CustomUserViewSet(UserViewSet):
         if settings.SEND_CONFIRMATION_EMAIL:
             context, to = self._get_mail_args(user)
             send_confirmation_email.apply_async(args=[context, to], ignore_result=True)
-        return Response({"success", "Your account successfuly activated!"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'success', 'Your account successfuly activated!'}, status=status.HTTP_204_NO_CONTENT)
 
-    @action(["post"], detail=False)
+    @action(['post'], detail=False)
     def resend_activation(self, request, *args, **kwargs):
         user = self._serializer_validation(request)
 
@@ -82,7 +82,7 @@ class CustomUserViewSet(UserViewSet):
             send_activation_email.apply_async(args=[context, to], ignore_result=True)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(["post"], detail=False)
+    @action(['post'], detail=False)
     def reset_password(self, request, *args, **kwargs):
         user = self._serializer_validation(request)
 
@@ -91,7 +91,7 @@ class CustomUserViewSet(UserViewSet):
             send_reset_password_email.apply_async(args=[context, to], ignore_result=True)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(["post"], detail=False, url_path=f"reset_{get_user_model().USERNAME_FIELD}")
+    @action(['post'], detail=False, url_path=f'reset_{get_user_model().USERNAME_FIELD}')
     def reset_username(self, request, *args, **kwargs):
         user = self._serializer_validation(request)
 

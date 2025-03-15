@@ -4,12 +4,10 @@ from apps.videos.serializers import VideoPreviewSerializer
 
 from .models import Channel, SubscriptionItem
 
-
 # TODO:    - likes to comments and posts: add, delete
 # TODO:    - posts: add, detail, delete
 # TODO:    - watch history
 # TODO:    - playlists
-
 
 
 class ChannelSerializer(serializers.ModelSerializer):
@@ -19,28 +17,28 @@ class ChannelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Channel
-        fields = ["name", "slug", "description", "country", "channel_avatar"]
-        read_only_fields = ["user"]
+        fields = ['name', 'slug', 'description', 'country', 'channel_avatar']
+        read_only_fields = ['user']
         extra_kwargs = {
-            "name": {
-                "required": False,
+            'name': {
+                'required': False,
             },
         }
 
     def validate_channel_avatar(self, value):
         if value and value.size > 1 * 1024 * 1024:
-            raise serializers.ValidationError("File size must be less than 1MB.")
+            raise serializers.ValidationError('File size must be less than 1MB.')
 
         return value
 
     def update(self, instance, validated_data):
-        uploaded_avatar = validated_data.get("channel_avatar")
+        uploaded_avatar = validated_data.get('channel_avatar')
 
         if uploaded_avatar and instance.channel_avatar:
             instance.channel_avatar.delete(save=False)
 
         if uploaded_avatar is None:
-            validated_data.pop("channel_avatar")
+            validated_data.pop('channel_avatar')
 
         return super().update(instance, validated_data)
 
@@ -56,7 +54,7 @@ class ChannelAndVideosSerializer(ChannelSerializer):
 
     class Meta:
         model = ChannelSerializer.Meta.model
-        fields = ChannelSerializer.Meta.fields + ["subs_count", "videos"]
+        fields = ChannelSerializer.Meta.fields + ['subs_count', 'videos']
 
 
 class ChannelAboutSerializer(serializers.ModelSerializer):
@@ -67,28 +65,28 @@ class ChannelAboutSerializer(serializers.ModelSerializer):
     total_videos = serializers.IntegerField(read_only=True)
     total_views = serializers.IntegerField(read_only=True)
     total_subs = serializers.IntegerField(read_only=True)
-    date_joined = serializers.DateTimeField(source="user.date_joined", read_only=True)
+    date_joined = serializers.DateTimeField(source='user.date_joined', read_only=True)
     channel_link = serializers.HyperlinkedIdentityField(
-        view_name="v1:channels:channel-show",
-        lookup_field="slug",
-        lookup_url_kwarg="slug",
+        view_name='v1:channels:channel-show',
+        lookup_field='slug',
+        lookup_url_kwarg='slug',
     )
 
     class Meta:
         model = Channel
-        fields = ["description", "date_joined", "country", "channel_link", "total_views", "total_videos", "total_subs"]
+        fields = ['description', 'date_joined', 'country', 'channel_link', 'total_views', 'total_videos', 'total_subs']
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
-    sub_slug = serializers.CharField(source="subscriber.slug", read_only=True)
+    sub_slug = serializers.CharField(source='subscriber.slug', read_only=True)
     sub_link = serializers.HyperlinkedRelatedField(
-        view_name="v1:channels:channel-show",
-        lookup_field="slug",
-        lookup_url_kwarg="slug",
-        source="subscriber",
+        view_name='v1:channels:channel-show',
+        lookup_field='slug',
+        lookup_url_kwarg='slug',
+        source='subscriber',
         read_only=True,
     )
 
     class Meta:
         model = SubscriptionItem
-        fields = ["sub_slug", "sub_link", "created_at"]
+        fields = ['sub_slug', 'sub_link', 'created_at']

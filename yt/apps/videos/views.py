@@ -20,7 +20,10 @@ from rest_framework.status import (
 from rest_framework.views import APIView
 
 from apps.common.pagination import CustomCursorPagination
-from apps.common.permissions import IsAuthenticatedOrAdminOrReadOnly, IsAuthenticatedOrAuthorOrReadOnly
+from apps.common.permissions import (
+    IsAuthenticatedOrAdminOrReadOnly,
+    IsAuthenticatedOrAuthorOrReadOnly,
+)
 
 from . import serializers
 from .filters import VideoFilter
@@ -35,15 +38,15 @@ class VideoViewSet(viewsets.ModelViewSet):
     Example: api/v1/video?search=airplane
     """
 
-    lookup_field = "video_id"
-    lookup_url_kwarg = "video_id"
+    lookup_field = 'video_id'
+    lookup_url_kwarg = 'video_id'
     permission_classes = [IsAuthenticatedOrAdminOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, django_filters.rest_framework.DjangoFilterBackend]
     filterset_class = VideoFilter
     pagination_class = CustomCursorPagination
-    search_fields = ["@name", "@description", "@author__name", "@author__slug"]
-    ordering_fields = ["created_at", "views_count"]
-    throttle_scope = "video"
+    search_fields = ['@name', '@description', '@author__name', '@author__slug']
+    ordering_fields = ['created_at', 'views_count']
+    throttle_scope = 'video'
 
     # TODO: доделать multipart upload
     # def create(self, request, *args, **kwargs):
@@ -58,7 +61,7 @@ class VideoViewSet(viewsets.ModelViewSet):
 
     #     return super().create(request, *args, **kwargs)
 
-    @action(url_path="like", methods=["post", "delete"], detail=True)
+    @action(url_path='like', methods=['post', 'delete'], detail=True)
     def like(self, request, video_id):
         """
         API endpoint for 'likes' and 'dislikes' actions.
@@ -74,14 +77,14 @@ class VideoViewSet(viewsets.ModelViewSet):
         channel = request.user.channel
         video = get_object_or_404(Video, video_id=video_id)
 
-        if request.method == "POST":
-            is_like = request.data.get("is_like", True)
+        if request.method == 'POST':
+            is_like = request.data.get('is_like', True)
 
             like, created = VideoLike.objects.get_or_create(
                 channel=channel,
                 video=video,
                 defaults={
-                    "is_like": is_like,
+                    'is_like': is_like,
                 },
             )
 
@@ -89,17 +92,17 @@ class VideoViewSet(viewsets.ModelViewSet):
                 like.is_like = is_like
                 like.save()
 
-            return Response({"status": "success", "is_like": is_like}, status=HTTP_200_OK)
+            return Response({'status': 'success', 'is_like': is_like}, status=HTTP_200_OK)
 
-        if request.method == "DELETE":
+        if request.method == 'DELETE':
             deleted, _ = VideoLike.objects.filter(channel=channel, video=video).delete()
 
             if deleted:
-                return Response({"status": "Success"}, status=HTTP_204_NO_CONTENT)
+                return Response({'status': 'Success'}, status=HTTP_204_NO_CONTENT)
             else:
-                return Response({"error": "Like not found"}, HTTP_404_NOT_FOUND)
+                return Response({'error': 'Like not found'}, HTTP_404_NOT_FOUND)
 
-    @action(url_path="view", methods=["post"], detail=True)
+    @action(url_path='view', methods=['post'], detail=True)
     def view(self, request, video_id):
         """
         API endpoint for adding views to videos.
@@ -110,9 +113,9 @@ class VideoViewSet(viewsets.ModelViewSet):
         Example: http://127.0.0.1:8001/api/v1/video/JDcWD0w9aJD/view/
         """
 
-        channel = getattr(request.user, "channel", None)
+        channel = getattr(request.user, 'channel', None)
         video = get_object_or_404(Video, video_id=video_id)
-        ip_address = request.META.get("REMOTE_ADDR")
+        ip_address = request.META.get('REMOTE_ADDR')
 
         last_view = VideoView.objects.filter(
             channel=channel if channel else None,
@@ -127,9 +130,9 @@ class VideoViewSet(viewsets.ModelViewSet):
                 video=video,
                 ip_address=ip_address,
             )
-            return Response({"status": "success"}, status=HTTP_201_CREATED)
+            return Response({'status': 'success'}, status=HTTP_201_CREATED)
         else:
-            return Response({"error": "View already exists"}, status=HTTP_400_BAD_REQUEST)
+            return Response({'error': 'View already exists'}, status=HTTP_400_BAD_REQUEST)
 
     def get_serializer_class(self):
         """
@@ -137,7 +140,7 @@ class VideoViewSet(viewsets.ModelViewSet):
         If action is list - return VideoPreviewSerializer else VideoSerializer
         """
 
-        if self.action == "list":
+        if self.action == 'list':
             return serializers.VideoPreviewSerializer
         return serializers.VideoSerializer
 
@@ -149,30 +152,30 @@ class VideoViewSet(viewsets.ModelViewSet):
         If action == 'retrieve' - add views_count and likes_count for 'Video' detail info.
         """
 
-        if self.action == "list":
-            if not self.request.query_params.get("search"):
+        if self.action == 'list':
+            if not self.request.query_params.get('search'):
                 return []
             return (
-                Video.objects.select_related("author")
+                Video.objects.select_related('author')
                 .filter(status=Video.VideoStatus.PUBLIC)
-                .annotate(views_count=Count("views", distinct=True))
+                .annotate(views_count=Count('views', distinct=True))
             )
-        if self.action == "retrieve":
+        if self.action == 'retrieve':
             return (
-                Video.objects.select_related("author")
+                Video.objects.select_related('author')
                 .all()
                 .annotate(
-                    views_count=Count("views", distinct=True),
-                    likes_count=Count("likes", filter=Q(likes__is_like=True), distinct=True),
-                    comments_count=Count("comments"),
-                    subs_count=Count("author__followers", distinct=True),
+                    views_count=Count('views', distinct=True),
+                    likes_count=Count('likes', filter=Q(likes__is_like=True), distinct=True),
+                    comments_count=Count('comments'),
+                    subs_count=Count('author__followers', distinct=True),
                 )
             )
         return Video.objects.all()
 
     def list(self, request, *args, **kwargs):
-        if not request.query_params.get("search"):
-            return Response({"None": "No results found. Try different keywords or remove search filters"})
+        if not request.query_params.get('search'):
+            return Response({'None': 'No results found. Try different keywords or remove search filters'})
         return super().list(request, *args, **kwargs)
 
 
@@ -195,17 +198,17 @@ class CommentVideoAPIView(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrAuthorOrReadOnly]
 
     def get_queryset(self):
-        if self.action == "list":
-            video = self.request.query_params.get("v")
+        if self.action == 'list':
+            video = self.request.query_params.get('v')
             if not video:
                 return []
-            return VideoComment.objects.all().select_related("author", "video").filter(video__video_id=video)
-        return VideoComment.objects.all().select_related("author", "video")
+            return VideoComment.objects.all().select_related('author', 'video').filter(video__video_id=video)
+        return VideoComment.objects.all().select_related('author', 'video')
 
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                name="v",
+                name='v',
                 description="*Required parameter to get related video's comments.",
                 required=True,
                 type=str,
@@ -213,8 +216,8 @@ class CommentVideoAPIView(viewsets.ModelViewSet):
         ]
     )
     def list(self, request, *args, **kwargs):
-        if not request.query_params.get("v"):
-            return Response({"None": "No comments found."})
+        if not request.query_params.get('v'):
+            return Response({'None': 'No comments found.'})
         return super().list(request, *args, **kwargs)
 
 
@@ -226,24 +229,24 @@ class GeneratePresignedUrlView(APIView):
     """
 
     def get(self, request, filename):
-        if filename and filename[-4:] not in [".png", ".jpg"]:
-            return Response({"error": "Unsupported file format"}, status=HTTP_400_BAD_REQUEST)
+        if filename and filename[-4:] not in ['.png', '.jpg']:
+            return Response({'error': 'Unsupported file format'}, status=HTTP_400_BAD_REQUEST)
 
         s3_client = boto3.client(
-            "s3",
-            aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
-            aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
-            region_name=os.environ.get("AWS_S3_REGION_NAME"),
+            's3',
+            aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+            region_name=os.environ.get('AWS_S3_REGION_NAME'),
         )
 
         url = s3_client.generate_presigned_url(
-            "put_object",
+            'put_object',
             Params={
-                "Bucket": os.environ.get("AWS_STORAGE_BUCKET_NAME"),
-                "Key": f"channel_avatars/{filename}",
+                'Bucket': os.environ.get('AWS_STORAGE_BUCKET_NAME'),
+                'Key': f'channel_avatars/{filename}',
             },
             ExpiresIn=120,
-            HttpMethod="PUT",
+            HttpMethod='PUT',
         )
 
-        return Response({"put_url": url}, status=HTTP_200_OK)
+        return Response({'put_url': url}, status=HTTP_200_OK)

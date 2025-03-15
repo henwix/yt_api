@@ -2,9 +2,9 @@ from apps.channels.models import Channel, SubscriptionItem
 
 
 def run():
-    henwix = Channel.objects.filter(slug="henwix").first()
+    henwix = Channel.objects.filter(slug='henwix').first()
     # number = random.randint(1, 45)
-    channels = Channel.objects.exclude(slug="henwix")
+    channels = Channel.objects.exclude(slug='henwix')
 
     subs = []
     for i in channels:
@@ -12,4 +12,4 @@ def run():
 
     SubscriptionItem.objects.bulk_create(subs)
 
-    print("done")
+    print('done')

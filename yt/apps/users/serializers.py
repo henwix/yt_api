@@ -13,7 +13,7 @@ class CustomUserCreatePasswordRetypeSerializer(UserCreatePasswordRetypeSerialize
         """
 
         fields = super().get_fields()
-        fields["channel"] = ChannelSerializer()
+        fields['channel'] = ChannelSerializer()
 
         return fields
 
@@ -25,28 +25,28 @@ class CustomUserCreateSerializer(UserCreateSerializer):
     """
 
     def create(self, validated_data):
-        channel_data = validated_data.pop("channel", {})
+        channel_data = validated_data.pop('channel', {})
 
         # if 'name' field is missing in data, it'll be created based on username
-        channel_data.setdefault("name", validated_data.get("username"))
+        channel_data.setdefault('name', validated_data.get('username'))
 
         # if 'slug' fields in missing in data, it'll be created based on 'name' + uuid
-        if not channel_data.get("slug"):
-            base_slug = channel_data.get("name").replace(" ", "")
+        if not channel_data.get('slug'):
+            base_slug = channel_data.get('name').replace(' ', '')
             unique_slug = base_slug
 
             if Channel.objects.filter(slug=unique_slug).exists():
-                unique_slug = base_slug + "_" + uuid.uuid4().hex[:8]
+                unique_slug = base_slug + '_' + uuid.uuid4().hex[:8]
 
-            channel_data["slug"] = unique_slug
+            channel_data['slug'] = unique_slug
         else:
-            channel_data["slug"] = channel_data.get("slug")
+            channel_data['slug'] = channel_data.get('slug')
 
         # create user instance
         user = super().create(validated_data)
 
         # add created user in channel_data to provide 'author' field
-        channel_data["user"] = user
+        channel_data['user'] = user
 
         # create channel
         Channel.objects.create(**channel_data)
@@ -58,9 +58,9 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         Need to .pop 'channel' attribute to fix error of unexpected field
         """
 
-        channel_data = attrs.pop("channel", {})
+        channel_data = attrs.pop('channel', {})
         attrs = super().validate(attrs)
-        attrs["channel"] = channel_data
+        attrs['channel'] = channel_data
 
         return attrs
 
@@ -70,7 +70,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         """
 
         fields = super().get_fields()
-        fields["channel"] = ChannelSerializer()
+        fields['channel'] = ChannelSerializer()
 
         return fields
 
@@ -83,6 +83,6 @@ class CustomUserSerializer(UserSerializer):
 
     def get_fields(self):
         fields = super().get_fields()
-        fields["channel"] = ChannelSerializer(read_only=True)
+        fields['channel'] = ChannelSerializer(read_only=True)
 
         return fields

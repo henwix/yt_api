@@ -13,8 +13,8 @@ log = logging.getLogger(__name__)
 def _delete_channel_cache(instance):
     """Mixin to delete channel's cache"""
 
-    cache.delete(f"retrieve_channel_{instance.user.pk}")
-    log.info("Cache for %s deleted", instance.name)
+    cache.delete(f'retrieve_channel_{instance.user.pk}')
+    log.info('Cache for %s deleted', instance.name)
 
 
 @receiver(signal=[post_save], sender=Channel)
@@ -39,15 +39,15 @@ def delete_channel_files_signal(instance, **kwargs):
 
     # Collect all related videos to list and if it's not empty extend to files
     if instance.videos.exists():
-        videos = [{"Key": video.file.name} for video in instance.videos.all() if video.file]
+        videos = [{'Key': video.file.name} for video in instance.videos.all() if video.file]
         files.extend(videos)
 
     # If channel_avatar exists it'll append to files list
     if instance.channel_avatar and instance.channel_avatar.name:
-        files.append({"Key": instance.channel_avatar.name})
+        files.append({'Key': instance.channel_avatar.name})
 
     if files:
-        log.info("Start deleting files task for %s", instance.name)
+        log.info('Start deleting files task for %s', instance.name)
         delete_channel_files_task.delay(files)
     else:
-        log.info("No files to delete for %s", instance.name)
+        log.info('No files to delete for %s', instance.name)

@@ -19,32 +19,32 @@ def generate_video_link():
     chars = string.digits + string.ascii_letters
 
     while True:
-        link = "".join(random.choices(chars, k=11))
+        link = ''.join(random.choices(chars, k=11))
         if not Video.objects.filter(video_id=link).exists():
             return link
 
 
 class Video(models.Model):
     class VideoStatus(models.TextChoices):
-        PRIVATE = "PRIVATE", "Private"
-        UNLISTED = "UNLISTED", "Unlisted"
-        PUBLIC = "PUBLIC", "Public"
+        PRIVATE = 'PRIVATE', 'Private'
+        UNLISTED = 'UNLISTED', 'Unlisted'
+        PUBLIC = 'PUBLIC', 'Public'
 
     class UploadStatus(models.TextChoices):
-        PENDING = "PENDING", "Pending"
-        IN_PROGRESS = "IN_PROGRESS", "In progress"
-        FINISHED = "FINISHED", "Finished"
+        PENDING = 'PENDING', 'Pending'
+        IN_PROGRESS = 'IN_PROGRESS', 'In progress'
+        FINISHED = 'FINISHED', 'Finished'
 
     video_id = models.CharField(
         max_length=11, unique=True, primary_key=True, default=generate_video_link, editable=False
     )
-    author = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="videos", db_index=True)
+    author = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='videos', db_index=True)
     name = models.CharField(max_length=100, db_index=True)
     description = models.TextField(blank=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     yt_link = models.CharField(max_length=255, blank=True)
     status = models.CharField(max_length=10, choices=VideoStatus.choices, default=VideoStatus.PUBLIC)
-    file = models.FileField(upload_to="videos", blank=True, null=True)
+    file = models.FileField(upload_to='videos', blank=True, null=True)
     upload_status = models.CharField(choices=UploadStatus.choices, default=UploadStatus.PENDING)
 
     # managers
@@ -52,43 +52,45 @@ class Video(models.Model):
     public_unlisted_videos = PublicAndUnlistedVideosManager()
 
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ['-created_at']
 
     def __str__(self):
         return self.name
 
 
 class VideoLike(models.Model):
-    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="liked_videos", db_index=True)
-    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="likes", db_index=True)
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='liked_videos', db_index=True)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='likes', db_index=True)
     is_like = models.BooleanField()
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["channel", "video"], name="unique_channel_video_like"),
+            models.UniqueConstraint(fields=['channel', 'video'], name='unique_channel_video_like'),
         ]
 
     def __str__(self):
-        return f"Like on video: {self.video}, by {self.channel}"
+        return f'Like on video: {self.video}, by {self.channel}'
 
 
 class VideoView(models.Model):
-    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="views", db_index=True)
-    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="video_views", blank=True, null=True, db_index=True)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='views', db_index=True)
+    channel = models.ForeignKey(
+        Channel, on_delete=models.CASCADE, related_name='video_views', blank=True, null=True, db_index=True
+    )
     ip_address = models.GenericIPAddressField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"View on video: {self.video}, by ch: {getattr(self, 'channel')} | ip: {getattr(self, 'ip_address')}"
+        return f'View on video: {self.video}, by ch: {getattr(self, "channel")} | ip: {getattr(self, "ip_address")}'
 
 
 class VideoComment(models.Model):
-    author = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name="video_comments", db_index=True)
-    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="comments", db_index=True)
+    author = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='video_comments', db_index=True)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='comments', db_index=True)
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    likes = models.ManyToManyField(Channel, related_name="liked_video_comments", blank=True)
+    likes = models.ManyToManyField(Channel, related_name='liked_video_comments', blank=True)
 
     def __str__(self):
-        return f"Comment by {self.author}, video: {self.video}"
+        return f'Comment by {self.author}, video: {self.video}'

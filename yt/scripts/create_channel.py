@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 
 
 def run():
-    username = "root"
+    username = "henwix"
 
     user = get_user_model()(
         username=username,

@@ -1,16 +1,20 @@
 import os
 
+import boto3
 from celery import shared_task
-from django.core.mail import send_mail
 
 
 @shared_task
-def simple_task():
-    subject = "Thanks for signing up on our platform!"
-    message = "This is simple notification that"
-    from_email = os.environ.get("EMAIL_HOST_USER")
-    recipient_list = ["492b675xhpd1@gmail.com"]
+def delete_channel_files_task(files):
+    s3_client = boto3.client(
+        "s3",
+        aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
+        region_name=os.environ.get("AWS_S3_REGION_NAME"),
+    )
+    try:
+        response = s3_client.delete_objects(Bucket="django-henwix-bucket", Delete={"Objects": files})
+        return f"Files successfuly deleted: {len(response.get('Deleted', []))}"
 
-    send_mail(subject, message, from_email, recipient_list, fail_silently=False)
-
-    return "Email sent to user."
+    except Exception as e:
+        return f"Failed to delete files: {e}"

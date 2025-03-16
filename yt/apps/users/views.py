@@ -8,7 +8,7 @@ from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
+from django.db import transaction
 from .tasks import (
     send_activation_email,
     send_confirmation_email,
@@ -46,14 +46,16 @@ class CustomUserViewSet(UserViewSet):
             send_activation_email.apply_async(args=[context, to], ignore_result=True)
 
     def perform_create(self, serializer, *args, **kwargs):
-        user = serializer.save(*args, **kwargs)
-        signals.user_registered.send(sender=self.__class__, user=user, request=self.request)
-        self._check_activation_email(user)
+        with transaction.atomic():
+            user = serializer.save(*args, **kwargs)
+            signals.user_registered.send(sender=self.__class__, user=user, request=self.request)
+            transaction.on_commit(lambda: self._check_activation_email(user))
 
     def perform_update(self, serializer, *args, **kwargs):
-        user = serializer.save()
-        signals.user_updated.send(sender=self.__class__, user=user, request=self.request)
-        self._check_activation_email(user)
+        with transaction.atomic():
+            user = serializer.save()
+            signals.user_updated.send(sender=self.__class__, user=user, request=self.request)
+            transaction.on_commit(lambda: self._check_activation_email(user))
 
     @action(['post'], detail=False)
     def activation(self, request, *args, **kwargs):

@@ -1,6 +1,7 @@
 import logging
 
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from djoser import signals
 from djoser.compat import get_user_email
 from djoser.conf import settings
@@ -8,7 +9,7 @@ from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db import transaction
+
 from .tasks import (
     send_activation_email,
     send_confirmation_email,
@@ -52,10 +53,9 @@ class CustomUserViewSet(UserViewSet):
             transaction.on_commit(lambda: self._check_activation_email(user))
 
     def perform_update(self, serializer, *args, **kwargs):
-        with transaction.atomic():
-            user = serializer.save()
-            signals.user_updated.send(sender=self.__class__, user=user, request=self.request)
-            transaction.on_commit(lambda: self._check_activation_email(user))
+        user = serializer.save()
+        signals.user_updated.send(sender=self.__class__, user=user, request=self.request)
+        transaction.on_commit(lambda: self._check_activation_email(user))
 
     @action(['post'], detail=False)
     def activation(self, request, *args, **kwargs):

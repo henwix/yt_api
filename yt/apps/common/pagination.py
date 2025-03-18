@@ -13,3 +13,4 @@ class CustomCursorPagination(CursorPagination):
     page_size_query_param = 'page_size'
     ordering = '-created_at'
     max_page_size = 50
+

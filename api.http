@@ -76,10 +76,10 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 POST http://127.0.0.1:8001/api/v1/subscription/subscribe/ HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQyMDk2NjQzLCJpYXQiOjE3NDIwMTAyNDMsImp0aSI6IjQzMmZjNjdmMTBkOTRkMjk4ODExMGFjYTllMjAyYjc3IiwidXNlcl9pZCI6NDJ9.NEIDVSFg08836tkl99szHXHNzGlhhuwnG1d-ITpvO3w
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQyMzYxODUxLCJpYXQiOjE3NDIyNzU0NTEsImp0aSI6ImYzZDRlZTZjZTA4NjQzM2JiODE5ODM4MTg4ZWRjOWNiIiwidXNlcl9pZCI6NDl9.s6Dh2ADE_7433sq0qPDd2TPZvsiAntU7g96gdNutpIU
 
 {
-    "to": "henwix"
+    "to": "admin"
 }
 
 ###
@@ -113,3 +113,9 @@ Content-Type: application/json
     "token": "cmlsrb-5369d85ef4be0f2ea255ff7e50976d6c",
     "new_username": "FinkHenwix"
 }
+
+###
+
+POST http://127.0.0.1:8001/api/v1/history/add/?v=JQPCTEBEkfq
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQyMzgwOTA0LCJpYXQiOjE3NDIyOTQ1MDQsImp0aSI6IjY4MzVlMDQ5YjVjNjQ0NGZhNDY3YWVkYmY1NTQ5YmNjIiwidXNlcl9pZCI6NTh9.aeUX52MPUM0vH79A1f8TXj-9AFKQMA0TwjJOzB30r78

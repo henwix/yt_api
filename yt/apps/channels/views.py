@@ -111,18 +111,18 @@ class ChannelMainView(generics.RetrieveAPIView):
         second_query = (
             Video.objects.select_related('author')
             .filter(author__slug=OuterRef('author__slug'), status=Video.VideoStatus.PUBLIC)
+            .order_by('-created_at')
             .values('pk')[:5]
         )
-        # FIXME: почему-то видео выдаются в странном порядке, только что сделал видео, оно выдаётся не последним, а 3м в списке, хотя должно первым. Название видео 'we'
         queryset = (
             Channel.objects.all()
             .annotate(subs_count=Count('followers', distinct=True))
             .prefetch_related(
                 Prefetch(
                     'videos',
-                    Video.objects.filter(pk__in=Subquery(second_query)).annotate(
-                        views_count=Count('views', distinct=True)
-                    ),
+                    Video.objects.filter(pk__in=Subquery(second_query))
+                    .annotate(views_count=Count('views', distinct=True))
+                    .order_by('-created_at'),
                 )
             )
         )

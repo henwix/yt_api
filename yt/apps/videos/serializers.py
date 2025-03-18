@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Video, VideoComment
+from .models import Video, VideoComment, VideoHistory
 
 
 class VideoCommentSerializer(serializers.ModelSerializer):
@@ -105,3 +105,17 @@ class VideoPreviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
         fields = ['name', 'created_at', 'yt_link', 'video_link', 'author_name', 'author_link', 'views_count']
+
+
+class VideoHistorySerializer(serializers.ModelSerializer):
+    video = VideoPreviewSerializer(many=False)
+
+    class Meta:
+        model = VideoHistory
+        fields = ['video', 'watched_at']
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        validated_data['channel'] = request.user.channel
+
+        return super().create(validated_data)

@@ -1,6 +1,8 @@
 import uuid
 
-from djoser.serializers import UserCreatePasswordRetypeSerializer, UserCreateSerializer, UserSerializer
+from django.contrib.auth import get_user_model
+from django.db import IntegrityError
+from djoser.serializers import UserCreatePasswordRetypeSerializer, UserCreateSerializer, UserSerializer, ValidationError
 
 from apps.channels.models import Channel
 from apps.channels.serializers import ChannelSerializer
@@ -42,16 +44,21 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         else:
             channel_data['slug'] = channel_data.get('slug')
 
-        # create user instance
-        user = super().create(validated_data)
+        try:
+            # create user instance
+            user = super().create(validated_data)
+            # add created user in channel_data to provide 'author' field
+            channel_data['user'] = user
+            # create channel
+            Channel.objects.create(**channel_data)
 
-        # add created user in channel_data to provide 'author' field
-        channel_data['user'] = user
-
-        # create channel
-        Channel.objects.create(**channel_data)
-
+        except IntegrityError as e:
+            raise ValidationError({'error': str(e)})
         return user
+
+    def validate_email(self, value):
+        if get_user_model().objects.filter(email=value).exists():
+            raise ValidationError('A user with that email already exists.')
 
     def validate(self, attrs):
         """

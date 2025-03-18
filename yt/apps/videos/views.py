@@ -1,14 +1,17 @@
+import logging
 import os
 from datetime import timedelta
 
 import boto3
 import django_filters
+from django.db import IntegrityError
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from rest_framework import filters, viewsets
+from rest_framework import filters, mixins, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
@@ -27,7 +30,10 @@ from apps.common.permissions import (
 
 from . import serializers
 from .filters import VideoFilter
-from .models import Video, VideoComment, VideoLike, VideoView
+from .models import Video, VideoComment, VideoHistory, VideoLike, VideoView
+from .pagination import HistoryCurstorPagination
+
+log = logging.getLogger(__name__)
 
 
 class VideoViewSet(viewsets.ModelViewSet):
@@ -250,3 +256,90 @@ class GeneratePresignedUrlView(APIView):
         )
 
         return Response({'put_url': url}, status=HTTP_200_OK)
+
+
+class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """
+    API endpoint to get list of wathed videos.
+    Supports cursor pagonation.
+    Example: api/v1/history/
+    """
+
+    lookup_field = 'video_id'
+    permission_classes = [IsAuthenticated]
+    pagination_class = HistoryCurstorPagination
+
+    def get_queryset(self):
+        if self.action == 'delete':
+            return VideoHistory.objects.filter(channel=self.request.user.channel)
+        return VideoHistory.objects.filter(channel=self.request.user.channel).select_related('video__author')
+
+    def get_serializer_class(self):
+        return serializers.VideoHistorySerializer
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='v',
+                description='*Required parameter add video in history',
+                required=True,
+                type=str,
+            )
+        ]
+    )
+    @action(methods=['post'], detail=False, url_path='add', url_name='add')
+    def add_video_in_history(self, request):
+        """
+        API endpoint to add video in watching history.
+        To add video you need to provide required query parameter - 'v' with video_id.
+        Example: api/v1/history/add/?v=au90D2BoHuT
+        """
+
+        video_id = request.query_params.get('v')
+
+        if not video_id:
+            return Response(
+                {'error': 'To add video in history you need to provide his video_id'}, status=HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            history_item, created = VideoHistory.objects.get_or_create(channel=request.user.channel, video_id=video_id)
+        except IntegrityError:
+            return Response({'error': 'Video does not exists'})
+
+        if not created:
+            history_item.watched_at = timezone.now()
+            history_item.save(update_fields=['watched_at'])
+            return Response({'status': 'Success: Updated previous history item'}, status=HTTP_200_OK)
+
+        return Response({'status': 'Success: Created new history item'}, status=HTTP_201_CREATED)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='v',
+                description='*Required parameter to delete video from history.',
+                required=True,
+                type=str,
+            )
+        ]
+    )
+    @action(methods=['delete'], url_path='delete', url_name='delete', detail=False)
+    def delete_video_from_history(self, request):
+        """
+        API endpoint to delete video from watching history.
+        To delete video you need to provide required query parameter - 'v' with video_id.
+        Example: api/v1/history/delete/?v=au90D2BoHuT
+        """
+
+        video_id = request.query_params.get('v')
+
+        if not video_id:
+            return Response({'error': 'To delete video from history you need to provide his video_id'})
+
+        deleted, _ = VideoHistory.objects.filqter(channel=request.user.channel, video_id=video_id).delete()
+
+        if deleted:
+            return Response({'status': 'Video successfuly deleted from history'}, status=HTTP_204_NO_CONTENT)
+
+        return Response({'error': 'Video does not exists or never been in history'}, status=HTTP_404_NOT_FOUND)

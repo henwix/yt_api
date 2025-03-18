@@ -94,3 +94,12 @@ class VideoComment(models.Model):
 
     def __str__(self):
         return f'Comment by {self.author}, video: {self.video}'
+
+
+class VideoHistory(models.Model):
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='history', db_index=True)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, db_index=True)
+    watched_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['channel', 'video'], name='unique_watch_history')]

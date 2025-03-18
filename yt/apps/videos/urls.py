@@ -9,6 +9,7 @@ app_name = 'videos'
 router = DefaultRouter()
 router.register('video', views.VideoViewSet, basename='video')
 router.register('video-comment', views.CommentVideoAPIView, basename='video-comment')
+router.register('history', views.VideoHistoryView, basename='history')
 
 urlpatterns = [
     path('', include(router.urls)),

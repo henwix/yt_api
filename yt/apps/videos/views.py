@@ -9,7 +9,7 @@ from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from rest_framework import filters, mixins, viewsets
+from rest_framework import filters, generics, mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -30,8 +30,9 @@ from apps.common.permissions import (
 
 from . import serializers
 from .filters import VideoFilter
-from .models import Video, VideoComment, VideoHistory, VideoLike, VideoView
+from .models import Playlist, PlaylistItem, Video, VideoComment, VideoHistory, VideoLike, VideoView
 from .pagination import HistoryCurstorPagination
+from .permissions import IsAuthorOrReadOnlyPlaylist
 
 log = logging.getLogger(__name__)
 
@@ -215,7 +216,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet):
         parameters=[
             OpenApiParameter(
                 name='v',
-                description="*Required parameter to get related video's comments.",
+                description="Parameter identifying video to get related video's comment",
                 required=True,
                 type=str,
             )
@@ -268,20 +269,18 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
     lookup_field = 'video_id'
     permission_classes = [IsAuthenticated]
     pagination_class = HistoryCurstorPagination
+    serializer_class = serializers.VideoHistorySerializer
 
     def get_queryset(self):
         if self.action == 'delete':
             return VideoHistory.objects.filter(channel=self.request.user.channel)
         return VideoHistory.objects.filter(channel=self.request.user.channel).select_related('video__author')
 
-    def get_serializer_class(self):
-        return serializers.VideoHistorySerializer
-
     @extend_schema(
         parameters=[
             OpenApiParameter(
                 name='v',
-                description='*Required parameter add video in history',
+                description='Parameter identifying video to add in playlist.',
                 required=True,
                 type=str,
             )
@@ -318,7 +317,7 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
         parameters=[
             OpenApiParameter(
                 name='v',
-                description='*Required parameter to delete video from history.',
+                description='Parameter identifying video to delete from history.',
                 required=True,
                 type=str,
             )
@@ -328,7 +327,9 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
     def delete_video_from_history(self, request):
         """
         API endpoint to delete video from watching history.
+
         To delete video you need to provide required query parameter - 'v' with video_id.
+
         Example: api/v1/history/delete/?v=au90D2BoHuT
         """
 
@@ -337,9 +338,138 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
         if not video_id:
             return Response({'error': 'To delete video from history you need to provide his video_id'})
 
-        deleted, _ = VideoHistory.objects.filqter(channel=request.user.channel, video_id=video_id).delete()
+        deleted, _ = VideoHistory.objects.filter(channel=request.user.channel, video_id=video_id).delete()
 
         if deleted:
             return Response({'status': 'Video successfuly deleted from history'}, status=HTTP_204_NO_CONTENT)
 
         return Response({'error': 'Video does not exists or never been in history'}, status=HTTP_404_NOT_FOUND)
+
+
+class MyVideoView(generics.ListAPIView):
+    """
+    API endpoint to get all user's videos.
+
+    Supports cursor pagination.
+
+    Example: api/v1/my-videos/
+    """
+
+    serializer_class = serializers.VideoPreviewSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = CustomCursorPagination
+
+    def get_queryset(self):
+        return Video.objects.all().filter(author=self.request.user.channel).select_related('author')
+
+
+class PlaylistAPIView(viewsets.ModelViewSet):
+    """
+    API endpoint to list/retrieve/create/update/delete playlists.
+
+    Permissions and access:
+    - create: authenticated only
+    - list: authenticated only
+    - retrieve: allow any if not private
+    - delete and update: author or staff only
+
+    Example: api/v1/playlists/, api/v1/playlists/kn2puLWEDmqIvavBgvYRSypsb162jSHE/
+    """
+
+    # FIXME: check requests in silk and add pagination
+
+    lookup_field = 'id'
+    lookup_url_kwarg = 'id'
+    permission_classes = [IsAuthorOrReadOnlyPlaylist]
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return serializers.PlaylistPreviewSerializer
+        return serializers.PlaylistSerializer
+
+    def get_queryset(self):
+        if self.action == 'list':
+            return (
+                Playlist.objects.filter(channel=self.request.user.channel)
+                .prefetch_related('videos__author')
+                .select_related('channel')
+                .annotate(videos_count=Count('videos', distinct=True))
+            )
+        if self.action == 'retrieve':
+            return (
+                Playlist.objects.prefetch_related('videos__author')
+                .select_related('channel')
+                .annotate(videos_count=Count('videos', distinct=True))
+            )
+        return Playlist.objects.all()
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='v',
+                description='Parameter identifying video to add to playlist.',
+                required=True,
+                type=str,
+            )
+        ]
+    )
+    @action(methods=['post'], url_name='add-video', url_path='add-video', detail=True)
+    def add_video_in_playlist(self, request, id):
+        """
+        API endpoint to add video in playlist.
+
+        Requires 'playlist id' in URL and 'v' query param which contains video_id.
+
+        Example: /api/v1/playlists/W9MghI-EVXdkfYzfuvUmCCWlJRcPm1FT/add-video/?v=33CjPuGJsEZ
+        """
+
+        if not id:
+            return Response({'error': 'To add video you need to provide playlist id'}, status=HTTP_400_BAD_REQUEST)
+
+        video_id = request.query_params.get('v')
+
+        if not video_id:
+            return Response(
+                {'error': 'To add video in that playlist you need to provide video_id'}, status=HTTP_400_BAD_REQUEST
+            )
+
+        playlist_item, created = PlaylistItem.objects.get_or_create(playlist_id=id, video_id=video_id)
+        if created:
+            return Response({'status': 'Video added in playlist'}, status=HTTP_200_OK)
+        return Response({'status': 'Video already exists in that playlist'}, status=HTTP_200_OK)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='v',
+                description='Parameter identifying video to delete from playlist.',
+                required=True,
+                type=str,
+            )
+        ]
+    )
+    @action(methods=['delete'], url_name='delete-video', url_path='delete-video', detail=True)
+    def delete_video_from_playlist(self, request, id):
+        """
+        API endpoint to delete video from playlist.
+
+        Requires 'playlist id' in URL and 'v' query param which contains video_id.
+
+        Example: /api/v1/playlists/W9MghI-EVXdkfYzfuvUmCCWlJRcPm1FT/delete-video/?v=33CjPuGJsEZ
+        """
+
+        if not id:
+            return Response({'error': 'To delete video you need to provide playlist id'}, status=HTTP_400_BAD_REQUEST)
+
+        video_id = request.query_params.get('v')
+
+        if not video_id:
+            return Response(
+                {'error': 'To delete video in that playlist you need to provide video_id'}, status=HTTP_400_BAD_REQUEST
+            )
+
+        deleted, _ = PlaylistItem.objects.filter(playlist_id=id, video_id=video_id).delete()
+
+        if deleted:
+            return Response({'status': 'Video successfuly deleted from playlist'}, status=HTTP_204_NO_CONTENT)
+        return Response({'status': 'Video does not exists in that playlist'}, status=HTTP_400_BAD_REQUEST)

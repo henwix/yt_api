@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Video, VideoComment, VideoHistory
+from .models import Playlist, Video, VideoComment, VideoHistory
 
 
 class VideoCommentSerializer(serializers.ModelSerializer):
@@ -113,6 +113,50 @@ class VideoHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = VideoHistory
         fields = ['video', 'watched_at']
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        validated_data['channel'] = request.user.channel
+
+        return super().create(validated_data)
+
+
+class PlaylistPreviewSerializer(serializers.ModelSerializer):
+    channel_name = serializers.CharField(source='channel.name', read_only=True)
+    channel_link = serializers.HyperlinkedRelatedField(
+        view_name='v1:channels:channel-show',
+        many=False,
+        read_only=True,
+        lookup_field='slug',
+        lookup_url_kwarg='slug',
+        source='channel',
+    )
+    playlist_link = serializers.HyperlinkedIdentityField(
+        view_name='v1:videos:playlists-detail',
+        lookup_field='id',
+        lookup_url_kwarg='id',
+        read_only=True,
+    )
+    videos_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Playlist
+        fields = [
+            'title',
+            'status',
+            'playlist_link',
+            'channel_name',
+            'channel_link',
+            'videos_count',
+        ]
+
+
+class PlaylistSerializer(PlaylistPreviewSerializer):
+    videos = VideoPreviewSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = PlaylistPreviewSerializer.Meta.model
+        fields = ['title', 'description', 'status', 'channel_name', 'channel_link', 'videos_count', 'videos']
 
     def create(self, validated_data):
         request = self.context.get('request')

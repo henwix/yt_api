@@ -53,9 +53,10 @@ class CustomUserViewSet(UserViewSet):
             transaction.on_commit(lambda: self._check_activation_email(user))
 
     def perform_update(self, serializer, *args, **kwargs):
-        user = serializer.save()
-        signals.user_updated.send(sender=self.__class__, user=user, request=self.request)
-        transaction.on_commit(lambda: self._check_activation_email(user))
+        with transaction.atomic():
+            user = serializer.save()
+            signals.user_updated.send(sender=self.__class__, user=user, request=self.request)
+            transaction.on_commit(lambda: self._check_activation_email(user))
 
     @action(['post'], detail=False)
     def activation(self, request, *args, **kwargs):

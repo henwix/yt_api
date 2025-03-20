@@ -16,7 +16,9 @@ class PublicAndUnlistedVideosManager(models.Manager):
 
 
 def generate_video_link():
-    chars = string.digits + string.ascii_letters
+    """Function to generate unique video's links."""
+
+    chars = string.digits + string.ascii_letters + '-' + '_'
 
     while True:
         link = ''.join(random.choices(chars, k=11))
@@ -103,3 +105,40 @@ class VideoHistory(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['channel', 'video'], name='unique_watch_history')]
+
+
+def generate_playlist_link():
+    """Function to generate unique playlist links."""
+
+    chars = string.digits + string.ascii_letters + '-' + '_'
+    return ''.join(random.choices(chars, k=32))
+    # while True:
+    #     link = ''.join(random.choices(chars, k=32))
+    #     if not Playlist.objects.filter(id=link).exists():
+    #         return link
+
+
+class Playlist(models.Model):
+    class StatusChoices(models.TextChoices):
+        PUBLIC = 'PUBLIC', 'Public'
+        PRIVATE = 'PRIVATE', 'Private'
+
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='playlists', db_index=True)
+    videos = models.ManyToManyField(Video, through='PlaylistItem', db_index=True)
+    id = models.CharField(
+        primary_key=True, max_length=32, default=generate_playlist_link, unique=True, editable=False, db_index=True
+    )
+    title = models.CharField(max_length=150)
+    description = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=7, choices=StatusChoices.choices, default=StatusChoices.PRIVATE)
+
+    def __str__(self):
+        return f'Playlist: {self.title}'
+
+
+class PlaylistItem(models.Model):
+    playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE, related_name='items')
+    video = models.ForeignKey(Video, on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['playlist', 'video'], name='playlist_item_unique')]

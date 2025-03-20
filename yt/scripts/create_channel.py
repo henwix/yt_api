@@ -2,8 +2,9 @@ from apps.channels.models import Channel
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
+
 def run():
-    username = 'admin'
+    username = 'henwixx'
 
     with transaction.atomic():
         user = get_user_model()(
@@ -14,4 +15,3 @@ def run():
         user.save()
         Channel.objects.create(name=username, slug=username, user=user, country='Israel')
         transaction.on_commit(lambda: print('done: ' + username))
-        

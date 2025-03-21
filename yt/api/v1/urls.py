@@ -6,4 +6,5 @@ urlpatterns = [
     path('', include('apps.channels.urls')),
     path('', include('apps.users.urls')),
     path('', include('apps.videos.urls')),
+    path('', include('apps.reports.urls')),
 ]

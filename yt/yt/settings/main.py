@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'apps.posts.apps.PostsConfig',
     'apps.users.apps.UsersConfig',
     'apps.videos.apps.VideosConfig',
+    'apps.reports.apps.ReportsConfig',
     # other
     'rest_framework',
     'django_extensions',

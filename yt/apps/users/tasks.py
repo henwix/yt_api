@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 START_LOG_FORMAT = 'Start sending %s email to %s'
-SUCCESS_LOG_FORMAT = '%s email successfuly sent to %s'
+SUCCESS_LOG_FORMAT = '%s email successfully sent to %s'
 
 
 def _get_user_context(context):

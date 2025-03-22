@@ -45,9 +45,10 @@ class Video(models.Model):
     description = models.TextField(blank=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     yt_link = models.CharField(max_length=255, blank=True)
-    status = models.CharField(max_length=10, choices=VideoStatus.choices, default=VideoStatus.PUBLIC)
     file = models.FileField(upload_to='videos', blank=True, null=True)
+    status = models.CharField(max_length=10, choices=VideoStatus.choices, default=VideoStatus.PUBLIC)
     upload_status = models.CharField(choices=UploadStatus.choices, default=UploadStatus.PENDING)
+    is_reported = models.BooleanField(default=False)
 
     # managers
     objects = models.Manager()

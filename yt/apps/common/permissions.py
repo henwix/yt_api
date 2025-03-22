@@ -17,7 +17,7 @@ class IsAuthenticatedOrAdminOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS and obj.status != Video.VideoStatus.PRIVATE:
             return True
 
-        return hasattr(request.user, 'channel') and obj.author == request.user.channel
+        return hasattr(request.user, 'channel') and (obj.author == request.user.channel or request.user.is_staff)
 
 
 class IsAuthenticatedOrAuthorOrReadOnly(permissions.BasePermission):

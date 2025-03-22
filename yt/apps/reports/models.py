@@ -6,8 +6,8 @@ from apps.videos.models import Video
 
 class VideoReport(models.Model):
     class ReportReasons(models.TextChoices):
-        SEXUAL_CONTENT = 'SEXUAL_CONTENT', 'Sexual content'
         VIOLENT_OR_REPULSIVE_CONTENT = 'VIOLENT_OR_REPULSIVE_CONTENT', 'Violent or repulsive content'
+        SEXUAL_CONTENT = 'SEXUAL_CONTENT', 'Sexual content'
         HATEFUL_OR_ABUSIVE_CONTENT = 'HATEFUL_OR_ABUSIVE_CONTENT', 'Hateful or abusive content'
         HARASSMENT_OR_BULLYING = 'HARASSMENT_OR_BULLYING', 'Harassment or bullying'
         HARMFUL_OR_DANGEROUS_ACTS = 'HARMFUL_OR_DANGEROUS_ACTS', 'Harmful or dangerous acts'

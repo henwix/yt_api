@@ -71,7 +71,7 @@ class CustomUserViewSet(UserViewSet):
         if settings.SEND_CONFIRMATION_EMAIL:
             context, to = self._get_mail_args(user)
             send_confirmation_email.apply_async(args=[context, to], ignore_result=True)
-        return Response({'success', 'Your account successfuly activated!'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'success', 'Your account successfully activated!'}, status=status.HTTP_204_NO_CONTENT)
 
     @action(['post'], detail=False)
     def resend_activation(self, request, *args, **kwargs):

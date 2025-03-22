@@ -1,16 +1,16 @@
 from rest_framework import generics, viewsets
 
+from apps.common.pagination import CustomCursorPagination
+
 from .models import VideoReport
+from .permissions import IsStaffOrCreateOnly
 from .serializers import VideoReportSerializer
 
 
 class VideoReportsView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIView, viewsets.GenericViewSet):
-    # TODO: fix error with DELETE button in listing endpoint at api/v1/video-reports/
-    # TODO: add permissions and pagination
-
     serializer_class = VideoReportSerializer
-    lookup_field = 'pk'
-    lookup_url_kwarg = 'pk'
+    pagination_class = CustomCursorPagination
+    permission_classes = [IsStaffOrCreateOnly]
 
     def get_queryset(self):
         if self.action in ['retrieve', 'list']:

@@ -341,7 +341,7 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
         deleted, _ = VideoHistory.objects.filter(channel=request.user.channel, video_id=video_id).delete()
 
         if deleted:
-            return Response({'status': 'Video successfuly deleted from history'}, status=HTTP_204_NO_CONTENT)
+            return Response({'status': 'Video successfully deleted from history'}, status=HTTP_204_NO_CONTENT)
 
         return Response({'error': 'Video does not exists or never been in history'}, status=HTTP_404_NOT_FOUND)
 
@@ -471,5 +471,5 @@ class PlaylistAPIView(viewsets.ModelViewSet):
         deleted, _ = PlaylistItem.objects.filter(playlist_id=id, video_id=video_id).delete()
 
         if deleted:
-            return Response({'status': 'Video successfuly deleted from playlist'}, status=HTTP_204_NO_CONTENT)
+            return Response({'status': 'Video successfully deleted from playlist'}, status=HTTP_204_NO_CONTENT)
         return Response({'status': 'Video does not exists in that playlist'}, status=HTTP_400_BAD_REQUEST)

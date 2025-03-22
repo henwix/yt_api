@@ -14,7 +14,7 @@ def delete_channel_files_task(files):
     )
     try:
         response = s3_client.delete_objects(Bucket='django-henwix-bucket', Delete={'Objects': files})
-        return f'Files successfuly deleted: {len(response.get("Deleted", []))}'
+        return f'Files successfully deleted: {len(response.get("Deleted", []))}'
 
     except Exception as e:
         return f'Failed to delete files: {e}'

@@ -39,6 +39,7 @@ jsonschema==4.23.0
 jsonschema-specifications==2024.10.1
 kombu==5.4.2
 matplotlib-inline==0.1.7
+mypy-extensions==1.0.0
 oauthlib==3.2.2
 parso==0.8.4
 pillow==11.1.0

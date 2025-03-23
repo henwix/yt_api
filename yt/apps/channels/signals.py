@@ -29,7 +29,9 @@ def invalidate_channel_cache(instance, created, **kwargs):
 # FIXME: починить количество запросов на удаление канала(мб через транзакции или как-то вручную удалять связи)
 @receiver(signal=[pre_delete], sender=Channel)
 def delete_channel_files_signal(instance, **kwargs):
-    """This signal will collect channel's related videos and avatar into list and call celery task to delete them via boto3"""
+    """
+    This signal will collect channel's related videos and avatar into list and call celery task to delete them via boto3
+    """
 
     # Delete channel's cache
     _delete_channel_cache(instance)
@@ -41,7 +43,6 @@ def delete_channel_files_signal(instance, **kwargs):
     if instance.videos.exists():
         videos = [{'Key': video.file.name} for video in instance.videos.all() if video.file]
         files.extend(videos)
-
     # If channel_avatar exists it'll append to files list
     if instance.channel_avatar and instance.channel_avatar.name:
         files.append({'Key': instance.channel_avatar.name})

@@ -11,10 +11,13 @@ from rest_framework.views import APIView
 
 from apps.common.pagination import CustomCursorPagination
 from apps.videos.models import Video
-
+import logging
 from . import serializers
 from .models import Channel, SubscriptionItem
+from .repositories.channels import ChannelAvatarRepository, ORMChannelRepository, ORMChannelSubsRepository
+from .services.channels import ChannelAvatarService, ChannelService, ChannelSubsService
 
+log = logging.getLogger(__name__)
 
 class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     """
@@ -27,26 +30,23 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
-        if self.request.method == 'DELETE':
-            return self.request.user
+        return self.get_channel_service().repository.get_channel(self.request.user)
 
-        return get_object_or_404(self.get_queryset(), user=self.request.user)
+    def get_channel_service(self):
+        return ChannelService(repository=ORMChannelRepository(), serializer_class=self.serializer_class)
 
     def retrieve(self, request, *args, **kwargs):
         """
         Custom 'retrieve' method with caching.
         """
 
-        cache_key = f'retrieve_channel_{self.request.user.pk}'
+        service = self.get_channel_service()
+        return Response(service.get_channel(request.user))
 
-        cached_response = cache.get(cache_key)
-
-        if cached_response:
-            return Response(cached_response)
-
-        response = super().retrieve(request, *args, **kwargs)
-        cache.set(key=cache_key, value=response.data, timeout=60 * 15)
-        return response
+    def destroy(self, request, *args, **kwargs):
+        service = self.get_channel_service()
+        service.delete_channel(request.user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ChannelSubscribersView(generics.ListAPIView):
@@ -59,41 +59,45 @@ class ChannelSubscribersView(generics.ListAPIView):
     serializer_class = serializers.SubscriptionSerializer
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = CustomCursorPagination
-
-    def get_queryset(self):
-        return SubscriptionItem.objects.filter(subscribed_to=self.request.user.channel).select_related(
-            'subscriber', 'subscribed_to'
-        )
+    queryset = SubscriptionItem.objects.all()
 
     def list(self, request, *args, **kwargs):
         """
         Custom list method to cache response.
         """
 
-        cache_key = f'cached_subs_page_{request.user.pk}'
+        cursor = request.query_params.get('c', '1')
+        cache_key = f'cached_subs_{request.user.pk}_c_{cursor}'
         cached_data = cache.get(key=cache_key)
 
         if cached_data:
+            log.info('Get cached data for key: %s', cache_key)
             return Response(cached_data)
 
-        response = super().list(request, *args, **kwargs)
-        cache.set(cache_key, response.data, 60 * 15)
+        service = ChannelSubsService(repository=ORMChannelSubsRepository())
+        qs = self.filter_queryset(service.get_subscriber_list(channel=request.user.channel))
 
+        page = self.paginate_queryset(qs)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            response = self.get_paginated_response(serializer.data)
+            cache.set(cache_key, response.data, 60 * 15)
+            log.info('Request paginated data for key: %s', cache_key)
+            return response
+
+        serializer = self.get_serializer(qs, many=True)
+        response = Response(serializer.data)
+        cache.set(cache_key, response.data, 60 * 15)
+        log.info('Request data for key: %s', cache_key)
         return response
 
 
 class ChannelAvatarDestroy(APIView):
     def delete(self, request):
-        channel = request.user.channel
-
-        if not hasattr(channel, 'channel_avatar'):
-            return Response({'error': 'Avatar does not exists'}, status=status.HTTP_404_NOT_FOUND)
-
-        channel.channel_avatar.delete()
-        channel.channel_avatar = None
-        channel.save()
-
-        return Response({'status': 'Success'}, status=status.HTTP_204_NO_CONTENT)
+        # TODO: Добавить в celery таску
+        service = ChannelAvatarService(repository=ChannelAvatarRepository())
+        data, status = service.delete_avatar(request.user.channel)
+        return Response(data, status)
 
 
 class ChannelMainView(generics.RetrieveAPIView):

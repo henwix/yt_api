@@ -61,7 +61,7 @@ def run():
     users = []
     channels = []
     for i in range(46):
-        username = random.choice(random_names)
+        username = random.choice(random_names).replace(' ', '')
         random_names.remove(username)
 
         user = get_user_model()(

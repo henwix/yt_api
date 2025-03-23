@@ -4,7 +4,7 @@ from django.db import transaction
 
 
 def run():
-    username = 'henwixx'
+    username = 'admin'
 
     with transaction.atomic():
         user = get_user_model()(
@@ -12,6 +12,7 @@ def run():
             email=username + '@gmail.com',
         )
         user.set_password('1234q1234q')
+        user.is_staff = True
         user.save()
         Channel.objects.create(name=username, slug=username, user=user, country='Israel')
         transaction.on_commit(lambda: print('done: ' + username))

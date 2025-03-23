@@ -84,6 +84,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         lookup_url_kwarg='slug',
         source='subscriber',
         read_only=True,
+        many=False,
     )
 
     class Meta:

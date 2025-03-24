@@ -44,7 +44,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 DELETE  http://127.0.0.1:8001/api/v1/channel/delete-avatar/ HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQyODMzNjM3LCJpYXQiOjE3NDI3NDcyMzcsImp0aSI6IjI0MDkyZDllMGM3NDRlZGY5MDJmY2ZjOWE4NmNiMTFlIiwidXNlcl9pZCI6NjZ9.-aJ-xOIWUfzppl-0-9Y5MCM6KtHKBYjuOH5845ffwYk
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQyOTA3MjE0LCJpYXQiOjE3NDI4MjA4MTQsImp0aSI6IjQ0ZTdiOTM4NTM5YjQ5MTNiZDk2NTRiMzZlMjJjODU5IiwidXNlcl9pZCI6MTE0fQ.fgo92aszAdFlsqUj4bbFhT43e_mnXkntea4ZVnNykGc
 
 ###
 
@@ -64,9 +64,9 @@ Content-Type: application/json
 
 ###
 
-POST http://127.0.0.1:8001/api/v1/subscription/unsubscribe/ HTTP/1.1
+POST http://127.0.0.1:8001/api/v1/subscription/subscribe/ HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQxNjQyODQwLCJpYXQiOjE3NDE1NTY0NDAsImp0aSI6IjBiY2NhNzVhMTI2NDQ1N2FhZjc5YWVmMTlmZDM2M2M0IiwidXNlcl9pZCI6MTJ9.2s0pVzX5nyENPVXZhMuqrCzJm0aqnKuJNWgvyq1ztVo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQyOTEzODI0LCJpYXQiOjE3NDI4Mjc0MjQsImp0aSI6IjRlNTY1MWU3MjM1NzQxNTFhMWEyMmVkMzEwNWRkOGI2IiwidXNlcl9pZCI6MTE0fQ.hzYuJ0sJGkAOpvDdoOa0INzGJavlmkCbt4SoHo0LWcc
 
 {
     "to": "henwix"
@@ -74,9 +74,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 ###
 
-POST http://127.0.0.1:8001/api/v1/subscription/subscribe/ HTTP/1.1
+POST  http://127.0.0.1:8001/api/v1/subscription/subscribe/ HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQyMzYxODUxLCJpYXQiOjE3NDIyNzU0NTEsImp0aSI6ImYzZDRlZTZjZTA4NjQzM2JiODE5ODM4MTg4ZWRjOWNiIiwidXNlcl9pZCI6NDl9.s6Dh2ADE_7433sq0qPDd2TPZvsiAntU7g96gdNutpIU
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQyOTEzOTMwLCJpYXQiOjE3NDI4Mjc1MzAsImp0aSI6IjVmYmM1NjljMWYzMDRmMGZiNTRjYTBkZTg2N2E3MzEzIiwidXNlcl9pZCI6NjJ9.5y_hsLcM651Iz75XgZZwDzE-dlqEE-pIVaWyZC1Ek1U
 
 {
     "to": "admin"

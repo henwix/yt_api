@@ -6,7 +6,6 @@ from .models import Channel, SubscriptionItem
 
 # TODO:    - likes to comments and posts: add, delete
 # TODO:    - posts: add, detail, delete
-# TODO:    - playlists
 
 
 class ChannelSerializer(serializers.ModelSerializer):

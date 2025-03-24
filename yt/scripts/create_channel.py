@@ -4,7 +4,7 @@ from django.db import transaction
 
 
 def run():
-    username = 'admin'
+    username = 'henwix'
 
     with transaction.atomic():
         user = get_user_model()(

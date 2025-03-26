@@ -1,7 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
-from ast import Tuple
-from typing import Iterable, Type
+from dataclasses import dataclass
+from typing import Iterable, Tuple, Type
 
 from django.contrib.auth.models import User
 from django.core.cache import cache
@@ -21,10 +21,10 @@ from ..repositories.channels import (
 log = logging.getLogger(__name__)
 
 
+@dataclass(eq=False)
 class BaseChannelService(ABC):
-    def __init__(self, repository: BaseChannelRepository, serializer_class: Type[Serializer]):
-        self.repository = repository
-        self.serializer_class = serializer_class
+    repository: BaseChannelRepository
+    serializer_class: Type[Serializer]
 
     @abstractmethod
     def get_channel(self, user: User) -> dict:
@@ -53,9 +53,9 @@ class CachedORMChannelService(BaseChannelService):
         self.repository.delete_channel(user)
 
 
+@dataclass(eq=False)
 class BaseChannelSubsService(ABC):
-    def __init__(self, repository: BaseChannelSubsRepository):
-        self.repository = repository
+    repository: BaseChannelSubsRepository
 
     @abstractmethod
     def get_subscriber_list(self, channel: Channel) -> Iterable[SubscriptionItem]:
@@ -67,9 +67,9 @@ class ChannelSubsService(BaseChannelSubsService):
         return self.repository.get_subscriber_list(channel=channel)
 
 
+@dataclass(eq=False)
 class BaseChannelAvatarService(ABC):
-    def __init__(self, repository: BaseChannelAvatarRepository):
-        self.repository = repository
+    repository: BaseChannelAvatarRepository
 
     @abstractmethod
     def delete_avatar(self, channel: Channel) -> Tuple[dict, int]:
@@ -90,9 +90,9 @@ class ChannelAvatarService(BaseChannelAvatarService):
         return {'status': 'Success'}, status.HTTP_204_NO_CONTENT
 
 
+@dataclass(eq=False)
 class BaseChannelMainService(ABC):
-    def __init__(self, repository: BaseChannelMainRepository):
-        self.repository = repository
+    repository: BaseChannelMainRepository
 
     @abstractmethod
     def get_channel_main_page_list(self) -> Iterable[Channel]:
@@ -104,9 +104,9 @@ class ChannelMainService(BaseChannelMainService):
         return self.repository.get_channel_main_page_list()
 
 
+@dataclass(eq=False)
 class BaseChannelAboutService(ABC):
-    def __init__(self, repository: BaseChannelAboutRepository):
-        self.repository = repository
+    repository: BaseChannelAboutRepository
 
     @abstractmethod
     def get_channel_about_list(self) -> Iterable[Channel]:
@@ -118,9 +118,9 @@ class ChannelAboutService(BaseChannelAboutService):
         return self.repository.get_channel_about_list()
 
 
+@dataclass(eq=False)
 class BaseSubscriptionService(ABC):
-    def __init__(self, repository: BaseSubscriptionRepository):
-        self.repository = repository
+    repository: BaseSubscriptionRepository
 
     @abstractmethod
     def subscribe(self, user: User, slug: str) -> Tuple[dict, int]:

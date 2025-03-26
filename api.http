@@ -24,10 +24,23 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 ###
 
-POST http://127.0.0.1:8001/api/v1/video/nyxyc1TvPw2/view/ HTTP/1.1
+POST http://127.0.0.1:8001/api/v1/video/XuG2bDrURlk/view/ HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQyMDk2NzM4LCJpYXQiOjE3NDIwMTAzMzgsImp0aSI6ImJiZjY3OWYyYTRiZTQ0OGNiNjIxODYwNzI5MDZlNTViIiwidXNlcl9pZCI6NDR9.P9ssNmoBNAZKDkMUjRK8zhtaKQPQ61MLYOpf0MITGeY
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQzMDc4NTY1LCJpYXQiOjE3NDI5OTIxNjUsImp0aSI6IjhlMWIxZTMxMGExYTRkMjRhNTgzOTczMzZmODhkMmMyIiwidXNlcl9pZCI6MTE0fQ.gFq1h4KMndB3kVTc2Gu-Y4RkqZ1AFpeFDlnrgfaLX88
 
+
+
+###
+
+###
+
+DELETE http://127.0.0.1:8001/api/v1/video/XuG2bDrURlk/unlike/ HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQzMDc4NTY1LCJpYXQiOjE3NDI5OTIxNjUsImp0aSI6IjhlMWIxZTMxMGExYTRkMjRhNTgzOTczMzZmODhkMmMyIiwidXNlcl9pZCI6MTE0fQ.gFq1h4KMndB3kVTc2Gu-Y4RkqZ1AFpeFDlnrgfaLX88
+
+{
+    "is_like": false
+}
 
 ###
 

@@ -9,6 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.common.mixins import PaginationMixin
 from apps.common.pagination import CustomCursorPagination
 
 from . import serializers
@@ -64,7 +65,7 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ChannelSubscribersView(generics.ListAPIView):
+class ChannelSubscribersView(generics.ListAPIView, PaginationMixin):
     """
     API endpoint to channel's subscribers listing.
     Supports cache for 15 minutes and Cursor pagination.
@@ -76,6 +77,10 @@ class ChannelSubscribersView(generics.ListAPIView):
     pagination_class = CustomCursorPagination
     queryset = SubscriptionItem.objects.all()
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.service = ChannelSubsService(repository=ORMChannelSubsRepository())
+
     def list(self, request, *args, **kwargs):
         """Custom list method to cache response."""
 
@@ -86,15 +91,12 @@ class ChannelSubscribersView(generics.ListAPIView):
         if cached_data:
             return Response(cached_data)
 
-        service = ChannelSubsService(repository=ORMChannelSubsRepository())
-        qs = self.filter_queryset(service.get_subscriber_list(channel=request.user.channel))
+        qs = self.filter_queryset(self.service.get_subscriber_list(channel=request.user.channel))
 
-        page = self.paginate_queryset(qs)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            response = self.get_paginated_response(serializer.data)
-            cache.set(cache_key, response.data, 60 * 15)
-            return response
+        paginated_response = self.mixin_pagination(qs)
+        if paginated_response:
+            cache.set(cache_key, paginated_response.data, 60 * 15)
+            return paginated_response
 
         serializer = self.get_serializer(qs, many=True)
         response = Response(serializer.data)

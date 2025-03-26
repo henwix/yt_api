@@ -1,25 +1,16 @@
 import logging
 import os
-from datetime import timedelta
 
 import boto3
 import django_filters
 from django.db import IntegrityError
-from django.db.models import Count, Q
-from django.shortcuts import get_object_or_404
+from django.db.models import Count
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from rest_framework import filters, generics, mixins, viewsets
+from rest_framework import filters, generics, mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.status import (
-    HTTP_200_OK,
-    HTTP_201_CREATED,
-    HTTP_204_NO_CONTENT,
-    HTTP_400_BAD_REQUEST,
-    HTTP_404_NOT_FOUND,
-)
 from rest_framework.views import APIView
 
 from apps.common.pagination import CustomCursorPagination
@@ -27,12 +18,14 @@ from apps.common.permissions import (
     IsAuthenticatedOrAdminOrReadOnly,
     IsAuthenticatedOrAuthorOrReadOnly,
 )
+from yt.containers import get_container
 
 from . import serializers
 from .filters import VideoFilter
-from .models import Playlist, PlaylistItem, Video, VideoComment, VideoHistory, VideoLike, VideoView
-from .pagination import HistoryCurstorPagination
+from .models import Playlist, PlaylistItem, Video, VideoComment, VideoHistory
+from .pagination import HistoryCursorPagination
 from .permissions import IsAuthorOrReadOnlyPlaylist
+from .services.videos import BaseVideoService
 
 log = logging.getLogger(__name__)
 
@@ -48,7 +41,11 @@ class VideoViewSet(viewsets.ModelViewSet):
     lookup_field = 'video_id'
     lookup_url_kwarg = 'video_id'
     permission_classes = [IsAuthenticatedOrAdminOrReadOnly]
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter, django_filters.rest_framework.DjangoFilterBackend]
+    filter_backends = [
+        filters.SearchFilter,
+        filters.OrderingFilter,
+        django_filters.rest_framework.DjangoFilterBackend,
+    ]
     filterset_class = VideoFilter
     pagination_class = CustomCursorPagination
     search_fields = ['@name', '@description', '@author__name', '@author__slug']
@@ -67,50 +64,41 @@ class VideoViewSet(viewsets.ModelViewSet):
     #     self.perform_create(serializer)
 
     #     return super().create(request, *args, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        container = get_container()
+        self.service: BaseVideoService = container.resolve(BaseVideoService)
 
-    @action(url_path='like', methods=['post', 'delete'], detail=True)
-    def like(self, request, video_id):
+    @action(url_path='like', methods=['post'], detail=True)
+    def like_create(self, request, video_id):
         """
-        API endpoint for 'likes' and 'dislikes' actions.
-        'POST' and 'DELETE' methods are available for setting 'likes'/'dislikes' and removing them.
+        API endpoint to create like or dislike.
 
-        POST: Only one field can be provided: 'is_like' - true by default and means like, but false - dislike.
-        DELETE: Have no required fields.
-        Related video determines by 'video_id' query-param.
+        Only one field can be provided: 'is_like' - true by default and means like, but false - dislike.
+        Video determines by 'video_id' URL-parameter.
 
         Example: http://127.0.0.1:8001/api/v1/video/JDcWD0w9aJD/like/
         """
+        result = self.service.like_create(request.user, video_id, request.data.get('is_like', True))
 
-        channel = request.user.channel
-        video = get_object_or_404(Video, video_id=video_id)
+        return Response(result, status.HTTP_201_CREATED)
 
-        if request.method == 'POST':
-            is_like = request.data.get('is_like', True)
+    @action(url_path='unlike', methods=['delete'], detail=True)
+    def like_delete(self, request, video_id):
+        """
+        API endpoint to delete like or dislike.
 
-            like, created = VideoLike.objects.get_or_create(
-                channel=channel,
-                video=video,
-                defaults={
-                    'is_like': is_like,
-                },
-            )
+        No parameters required.
+        Video determines by 'video_id' URL-parameter.
 
-            if not created:
-                like.is_like = is_like
-                like.save()
+        Example: http://127.0.0.1:8001/api/v1/video/JDcWD0w9aJD/unlike/
+        """
+        result = self.service.like_delete(request.user, video_id)
 
-            return Response({'status': 'success', 'is_like': is_like}, status=HTTP_200_OK)
-
-        if request.method == 'DELETE':
-            deleted, _ = VideoLike.objects.filter(channel=channel, video=video).delete()
-
-            if deleted:
-                return Response({'status': 'Success'}, status=HTTP_204_NO_CONTENT)
-            else:
-                return Response({'error': 'Like not found'}, HTTP_404_NOT_FOUND)
+        return Response(result, status.HTTP_204_NO_CONTENT)
 
     @action(url_path='view', methods=['post'], detail=True)
-    def view(self, request, video_id):
+    def view_create(self, request, video_id):
         """
         API endpoint for adding views to videos.
 
@@ -119,35 +107,20 @@ class VideoViewSet(viewsets.ModelViewSet):
 
         Example: http://127.0.0.1:8001/api/v1/video/JDcWD0w9aJD/view/
         """
-
-        channel = getattr(request.user, 'channel', None)
-        video = get_object_or_404(Video, video_id=video_id)
-        ip_address = request.META.get('REMOTE_ADDR')
-
-        last_view = VideoView.objects.filter(
-            channel=channel if channel else None,
-            ip_address=ip_address if ip_address else None,
-            video=video,
-            created_at__gte=timezone.now() - timedelta(hours=24),
-        ).exists()
-
-        if not last_view:
-            VideoView.objects.create(
-                channel=channel,
-                video=video,
-                ip_address=ip_address,
-            )
-            return Response({'status': 'success'}, status=HTTP_201_CREATED)
-        else:
-            return Response({'error': 'View already exists'}, status=HTTP_400_BAD_REQUEST)
+        result = self.service.view_create(
+            user=request.user,
+            video_id=video_id,
+            ip_address=request.META.get('REMOTE_ADDR'),
+        )
+        return Response(result, status.HTTP_201_CREATED)
 
     def get_serializer_class(self):
         """
         Custom 'get_serializer_class' method.
+
         If action is list - return VideoPreviewSerializer else VideoSerializer
         """
-
-        if self.action == 'list':
+        if action == 'list':
             return serializers.VideoPreviewSerializer
         return serializers.VideoSerializer
 
@@ -156,29 +129,19 @@ class VideoViewSet(viewsets.ModelViewSet):
         Custom get_queryset method.
 
         Add 'views_count' annotated field if action == 'list' for 'Video' preview.
+
         If action == 'retrieve' - add views_count and likes_count for 'Video' detail info.
         """
-
         if self.action == 'list':
             if not self.request.query_params.get('search'):
-                return []
-            return (
-                Video.objects.select_related('author')
-                .filter(status=Video.VideoStatus.PUBLIC)
-                .annotate(views_count=Count('views', distinct=True))
-            )
+                return Video.objects.none()
+
+            return self.service.get_videos_for_listing()
+
         if self.action == 'retrieve':
-            return (
-                Video.objects.select_related('author')
-                .all()
-                .annotate(
-                    views_count=Count('views', distinct=True),
-                    likes_count=Count('likes', filter=Q(likes__is_like=True), distinct=True),
-                    comments_count=Count('comments'),
-                    subs_count=Count('author__followers', distinct=True),
-                )
-            )
-        return Video.objects.all()
+            return self.service.get_videos_for_retrieve()
+
+        return self.service.get_all_videos()
 
     def list(self, request, *args, **kwargs):
         if not request.query_params.get('search'):
@@ -237,7 +200,10 @@ class GeneratePresignedUrlView(APIView):
 
     def get(self, request, filename):
         if filename and filename[-4:] not in ['.png', '.jpg']:
-            return Response({'error': 'Unsupported file format'}, status=HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'Unsupported file format'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         s3_client = boto3.client(
             's3',
@@ -256,19 +222,19 @@ class GeneratePresignedUrlView(APIView):
             HttpMethod='PUT',
         )
 
-        return Response({'put_url': url}, status=HTTP_200_OK)
+        return Response({'put_url': url}, status=status.HTTP_200_OK)
 
 
 class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
     """
-    API endpoint to get list of wathed videos.
-    Supports cursor pagonation.
+    API endpoint to get list of watched videos.
+    Supports cursor pagination.
     Example: api/v1/history/
     """
 
     lookup_field = 'video_id'
     permission_classes = [IsAuthenticated]
-    pagination_class = HistoryCurstorPagination
+    pagination_class = HistoryCursorPagination
     serializer_class = serializers.VideoHistorySerializer
 
     def get_queryset(self):
@@ -298,7 +264,8 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
 
         if not video_id:
             return Response(
-                {'error': 'To add video in history you need to provide his video_id'}, status=HTTP_400_BAD_REQUEST
+                {'error': 'To add video in history you need to provide his video_id'},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
@@ -309,9 +276,15 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
         if not created:
             history_item.watched_at = timezone.now()
             history_item.save(update_fields=['watched_at'])
-            return Response({'status': 'Success: Updated previous history item'}, status=HTTP_200_OK)
+            return Response(
+                {'status': 'Success: Updated previous history item'},
+                status=status.HTTP_200_OK,
+            )
 
-        return Response({'status': 'Success: Created new history item'}, status=HTTP_201_CREATED)
+        return Response(
+            {'status': 'Success: Created new history item'},
+            status=status.HTTP_201_CREATED,
+        )
 
     @extend_schema(
         parameters=[
@@ -341,9 +314,15 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
         deleted, _ = VideoHistory.objects.filter(channel=request.user.channel, video_id=video_id).delete()
 
         if deleted:
-            return Response({'status': 'Video successfully deleted from history'}, status=HTTP_204_NO_CONTENT)
+            return Response(
+                {'status': 'Video successfully deleted from history'},
+                status=status.HTTP_204_NO_CONTENT,
+            )
 
-        return Response({'error': 'Video does not exists or never been in history'}, status=HTTP_404_NOT_FOUND)
+        return Response(
+            {'error': 'Video does not exists or never been in history'},
+            status=status.HTTP_404_NOT_FOUND,
+        )
 
 
 class MyVideoView(generics.ListAPIView):
@@ -413,7 +392,12 @@ class PlaylistAPIView(viewsets.ModelViewSet):
             )
         ]
     )
-    @action(methods=['post'], url_name='add-video', url_path='add-video', detail=True)
+    @action(
+        methods=['post'],
+        url_name='add-video',
+        url_path='add-video',
+        detail=True,
+    )
     def add_video_in_playlist(self, request, id):
         """
         API endpoint to add video in playlist.
@@ -424,19 +408,26 @@ class PlaylistAPIView(viewsets.ModelViewSet):
         """
 
         if not id:
-            return Response({'error': 'To add video you need to provide playlist id'}, status=HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'To add video you need to provide playlist id'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         video_id = request.query_params.get('v')
 
         if not video_id:
             return Response(
-                {'error': 'To add video in that playlist you need to provide video_id'}, status=HTTP_400_BAD_REQUEST
+                {'error': 'To add video in that playlist you need to provide video_id'},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         playlist_item, created = PlaylistItem.objects.get_or_create(playlist_id=id, video_id=video_id)
         if created:
-            return Response({'status': 'Video added in playlist'}, status=HTTP_200_OK)
-        return Response({'status': 'Video already exists in that playlist'}, status=HTTP_200_OK)
+            return Response({'status': 'Video added in playlist'}, status=status.HTTP_200_OK)
+        return Response(
+            {'status': 'Video already exists in that playlist'},
+            status=status.HTTP_200_OK,
+        )
 
     @extend_schema(
         parameters=[
@@ -448,7 +439,12 @@ class PlaylistAPIView(viewsets.ModelViewSet):
             )
         ]
     )
-    @action(methods=['delete'], url_name='delete-video', url_path='delete-video', detail=True)
+    @action(
+        methods=['delete'],
+        url_name='delete-video',
+        url_path='delete-video',
+        detail=True,
+    )
     def delete_video_from_playlist(self, request, id):
         """
         API endpoint to delete video from playlist.
@@ -459,17 +455,27 @@ class PlaylistAPIView(viewsets.ModelViewSet):
         """
 
         if not id:
-            return Response({'error': 'To delete video you need to provide playlist id'}, status=HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'To delete video you need to provide playlist id'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         video_id = request.query_params.get('v')
 
         if not video_id:
             return Response(
-                {'error': 'To delete video in that playlist you need to provide video_id'}, status=HTTP_400_BAD_REQUEST
+                {'error': 'To delete video in that playlist you need to provide video_id'},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         deleted, _ = PlaylistItem.objects.filter(playlist_id=id, video_id=video_id).delete()
 
         if deleted:
-            return Response({'status': 'Video successfully deleted from playlist'}, status=HTTP_204_NO_CONTENT)
-        return Response({'status': 'Video does not exists in that playlist'}, status=HTTP_400_BAD_REQUEST)
+            return Response(
+                {'status': 'Video successfully deleted from playlist'},
+                status=status.HTTP_204_NO_CONTENT,
+            )
+        return Response(
+            {'status': 'Video does not exists in that playlist'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )

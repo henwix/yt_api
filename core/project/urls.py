@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
-from yt.settings import local
+from project.settings import local
 
 urlpatterns = [
     # other

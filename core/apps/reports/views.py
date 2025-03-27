@@ -1,7 +1,7 @@
 from rest_framework import generics, viewsets
 
 from apps.common.pagination import CustomCursorPagination
-from yt.containers import get_container
+from project.containers import get_container
 
 from .permissions import IsStaffOrCreateOnly
 from .serializers import VideoReportSerializer

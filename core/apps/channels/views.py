@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 
 from apps.common.mixins import PaginationMixin
 from apps.common.pagination import CustomCursorPagination
-from yt.containers import get_container
+from project.containers import get_container
 
 from . import serializers
 from .models import Channel, SubscriptionItem

@@ -5,5 +5,5 @@ __pycache__/
 test.py
 media
 api.http
-yt/yt/settings/local.py
-yt/scripts
+core/project/settings/local.py
+core/scripts

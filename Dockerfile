@@ -12,4 +12,4 @@ USER yt-user
 
 EXPOSE 8000
 
-COPY yt /app/
+COPY core /app/

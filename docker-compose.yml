@@ -5,7 +5,7 @@ services:
     ports:
       - "${DJANGO_PORT}:8000"
     volumes:
-      - ./yt:/app/
+      - ./core:/app/
     env_file:
       - .env
     command: >
@@ -34,9 +34,9 @@ services:
   
   celery:
     build: .
-    command: celery -A yt worker -l info
+    command: celery -A project worker -l info
     volumes:
-      - ./yt:/app/
+      - ./core:/app/
     env_file:
       - .env
     depends_on:

@@ -18,7 +18,7 @@ from apps.common.permissions import (
     IsAuthenticatedOrAdminOrReadOnly,
     IsAuthenticatedOrAuthorOrReadOnly,
 )
-from yt.containers import get_container
+from project.containers import get_container
 
 from . import serializers
 from .filters import VideoFilter

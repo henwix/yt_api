@@ -22,6 +22,7 @@ log = logging.getLogger(__name__)
 
 
 @dataclass(eq=False)
+# FIXME: mb убрать serializer
 class BaseChannelService(ABC):
     repository: BaseChannelRepository
     serializer_class: Type[Serializer]
@@ -72,7 +73,7 @@ class BaseChannelAvatarService(ABC):
     repository: BaseChannelAvatarRepository
 
     @abstractmethod
-    def delete_avatar(self, channel: Channel) -> Tuple[dict, int]:
+    def delete_avatar(self, channel: User) -> Tuple[dict, int]:
         pass
 
 

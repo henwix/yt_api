@@ -35,7 +35,7 @@ class ChannelSerializer(serializers.ModelSerializer):
         if uploaded_avatar and instance.channel_avatar:
             instance.channel_avatar.delete(save=False)
 
-        if uploaded_avatar is None:
+        if uploaded_avatar is None and 'channel_avatar' in validated_data.keys():
             validated_data.pop('channel_avatar')
 
         return super().update(instance, validated_data)

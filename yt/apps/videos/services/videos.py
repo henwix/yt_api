@@ -97,4 +97,4 @@ class VideoService(BaseVideoService):
         )
 
     def get_all_videos(self) -> Iterable[Video]:
-        return self.get_videos_list()
+        return self.repository.get_videos_list()

@@ -11,24 +11,17 @@ from rest_framework.views import APIView
 
 from apps.common.mixins import PaginationMixin
 from apps.common.pagination import CustomCursorPagination
+from yt.containers import get_container
 
 from . import serializers
 from .models import Channel, SubscriptionItem
-from .repositories.channels import (
-    ORMChannelAboutRepository,
-    ORMChannelAvatarRepository,
-    ORMChannelMainRepository,
-    ORMChannelRepository,
-    ORMChannelSubsRepository,
-    ORMSubscriptionRepository,
-)
 from .services.channels import (
-    CachedORMChannelService,
-    ChannelAboutService,
-    ChannelAvatarService,
-    ChannelMainService,
-    ChannelSubsService,
-    SubscriptionService,
+    BaseChannelAboutService,
+    BaseChannelAvatarService,
+    BaseChannelMainService,
+    BaseChannelService,
+    BaseChannelSubsService,
+    BaseSubscriptionService,
 )
 
 log = logging.getLogger(__name__)
@@ -49,9 +42,8 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.service = CachedORMChannelService(
-            repository=ORMChannelRepository(), serializer_class=self.serializer_class
-        )
+        container = get_container()
+        self.service: BaseChannelService = container.resolve(BaseChannelService)
 
     def get_object(self):
         return self.service.repository.get_channel(self.request.user)
@@ -79,7 +71,8 @@ class ChannelSubscribersView(generics.ListAPIView, PaginationMixin):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.service = ChannelSubsService(repository=ORMChannelSubsRepository())
+        container = get_container()
+        self.service: BaseChannelSubsService = container.resolve(BaseChannelSubsService)
 
     def list(self, request, *args, **kwargs):
         """Custom list method to cache response."""
@@ -107,10 +100,14 @@ class ChannelSubscribersView(generics.ListAPIView, PaginationMixin):
 class ChannelAvatarDestroy(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        container = get_container()
+        self.service: BaseChannelAvatarService = container.resolve(BaseChannelAvatarService)
+
     def delete(self, request):
         # TODO: add in celery
-        service = ChannelAvatarService(repository=ORMChannelAvatarRepository())
-        data, status = service.delete_avatar(request.user.channel)
+        data, status = self.service.delete_avatar(request.user.channel)
         return Response(data, status)
 
 
@@ -128,7 +125,8 @@ class ChannelMainView(generics.RetrieveAPIView):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.service = ChannelMainService(repository=ORMChannelMainRepository())
+        container = get_container()
+        self.service: BaseChannelMainService = container.resolve(BaseChannelMainService)
 
     def get_queryset(self):
         return self.service.get_channel_main_page_list()
@@ -149,7 +147,8 @@ class ChannelAboutView(generics.RetrieveAPIView):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.service = ChannelAboutService(repository=ORMChannelAboutRepository())
+        container = get_container()
+        self.service: BaseChannelAboutService = container.resolve(BaseChannelAboutService)
 
     def get_queryset(self):
         return self.service.get_channel_about_list()
@@ -166,7 +165,8 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.service = SubscriptionService(repository=ORMSubscriptionRepository())
+        container = get_container()
+        self.service: BaseSubscriptionService = container.resolve(BaseSubscriptionService)
 
     @extend_schema(
         request={
@@ -227,6 +227,7 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
     )
     @action(methods=['delete'], url_path='unsubscribe', detail=False)
     def unsubscribe(self, request):
+        # FIXME: не работает схема, нет JSON-body в swagger
         """
         API endpoint to unsubscribe.
         JSON-body parameters: 'slug' - channel's slug to unsubscribe

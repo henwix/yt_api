@@ -1,11 +1,11 @@
 from rest_framework import generics, viewsets
 
 from apps.common.pagination import CustomCursorPagination
+from yt.containers import get_container
 
 from .permissions import IsStaffOrCreateOnly
-from .repositories.reports import ORMVideoReportRepository
 from .serializers import VideoReportSerializer
-from .services.reports import VideoReportsService
+from .services.reports import BaseVideoReportsService
 
 
 # TODO: доделать создание репортов и валидацию на их количество от одного юзера
@@ -16,7 +16,8 @@ class VideoReportsView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIVi
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.service = VideoReportsService(repository=ORMVideoReportRepository())
+        container = get_container()
+        self.service: BaseVideoReportsService = container.resolve(BaseVideoReportsService)
 
     def get_queryset(self):
         return self.service.get_reports(self.action)

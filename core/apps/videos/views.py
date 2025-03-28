@@ -7,6 +7,7 @@ from django.db import IntegrityError
 from django.db.models import Count
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, extend_schema
+from project.containers import get_container
 from rest_framework import filters, generics, mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -18,7 +19,6 @@ from apps.common.permissions import (
     IsAuthenticatedOrAdminOrReadOnly,
     IsAuthenticatedOrAuthorOrReadOnly,
 )
-from project.containers import get_container
 
 from . import serializers
 from .filters import VideoFilter

@@ -5,10 +5,18 @@ from typing import Iterable, Tuple, Type
 
 from django.contrib.auth.models import User
 from django.core.cache import cache
-from rest_framework import status
 from rest_framework.serializers import Serializer
 
+from ..exceptions.channels import (
+    AvatarDoesNotExistsError,
+    AvatarExceptionError,
+    ChannelNotFoundError,
+    SelfSubscriptionError,
+    SubscriptionDoesNotExistsError,
+    SubscriptionExistsError,
+)
 from ..models import Channel, SubscriptionItem
+from ..providers.channels import BaseChannelAvatarProvider
 from ..repositories.channels import (
     BaseChannelAboutRepository,
     BaseChannelAvatarRepository,
@@ -37,6 +45,7 @@ class BaseChannelService(ABC):
 
 
 class CachedORMChannelService(BaseChannelService):
+    # TODO:  перенести в отдельный CacheService в common для переиспользования
     def get_channel(self, user: User) -> dict:
         cache_key = f'retrieve_channel_{user.pk}'
         cached_channel = cache.get(cache_key)
@@ -44,7 +53,10 @@ class CachedORMChannelService(BaseChannelService):
         if cached_channel:
             return cached_channel
 
-        channel = self.repository.get_channel(user)
+        channel = self.repository.get_channel_by_user(user)
+        if channel is None:
+            raise ChannelNotFoundError(user=user)
+
         serializer = self.serializer_class(channel)
         cache.set(key=cache_key, value=serializer.data, timeout=60 * 15)
 
@@ -69,26 +81,57 @@ class ChannelSubsService(BaseChannelSubsService):
 
 
 @dataclass(eq=False)
-class BaseChannelAvatarService(ABC):
-    repository: BaseChannelAvatarRepository
-
+class BaseAvatarValidatorService(ABC):
     @abstractmethod
-    def delete_avatar(self, channel: User) -> Tuple[dict, int]:
+    def validate_avatar(self, channel: Channel) -> None:
         pass
 
 
-class ChannelAvatarService(BaseChannelAvatarService):
-    def delete_avatar(self, channel: Channel) -> Tuple[dict, int]:
+class AvatarValidatorService(BaseAvatarValidatorService):
+    def validate_avatar(self, channel: Channel) -> None:
         if not bool(channel.channel_avatar):
-            return {'error': 'Avatar does not exists'}, status.HTTP_404_NOT_FOUND
+            raise AvatarDoesNotExistsError()
+
+
+@dataclass(eq=False)
+class BaseChannelAvatarService(ABC):
+    @abstractmethod
+    def delete_avatar(self, user: User) -> dict:
+        pass
+
+
+@dataclass
+class ChannelAvatarService(BaseChannelAvatarService):
+    avatar_repository: BaseChannelAvatarRepository
+    channel_repository: BaseChannelRepository
+    validator_service: BaseAvatarValidatorService
+
+    def delete_avatar(self, user: User) -> dict:
+        channel = self.channel_repository.get_channel_by_user(user)
+
+        self.validator_service.validate_avatar(channel)
 
         try:
-            self.repository.delete_avatar(channel)
+            self.avatar_repository.delete_avatar(channel)
         except Exception as e:
             log.info('Channel avatar deletion error: %s', e)
-            return {'error': 'Something went wrong'}, status.HTTP_400_BAD_REQUEST
+            raise AvatarExceptionError(channel=channel)
+        else:
+            return {'status': 'Success'}
 
-        return {'status': 'Success'}, status.HTTP_204_NO_CONTENT
+
+@dataclass
+class CeleryChannelAvatarService(BaseChannelAvatarService):
+    provider: BaseChannelAvatarProvider
+    channel_repository: BaseChannelRepository
+    validator_service: BaseAvatarValidatorService
+
+    def delete_avatar(self, user: User) -> dict:
+        channel = self.channel_repository.get_channel_by_id(user.pk)
+        self.validator_service.validate_avatar(channel)
+
+        self.provider.delete_avatar(user.pk)
+        return {'Status': 'Your avatar will be deleted soon, it can take a few minutes'}
 
 
 @dataclass(eq=False)
@@ -124,54 +167,42 @@ class BaseSubscriptionService(ABC):
     repository: BaseSubscriptionRepository
 
     @abstractmethod
-    def subscribe(self, user: User, slug: str) -> Tuple[dict, int]:
+    def subscribe(self, user: User, slug: str) -> dict:
         pass
 
     @abstractmethod
-    def unsubscribe(self, user: User, slug: str) -> Tuple[dict, int]:
+    def unsubscribe(self, user: User, slug: str) -> dict:
         pass
 
 
 class SubscriptionService(BaseSubscriptionService):
-    def _validate_subscription(
-        self, user: User, slug: str
-    ) -> Tuple[Channel | None, Channel | None, dict | None, int | None]:
+    def _validate_subscription(self, user: User, slug: str) -> Tuple[Channel, Channel]:
         subscriber, subscribed_to = self.repository.get_channels(user, slug)
 
         if not subscribed_to:
-            return (
-                None,
-                None,
-                {'error': 'The channel you want to subscribe does not exists'},
-                status.HTTP_404_NOT_FOUND,
-            )
+            raise ChannelNotFoundError()
 
         if not subscriber.pk != subscribed_to.pk:
-            return (None, None, {'error': 'You cannot subscribe to yourself'}, status.HTTP_400_BAD_REQUEST)
-        return subscriber, subscribed_to, None, None
+            raise SelfSubscriptionError()
 
-    def subscribe(self, user: User, slug: str) -> Tuple[dict, int]:
-        subscriber, subscribed_to, error, error_status = self._validate_subscription(user, slug)
+        return subscriber, subscribed_to
 
-        if error:
-            return error, error_status
+    def subscribe(self, user: User, slug: str) -> dict:
+        subscriber, subscribed_to = self._validate_subscription(user, slug)
 
         _, created = self.repository.get_or_create_sub(subscriber=subscriber, subscribed_to=subscribed_to)
 
-        if created:
-            return {'status': 'Success: Sub created'}, status.HTTP_201_CREATED
+        if not created:
+            raise SubscriptionExistsError()
 
-        return {'status': 'Already subscribed'}, status.HTTP_200_OK
+        return {'status': 'Subscription created'}
 
-    def unsubscribe(self, user: User, slug: str) -> Tuple[dict, int]:
-        subscriber, subscribed_to, error, error_status = self._validate_subscription(user, slug)
-
-        if error:
-            return error, error_status
+    def unsubscribe(self, user: User, slug: str) -> dict:
+        subscriber, subscribed_to = self._validate_subscription(user, slug)
 
         deleted, _ = self.repository.delete_sub(subscriber=subscriber, subscribed_to=subscribed_to)
 
-        if deleted:
-            return {'status': 'Success: Sub deleted'}, status.HTTP_204_NO_CONTENT
+        if not deleted:
+            raise SubscriptionDoesNotExistsError()
 
-        return {'error': 'Subscription does not exists'}, status.HTTP_404_NOT_FOUND
+        return {'status': 'Subscription deleted'}

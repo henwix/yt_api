@@ -17,6 +17,8 @@ class BaseVideoReportsService(ABC):
 
 class VideoReportsService(BaseVideoReportsService):
     def get_reports(self, action: str) -> Iterable[VideoReport]:
+        qs = self.repository.get_reports()
+
         if action in ['retrieve', 'list']:
-            return self.repository.get_reports_related()
-        return self.repository.get_reports()
+            return qs.select_related('video', 'author')
+        return qs

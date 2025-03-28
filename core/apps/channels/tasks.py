@@ -1,7 +1,13 @@
+import logging
 import os
 
 import boto3
 from celery import shared_task
+from project.containers import get_container
+
+from .repositories.channels import BaseChannelAvatarRepository, BaseChannelRepository
+
+log = logging.getLogger(__name__)
 
 
 @shared_task
@@ -18,3 +24,21 @@ def delete_channel_files_task(files):
 
     except Exception as e:
         return f'Failed to delete files: {e}'
+
+
+@shared_task(bind=True, max_retries=3)
+def delete_channel_avatar(self, user_id: int):
+    container = get_container()
+    avatar_repository = container.resolve(BaseChannelAvatarRepository)
+    channel_repository = container.resolve(BaseChannelRepository)
+
+    channel = channel_repository.get_channel_by_id(user_id)
+
+    try:
+        log.info('Trying to delete channel avatar: %s', channel.slug)
+        avatar_repository.delete_avatar(channel)
+    except Exception as e:
+        log.error("AWS can't delete avatar for channel: %s. Error: %s", channel.slug, e)
+        self.retry(countdown=5)
+    else:
+        log.info('%s channel avatar successfully deleted', channel.slug)

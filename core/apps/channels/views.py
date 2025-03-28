@@ -4,6 +4,7 @@ from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from drf_spectacular.utils import OpenApiExample, OpenApiTypes, extend_schema
+from project.containers import get_container
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -11,7 +12,6 @@ from rest_framework.views import APIView
 
 from apps.common.mixins import PaginationMixin
 from apps.common.pagination import CustomCursorPagination
-from project.containers import get_container
 
 from . import serializers
 from .models import Channel, SubscriptionItem
@@ -46,11 +46,11 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         self.service: BaseChannelService = container.resolve(BaseChannelService)
 
     def get_object(self):
-        return self.service.repository.get_channel(self.request.user)
+        return self.service.repository.get_channel_by_user(self.request.user)
 
     def retrieve(self, request, *args, **kwargs):
         channel_data = self.service.get_channel(request.user)
-        return Response(channel_data)
+        return Response(channel_data, status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
         self.service.delete_channel(request.user)
@@ -82,7 +82,7 @@ class ChannelSubscribersView(generics.ListAPIView, PaginationMixin):
         cached_data = cache.get(key=cache_key)
 
         if cached_data:
-            return Response(cached_data)
+            return Response(cached_data, status.HTTP_200_OK)
 
         qs = self.filter_queryset(self.service.get_subscriber_list(channel=request.user.channel))
 
@@ -92,7 +92,7 @@ class ChannelSubscribersView(generics.ListAPIView, PaginationMixin):
             return paginated_response
 
         serializer = self.get_serializer(qs, many=True)
-        response = Response(serializer.data)
+        response = Response(serializer.data, status.HTTP_200_OK)
         cache.set(cache_key, response.data, 60 * 15)
         return response
 
@@ -106,9 +106,8 @@ class ChannelAvatarDestroy(APIView):
         self.service: BaseChannelAvatarService = container.resolve(BaseChannelAvatarService)
 
     def delete(self, request):
-        # TODO: add in celery
-        data, status = self.service.delete_avatar(request.user.channel)
-        return Response(data, status)
+        result = self.service.delete_avatar(request.user)
+        return Response(result, status.HTTP_204_NO_CONTENT)
 
 
 class ChannelMainView(generics.RetrieveAPIView):
@@ -199,8 +198,8 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
         Example: api/v1/subscription/subscribe/
         """
 
-        data, status = self.service.subscribe(user=request.user, slug=request.data.get('to'))
-        return Response(data, status)
+        result = self.service.subscribe(user=request.user, slug=request.data.get('to'))
+        return Response(result, status.HTTP_201_CREATED)
 
     @extend_schema(
         request={
@@ -234,5 +233,5 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
         Example: api/v1/subscription/unsubscribe/
         """
 
-        data, status = self.service.unsubscribe(user=request.user, slug=request.data.get('to'))
-        return Response(data, status)
+        result = self.service.unsubscribe(user=request.user, slug=request.data.get('to'))
+        return Response(result, status.HTTP_204_NO_CONTENT)

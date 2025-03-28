@@ -4,7 +4,6 @@ from typing import Dict, Iterable, Tuple
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import Count, OuterRef, Prefetch, Q, Subquery
-from django.shortcuts import get_object_or_404
 
 from apps.videos.models import Video
 
@@ -13,7 +12,10 @@ from ..models import Channel, SubscriptionItem
 
 class BaseChannelRepository(ABC):
     @abstractmethod
-    def get_channel(self, user: User) -> Channel:
+    def get_channel_by_user(self, user: User) -> Channel | None:
+        pass
+
+    def get_channel_by_id(self, user_id: int) -> Channel | None:
         pass
 
     @abstractmethod
@@ -22,8 +24,11 @@ class BaseChannelRepository(ABC):
 
 
 class ORMChannelRepository(BaseChannelRepository):
-    def get_channel(self, user: User) -> Channel:
-        return get_object_or_404(Channel, user=user)
+    def get_channel_by_user(self, user: User) -> Channel | None:
+        return Channel.objects.filter(user=user).first()
+
+    def get_channel_by_id(self, user_id: int) -> Channel | None:
+        return Channel.objects.filter(user_id=user_id).first()
 
     def delete_channel(self, user: User) -> None:
         user.delete()

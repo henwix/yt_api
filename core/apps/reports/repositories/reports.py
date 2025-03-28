@@ -13,6 +13,3 @@ class BaseVideoReportsRepository(ABC):
 class ORMVideoReportRepository(BaseVideoReportsRepository):
     def get_reports(self) -> Iterable[VideoReport]:
         return VideoReport.objects.all()
-
-    def get_reports_related(self) -> Iterable[VideoReport]:
-        return VideoReport.objects.all().select_related('video', 'author')

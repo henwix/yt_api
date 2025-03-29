@@ -39,6 +39,6 @@ def delete_channel_avatar(self, user_id: int):
         avatar_repository.delete_avatar(channel)
     except Exception as e:
         log.error("AWS can't delete avatar for channel: %s. Error: %s", channel.slug, e)
-        self.retry(countdown=5)
+        raise self.retry(countdown=5)
     else:
         log.info('%s channel avatar successfully deleted', channel.slug)

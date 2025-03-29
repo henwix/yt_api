@@ -36,12 +36,10 @@ class BaseChannelService(ABC):
     serializer_class: Type[Serializer]
 
     @abstractmethod
-    def get_channel(self, user: User) -> dict:
-        pass
+    def get_channel(self, user: User) -> dict: ...
 
     @abstractmethod
-    def delete_channel(self, user: User) -> None:
-        pass
+    def delete_channel(self, user: User) -> None: ...
 
 
 class CachedORMChannelService(BaseChannelService):
@@ -71,8 +69,7 @@ class BaseChannelSubsService(ABC):
     repository: BaseChannelSubsRepository
 
     @abstractmethod
-    def get_subscriber_list(self, channel: Channel) -> Iterable[SubscriptionItem]:
-        pass
+    def get_subscriber_list(self, channel: Channel) -> Iterable[SubscriptionItem]: ...
 
 
 class ChannelSubsService(BaseChannelSubsService):
@@ -83,8 +80,7 @@ class ChannelSubsService(BaseChannelSubsService):
 @dataclass(eq=False)
 class BaseAvatarValidatorService(ABC):
     @abstractmethod
-    def validate_avatar(self, channel: Channel) -> None:
-        pass
+    def validate_avatar(self, channel: Channel) -> None: ...
 
 
 class AvatarValidatorService(BaseAvatarValidatorService):
@@ -96,8 +92,7 @@ class AvatarValidatorService(BaseAvatarValidatorService):
 @dataclass(eq=False)
 class BaseChannelAvatarService(ABC):
     @abstractmethod
-    def delete_avatar(self, user: User) -> dict:
-        pass
+    def delete_avatar(self, user: User) -> dict: ...
 
 
 @dataclass
@@ -139,8 +134,7 @@ class BaseChannelMainService(ABC):
     repository: BaseChannelMainRepository
 
     @abstractmethod
-    def get_channel_main_page_list(self) -> Iterable[Channel]:
-        pass
+    def get_channel_main_page_list(self) -> Iterable[Channel]: ...
 
 
 class ChannelMainService(BaseChannelMainService):
@@ -153,8 +147,7 @@ class BaseChannelAboutService(ABC):
     repository: BaseChannelAboutRepository
 
     @abstractmethod
-    def get_channel_about_list(self) -> Iterable[Channel]:
-        pass
+    def get_channel_about_list(self) -> Iterable[Channel]: ...
 
 
 class ChannelAboutService(BaseChannelAboutService):
@@ -167,12 +160,10 @@ class BaseSubscriptionService(ABC):
     repository: BaseSubscriptionRepository
 
     @abstractmethod
-    def subscribe(self, user: User, slug: str) -> dict:
-        pass
+    def subscribe(self, user: User, slug: str) -> dict: ...
 
     @abstractmethod
-    def unsubscribe(self, user: User, slug: str) -> dict:
-        pass
+    def unsubscribe(self, user: User, slug: str) -> dict: ...
 
 
 class SubscriptionService(BaseSubscriptionService):

@@ -12,31 +12,24 @@ from ..models import Video, VideoLike, VideoView
 
 class BaseVideoRepository(ABC):
     @abstractmethod
-    def get_channel(self, user: User) -> Channel | None:
-        pass
+    def get_channel(self, user: User) -> Channel | None: ...
 
     @abstractmethod
-    def get_video(self, video_id: str) -> Video | None:
-        pass
+    def get_video(self, video_id: str) -> Video | None: ...
 
     @abstractmethod
-    def like_get_or_create(self, channel: Channel, video: Video, is_like: bool) -> Tuple[VideoLike, bool]:
-        pass
+    def like_get_or_create(self, channel: Channel, video: Video, is_like: bool) -> Tuple[VideoLike, bool]: ...
 
     @abstractmethod
-    def like_delete(self, channel: Channel, video: Video) -> Tuple[int, dict]:
-        pass
+    def like_delete(self, channel: Channel, video: Video) -> Tuple[int, dict]: ...
 
     @abstractmethod
-    def last_view_exists(self, channel: Channel, video: Video, ip_address: str) -> bool:
-        pass
+    def last_view_exists(self, channel: Channel, video: Video, ip_address: str) -> bool: ...
 
     @abstractmethod
-    def create_view(self, channel: Channel, video: Video, ip_address: str) -> None:
-        pass
+    def create_view(self, channel: Channel, video: Video, ip_address: str) -> None: ...
 
-    def get_videos_list(self) -> Iterable[Video]:
-        pass
+    def get_videos_list(self) -> Iterable[Video]: ...
 
 
 class ORMVideoRepository(BaseVideoRepository):

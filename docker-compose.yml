@@ -43,6 +43,17 @@ services:
       - redis
       - postgres
 
+  celery-beat:
+    build: .
+    command: celery -A project beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - ./core:/app/
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - postgres
+
 volumes:
   postgres_data:
   redis_data:

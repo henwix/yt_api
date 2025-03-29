@@ -12,15 +12,12 @@ from ..models import Channel, SubscriptionItem
 
 class BaseChannelRepository(ABC):
     @abstractmethod
-    def get_channel_by_user(self, user: User) -> Channel | None:
-        pass
+    def get_channel_by_user(self, user: User) -> Channel | None: ...
 
-    def get_channel_by_id(self, user_id: int) -> Channel | None:
-        pass
+    def get_channel_by_id(self, user_id: int) -> Channel | None: ...
 
     @abstractmethod
-    def delete_channel(self, user: User) -> None:
-        pass
+    def delete_channel(self, user: User) -> None: ...
 
 
 class ORMChannelRepository(BaseChannelRepository):
@@ -36,8 +33,7 @@ class ORMChannelRepository(BaseChannelRepository):
 
 class BaseChannelSubsRepository(ABC):
     @abstractmethod
-    def get_subscriber_list(self, channel: Channel) -> Iterable[SubscriptionItem]:
-        pass
+    def get_subscriber_list(self, channel: Channel) -> Iterable[SubscriptionItem]: ...
 
 
 class ORMChannelSubsRepository(BaseChannelSubsRepository):
@@ -47,8 +43,7 @@ class ORMChannelSubsRepository(BaseChannelSubsRepository):
 
 class BaseChannelAvatarRepository(ABC):
     @abstractmethod
-    def delete_avatar(self, channel: Channel) -> None:
-        pass
+    def delete_avatar(self, channel: Channel) -> None: ...
 
 
 class ORMChannelAvatarRepository(BaseChannelAvatarRepository):
@@ -61,8 +56,7 @@ class ORMChannelAvatarRepository(BaseChannelAvatarRepository):
 
 class BaseChannelMainRepository(ABC):
     @abstractmethod
-    def get_channel_main_page_list(self) -> Iterable[Channel]:
-        pass
+    def get_channel_main_page_list(self) -> Iterable[Channel]: ...
 
 
 class ORMChannelMainRepository(BaseChannelMainRepository):
@@ -90,8 +84,7 @@ class ORMChannelMainRepository(BaseChannelMainRepository):
 
 class BaseChannelAboutRepository(ABC):
     @abstractmethod
-    def get_channel_about_list(self) -> Iterable[Channel]:
-        pass
+    def get_channel_about_list(self) -> Iterable[Channel]: ...
 
 
 class ORMChannelAboutRepository(BaseChannelAboutRepository):
@@ -110,16 +103,13 @@ class ORMChannelAboutRepository(BaseChannelAboutRepository):
 
 class BaseSubscriptionRepository(ABC):
     @abstractmethod
-    def get_channels(self, user: User, slug: str) -> Tuple[Channel, Channel | None]:
-        pass
+    def get_channels(self, user: User, slug: str) -> Tuple[Channel, Channel | None]: ...
 
     @abstractmethod
-    def get_or_create_sub(self, subscriber: Channel, subscribed_to: Channel) -> Tuple[SubscriptionItem, bool]:
-        pass
+    def get_or_create_sub(self, subscriber: Channel, subscribed_to: Channel) -> Tuple[SubscriptionItem, bool]: ...
 
     @abstractmethod
-    def delete_sub(self, subscriber: Channel, subscribed_to: Channel) -> Tuple[int, Dict[str, int]]:
-        pass
+    def delete_sub(self, subscriber: Channel, subscribed_to: Channel) -> Tuple[int, Dict[str, int]]: ...
 
 
 class ORMSubscriptionRepository(BaseSubscriptionRepository):

@@ -11,8 +11,7 @@ class BaseVideoReportsService(ABC):
     repository: BaseVideoReportsRepository
 
     @abstractmethod
-    def get_reports(self) -> Iterable[VideoReport]:
-        pass
+    def get_reports(self) -> Iterable[VideoReport]: ...
 
 
 class VideoReportsService(BaseVideoReportsService):

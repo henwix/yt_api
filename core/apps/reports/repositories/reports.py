@@ -6,8 +6,7 @@ from ..models import VideoReport
 
 class BaseVideoReportsRepository(ABC):
     @abstractmethod
-    def get_reports(self) -> Iterable[VideoReport]:
-        pass
+    def get_reports(self) -> Iterable[VideoReport]: ...
 
 
 class ORMVideoReportRepository(BaseVideoReportsRepository):

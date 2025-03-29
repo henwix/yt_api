@@ -17,16 +17,13 @@ class BaseVideoService(ABC):
     repository: BaseVideoRepository
 
     @abstractmethod
-    def like_create(self, user: User, video_id: str, is_like: bool) -> dict:
-        pass
+    def like_create(self, user: User, video_id: str, is_like: bool) -> dict: ...
 
     @abstractmethod
-    def like_delete(self, user: User, video_id: str) -> dict:
-        pass
+    def like_delete(self, user: User, video_id: str) -> dict: ...
 
     @abstractmethod
-    def view_create(self, user: User, video_id: str, ip_address: str) -> dict:
-        pass
+    def view_create(self, user: User, video_id: str, ip_address: str) -> dict: ...
 
 
 class VideoService(BaseVideoService):

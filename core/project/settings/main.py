@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'silk',
     'drf_spectacular',
     'django.contrib.postgres',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [

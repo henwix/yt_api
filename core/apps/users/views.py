@@ -1,14 +1,16 @@
 import logging
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate, get_user_model, login  # noqa
 from django.db import transaction
 from djoser import signals
 from djoser.compat import get_user_email
 from djoser.conf import settings
 from djoser.views import UserViewSet
-from rest_framework import status
+from project.containers import get_container  # noqa
+from rest_framework import generics, status  # noqa
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken  # noqa
 
 from .tasks import (
     send_activation_email,
@@ -16,8 +18,55 @@ from .tasks import (
     send_reset_password_email,
     send_reset_username_email,
 )
+from .use_cases.authorize import AuthorizeUserUseCase  # noqa
 
 log = logging.getLogger(__name__)
+
+
+# class UserLoginView(APIView):
+#     def post(self, request):
+#         container = get_container()
+#         use_case: AuthorizeUserUseCase = container.resolve(AuthorizeUserUseCase)
+
+#         result = use_case.execute(
+#             {'username': request.data.get('username')},
+#         )
+
+#         username = request.data.get('username')
+#         password = request.data.get('password')
+
+#         user = authenticate(username=username, password=password)
+
+#         if not user.otp_enabled:
+#             refresh = RefreshToken.for_user(user)
+#             access = refresh.access_token
+
+#             return Response({'refresh': refresh, 'access': refresh}, status=201)
+
+#         # генерируем код
+#         # сейвим в кеш с почтой
+#         # отправляем письмо
+
+#         return Response({'Email sent': 'We send email, please, confirm access'}, status=200)
+
+
+# class OTPVerifyView(APIView):
+#     def post(self, request):
+#         container = get_container()
+#         service: BaseAuthService = container.resolve(BaseAuthService)
+
+#         code = request.data.get('code')
+#         email = request.data.get('email')
+
+#         cached_code = cache.get(f"code for: {email}")
+
+#         if cached_code == code:
+#             user = User.objects.filter(email).first()
+
+#             refresh = RefreshToken.for_user(user)
+#             access = refresh.access_token
+
+#             return Response({'refresh': refresh, 'access': refresh}, status=201)
 
 
 class CustomUserViewSet(UserViewSet):

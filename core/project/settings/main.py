@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from datetime import timedelta
 from pathlib import Path
-
+from kombu import Queue
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'django.contrib.postgres',
     'django_celery_beat',
+    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -281,11 +282,17 @@ AWS_QUERYSTRING_AUTH = False
 
 
 CELERY_BROKER_URL = 'redis://redis:6379/0'
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'  # 'django-db'
+CELERY_RESULT_EXPIRES = 3600  # 1 hour in seconds
 
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
+
+CELERY_TASK_QUEUES = (
+    Queue('media-queue'),
+    Queue('email-queue')
+)
 
 
 # SMTP

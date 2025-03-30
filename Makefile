@@ -3,6 +3,7 @@ EXEC = docker compose exec -it
 LOGS = docker compose logs
 DB_CONTAINER = postgres
 CELERY_CONTAINER = celery
+CELERY_BEAT_CONTAINER = celery-beat
 APP_CONTAINER = web
 MANAGE_PY = python manage.py
 
@@ -62,3 +63,7 @@ superuser:
 .PHONY: celery-logs
 celery-logs:
 	${LOGS} ${CELERY_CONTAINER} -f
+
+.PHONY: beat-logs
+beat-logs:
+	${LOGS} ${CELERY_BEAT_CONTAINER} -f

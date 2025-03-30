@@ -1,5 +1,6 @@
 services:
   web:
+    container_name: yt-web
     build:
       context: .
     ports:
@@ -33,8 +34,9 @@ services:
       - redis_data:/data/
   
   celery:
+    container_name: yt-celery
     build: .
-    command: celery -A project worker -l info
+    command: celery -A project worker -l info -Q media-queue,email-queue
     volumes:
       - ./core:/app/
     env_file:
@@ -44,6 +46,7 @@ services:
       - postgres
 
   celery-beat:
+    container_name: yt-celery-beat
     build: .
     command: celery -A project beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     volumes:

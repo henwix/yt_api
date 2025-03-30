@@ -53,7 +53,7 @@ class CachedORMChannelService(BaseChannelService):
 
         channel = self.repository.get_channel_by_user(user)
         if channel is None:
-            raise ChannelNotFoundError(user=user)
+            raise ChannelNotFoundError()
 
         serializer = self.serializer_class(channel)
         cache.set(key=cache_key, value=serializer.data, timeout=60 * 15)

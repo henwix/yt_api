@@ -1,15 +1,19 @@
+from dataclasses import dataclass
 from rest_framework import status
 
 from apps.common.exceptions import ServiceException
 
 
+@dataclass
 class ChannelNotFoundError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
     default_detail = {'error': 'Channel not found'}
 
+    user_id: int | None = None
+
     @property
     def message(self):
-        return 'Channel not found for user'
+        return f'Channel not found for user: {self.user_id}'
 
 
 class AvatarExceptionError(ServiceException):
@@ -22,7 +26,6 @@ class AvatarExceptionError(ServiceException):
 
 
 class AvatarDoesNotExistsError(AvatarExceptionError):
-    # FIXME: ошибка при попытке удаления аватарки через swagger: web-1  | AttributeError: 'AvatarDoesNotExists' object has no attribute 'detail'. Это из-за датакласса, чек в Chatgpt
     status_code = status.HTTP_404_NOT_FOUND
     default_detail = {'error': 'Avatar does not exists'}
 

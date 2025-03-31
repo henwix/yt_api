@@ -37,7 +37,7 @@ class VideoService(BaseVideoService):
         channel, video = self._get_channel(user), self._get_video(video_id)
 
         if not video:
-            raise VideoNotFound()
+            raise VideoNotFound(video_id=video_id)
 
         return channel, video
 
@@ -58,7 +58,7 @@ class VideoService(BaseVideoService):
         deleted, _ = self.repository.like_delete(channel, video)
 
         if not deleted:
-            raise LikeNotFound()
+            raise LikeNotFound(channel_slug=channel.slug, video_id=video.video_id)
 
         return {'status': 'Success'}
 
@@ -68,7 +68,7 @@ class VideoService(BaseVideoService):
         last_view_exists = self.repository.last_view_exists(channel, video, ip_address)
 
         if last_view_exists:
-            raise ViewExistsError()
+            raise ViewExistsError(channel_slug=channel.slug, video_id=video.video_id)
 
         self.repository.create_view(channel, video, ip_address)
         return {'status': 'Success'}

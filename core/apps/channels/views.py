@@ -216,20 +216,16 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
             }
         },
         responses={
-            200: OpenApiTypes.OBJECT,
-            201: OpenApiTypes.OBJECT,
             204: OpenApiTypes.OBJECT,
-            400: OpenApiTypes.OBJECT,
             404: OpenApiTypes.OBJECT,
         },
         examples=[OpenApiExample("Example: unsub from 'henwix' channel", value={'to': 'henwix'}, request_only=True)],
     )
-    @action(methods=['delete'], url_path='unsubscribe', detail=False)
+    @action(methods=['post'], url_path='unsubscribe', detail=False)
     def unsubscribe(self, request):
-        # FIXME: не работает схема, нет JSON-body в swagger
         """
         API endpoint to unsubscribe.
-        JSON-body parameters: 'slug' - channel's slug to unsubscribe
+        JSON-body parameters: 'to' - channel's slug to unsubscribe
         Example: api/v1/subscription/unsubscribe/
         """
 

@@ -57,9 +57,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 DELETE  http://127.0.0.1:8001/api/v1/channel/delete-avatar/ HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQzMTg4NTE2LCJpYXQiOjE3NDMxMDIxMTYsImp0aSI6IjRhOTk5OTY3M2MwMzQ4Yjk5OWU5ZTU4OTVkMTExYWVkIiwidXNlcl9pZCI6MTE0fQ.y1WwhnJaHGwgY4FUWe6ECq0tE9-WEH8EqYB2FKLrQGQ
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQzNTE2MzM0LCJpYXQiOjE3NDM0Mjk5MzQsmp0aSI6ImY5Yjk3NzYxNjUyYzRhNDBiMDgxZTU5YzMzYWRjYmE5IiwidXNlcl9pZCI6MTE5fQ.pbp2k67BJ1OPtjEyT85um8UoTcBlXj3MAKYyb9TAMZw
 
-###
+###I
 
 DELETE http://127.0.0.1:8001/api/v1/channel/ HTTP/1.1
 Content-Type: application/json

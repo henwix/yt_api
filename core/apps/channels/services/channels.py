@@ -53,7 +53,7 @@ class CachedORMChannelService(BaseChannelService):
 
         channel = self.repository.get_channel_by_user(user)
         if channel is None:
-            raise ChannelNotFoundError()
+            raise ChannelNotFoundError(user_id=user.pk)
 
         serializer = self.serializer_class(channel)
         cache.set(key=cache_key, value=serializer.data, timeout=60 * 15)
@@ -86,7 +86,7 @@ class BaseAvatarValidatorService(ABC):
 class AvatarValidatorService(BaseAvatarValidatorService):
     def validate_avatar(self, channel: Channel) -> None:
         if not bool(channel.channel_avatar):
-            raise AvatarDoesNotExistsError()
+            raise AvatarDoesNotExistsError(channel_slug=channel.slug)
 
 
 @dataclass(eq=False)
@@ -110,7 +110,7 @@ class ChannelAvatarService(BaseChannelAvatarService):
             self.avatar_repository.delete_avatar(channel)
         except Exception as e:
             log.info('Channel avatar deletion error: %s', e)
-            raise AvatarExceptionError(channel=channel)
+            raise AvatarExceptionError(channel_slug=channel.slug)
         else:
             return {'status': 'Success'}
 
@@ -171,10 +171,10 @@ class SubscriptionService(BaseSubscriptionService):
         subscriber, subscribed_to = self.repository.get_channels(user, slug)
 
         if not subscribed_to:
-            raise ChannelNotFoundError()
+            raise ChannelNotFoundError(user_id=user.pk)
 
         if not subscriber.pk != subscribed_to.pk:
-            raise SelfSubscriptionError()
+            raise SelfSubscriptionError(channel_slug=subscriber.slug)
 
         return subscriber, subscribed_to
 
@@ -184,7 +184,7 @@ class SubscriptionService(BaseSubscriptionService):
         _, created = self.repository.get_or_create_sub(subscriber=subscriber, subscribed_to=subscribed_to)
 
         if not created:
-            raise SubscriptionExistsError()
+            raise SubscriptionExistsError(sub_slug=subscriber.slug, sub_to_slug=subscribed_to.slug)
 
         return {'status': 'Subscription created'}
 
@@ -194,6 +194,6 @@ class SubscriptionService(BaseSubscriptionService):
         deleted, _ = self.repository.delete_sub(subscriber=subscriber, subscribed_to=subscribed_to)
 
         if not deleted:
-            raise SubscriptionDoesNotExistsError()
+            raise SubscriptionDoesNotExistsError(sub_slug=subscriber.slug, sub_to_slug=subscribed_to.slug)
 
         return {'status': 'Subscription deleted'}

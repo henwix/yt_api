@@ -14,7 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.common.pagination import CustomCursorPagination
+from apps.common.pagination import CustomCursorPagination, CustomPageNumberPagination
 from apps.common.permissions import (
     IsAuthenticatedOrAdminOrReadOnly,
     IsAuthenticatedOrAuthorOrReadOnly,
@@ -355,11 +355,10 @@ class PlaylistAPIView(viewsets.ModelViewSet):
     Example: api/v1/playlists/, api/v1/playlists/kn2puLWEDmqIvavBgvYRSypsb162jSHE/
     """
 
-    # FIXME: check requests in silk and add pagination
-
     lookup_field = 'id'
     lookup_url_kwarg = 'id'
     permission_classes = [IsAuthorOrReadOnlyPlaylist]
+    pagination_class = CustomPageNumberPagination
 
     def get_serializer_class(self):
         if self.action == 'list':

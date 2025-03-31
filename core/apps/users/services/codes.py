@@ -25,6 +25,6 @@ class EmailCodeService(BaseCodeService):
             raise CodeNotFoundException()
 
         if cached_code != code:
-            raise CodeNotEqualException()
+            raise CodeNotEqualException(cached_code=cached_code, user_code=code)
 
         cache.delete(email)

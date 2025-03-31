@@ -93,7 +93,7 @@ class CustomUserViewSet(UserViewSet):
     def _check_activation_email(self, user):
         if settings.SEND_ACTIVATION_EMAIL and not user.is_active:
             context, to = self._get_mail_args(user)
-            send_activation_email.apply_async(args=[context, to], ignore_result=True)
+            send_activation_email.apply_async(args=[context, to], queue='email-queue', ignore_result=True)
 
     def perform_create(self, serializer, *args, **kwargs):
         with transaction.atomic():
@@ -119,7 +119,7 @@ class CustomUserViewSet(UserViewSet):
 
         if settings.SEND_CONFIRMATION_EMAIL:
             context, to = self._get_mail_args(user)
-            send_confirmation_email.apply_async(args=[context, to], ignore_result=True)
+            send_confirmation_email.apply_async(args=[context, to], queue='email-queue', ignore_result=True)
         return Response({'success', 'Your account successfully activated!'}, status=status.HTTP_204_NO_CONTENT)
 
     @action(['post'], detail=False)
@@ -131,7 +131,7 @@ class CustomUserViewSet(UserViewSet):
 
         if user:
             context, to = self._get_mail_args(user)
-            send_activation_email.apply_async(args=[context, to], ignore_result=True)
+            send_activation_email.apply_async(args=[context, to], queue='email-queue', ignore_result=True)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(['post'], detail=False)
@@ -140,7 +140,7 @@ class CustomUserViewSet(UserViewSet):
 
         if user:
             context, to = self._get_mail_args(user)
-            send_reset_password_email.apply_async(args=[context, to], ignore_result=True)
+            send_reset_password_email.apply_async(args=[context, to], queue='email-queue', ignore_result=True)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(['post'], detail=False, url_path=f'reset_{get_user_model().USERNAME_FIELD}')
@@ -149,5 +149,5 @@ class CustomUserViewSet(UserViewSet):
 
         if user:
             context, to = self._get_mail_args(user)
-            send_reset_username_email.apply_async(args=[context, to], ignore_result=True)
+            send_reset_username_email.apply_async(args=[context, to], queue='email-queue', ignore_result=True)
         return Response(status=status.HTTP_204_NO_CONTENT)

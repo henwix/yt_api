@@ -32,7 +32,7 @@ from apps.channels.services.channels import (
     SubscriptionService,
 )
 
-from .providers.channels import BaseChannelAvatarProvider, ChannelProvider
+from .providers.channels import BaseChannelAvatarProvider, CeleryChannelProvider
 
 
 def initialize_channels(container: punq.Container) -> None:
@@ -54,4 +54,4 @@ def initialize_channels(container: punq.Container) -> None:
     container.register(BaseSubscriptionService, SubscriptionService)
 
     # providers
-    container.register(BaseChannelAvatarProvider, ChannelProvider)
+    container.register(BaseChannelAvatarProvider, CeleryChannelProvider)

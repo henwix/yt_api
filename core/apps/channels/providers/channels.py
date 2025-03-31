@@ -9,10 +9,8 @@ class BaseChannelAvatarProvider(ABC):
     def delete_avatar(self, user_pk: int) -> None: ...
 
 
-class ChannelProvider(BaseChannelAvatarProvider):
+class CeleryChannelProvider(BaseChannelAvatarProvider):
     def delete_avatar(self, user_pk: int) -> None:
-        #  TODO: пофиксить циклический импорт или сделать это через DI
         from ..tasks import delete_channel_avatar
 
-        task_result = delete_channel_avatar.apply_async(args=[user_pk], ignore_result=True)
-        log.info(task_result.id)
+        delete_channel_avatar.apply_async(args=[user_pk], queue='media-queue', ignore_result=True)

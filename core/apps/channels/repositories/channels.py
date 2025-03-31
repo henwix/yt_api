@@ -1,3 +1,4 @@
+import logging
 from abc import ABC, abstractmethod
 from typing import Dict, Iterable, Tuple
 
@@ -8,6 +9,8 @@ from django.db.models import Count, OuterRef, Prefetch, Q, Subquery
 from apps.videos.models import Video
 
 from ..models import Channel, SubscriptionItem
+
+log = logging.getLogger(__name__)
 
 
 class BaseChannelRepository(ABC):
@@ -50,7 +53,6 @@ class ORMChannelAvatarRepository(BaseChannelAvatarRepository):
     def delete_avatar(self, channel: Channel) -> None:
         with transaction.atomic():
             channel.channel_avatar.delete()
-            channel.channel_avatar = None  # TODO: is this necessary or maybe just .delete enough?
             channel.save()
 
 

@@ -49,6 +49,6 @@ def delete_channel_files_signal(instance, **kwargs):
 
     if files:
         log.info('Start deleting files task for %s', instance.name)
-        delete_channel_files_task.delay(files)
+        delete_channel_files_task.apply_async(args=[files], queue='media-queue')
     else:
         log.info('No files to delete for %s', instance.name)

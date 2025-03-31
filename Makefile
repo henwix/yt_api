@@ -48,6 +48,14 @@ app-logs:
 app-shell:
 	${EXEC} ${APP_CONTAINER} ${MANAGE_PY} shell_plus
 
+.PHONY: celery-logs
+celery-logs:
+	${LOGS} ${CELERY_CONTAINER} -f
+
+.PHONY: beat-logs
+beat-logs:
+	${LOGS} ${CELERY_BEAT_CONTAINER} -f
+
 .PHONY: makemigrations
 makemigrations:
 	${EXEC} ${APP_CONTAINER} ${MANAGE_PY} makemigrations
@@ -60,10 +68,10 @@ migrate:
 superuser:
 	${EXEC} ${APP_CONTAINER} ${MANAGE_PY} createsuperuser
 
-.PHONY: celery-logs
-celery-logs:
-	${LOGS} ${CELERY_CONTAINER} -f
+.PHONY: collectstatic
+collectstatic:
+	${EXEC} ${APP_CONTAINER} ${MANAGE_PY} collectstatic
 
-.PHONY: beat-logs
-beat-logs:
-	${LOGS} ${CELERY_BEAT_CONTAINER} -f
+.PHONY: run-test
+run-test:
+	${EXEC} ${APP_CONTAINER} pytest

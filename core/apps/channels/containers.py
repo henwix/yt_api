@@ -14,7 +14,6 @@ from apps.channels.repositories.channels import (
     ORMChannelSubsRepository,
     ORMSubscriptionRepository,
 )
-from apps.channels.serializers import ChannelSerializer
 from apps.channels.services.channels import (
     AvatarValidatorService,
     BaseAvatarValidatorService,
@@ -24,11 +23,11 @@ from apps.channels.services.channels import (
     BaseChannelService,
     BaseChannelSubsService,
     BaseSubscriptionService,
-    CachedORMChannelService,
     CeleryChannelAvatarService,
     ChannelAboutService,
     ChannelMainService,
     ChannelSubsService,
+    ORMChannelService,
     SubscriptionService,
 )
 
@@ -46,7 +45,7 @@ def initialize_channels(container: punq.Container) -> None:
 
     # services
     container.register(BaseAvatarValidatorService, AvatarValidatorService)
-    container.register(BaseChannelService, CachedORMChannelService, serializer_class=ChannelSerializer)
+    container.register(BaseChannelService, ORMChannelService)
     container.register(BaseChannelSubsService, ChannelSubsService)
     container.register(BaseChannelAvatarService, CeleryChannelAvatarService)
     container.register(BaseChannelMainService, ChannelMainService)

@@ -33,9 +33,11 @@ djangorestframework_simplejwt==5.4.0
 djoser==2.3.1
 drf-spectacular==0.28.0
 executing==2.2.0
+Faker==37.1.0
 gprof2dot==2024.6.6
 idna==3.10
 inflection==0.5.1
+iniconfig==2.1.0
 ipython==8.32.0
 jedi==0.19.2
 jmespath==1.0.1
@@ -45,8 +47,10 @@ kombu==5.4.2
 matplotlib-inline==0.1.7
 mypy-extensions==1.0.0
 oauthlib==3.2.2
+packaging==24.2
 parso==0.8.4
 pillow==11.1.0
+pluggy==1.5.0
 prompt_toolkit==3.0.50
 psycopg2==2.9.10
 punq==0.7.0
@@ -55,6 +59,8 @@ pycodestyle==2.12.1
 pycparser==2.22
 Pygments==2.19.1
 PyJWT==2.10.1
+pytest==8.3.5
+pytest-django==4.10.0
 python-crontab==3.2.0
 python-dateutil==2.9.0.post0
 python3-openid==3.2.0

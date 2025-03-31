@@ -1,11 +1,9 @@
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Iterable, Tuple, Type
+from typing import Iterable, Tuple
 
 from django.contrib.auth.models import User
-from django.core.cache import cache
-from rest_framework.serializers import Serializer
 
 from ..exceptions.channels import (
     AvatarDoesNotExistsError,
@@ -30,35 +28,23 @@ log = logging.getLogger(__name__)
 
 
 @dataclass(eq=False)
-# FIXME: mb убрать serializer
 class BaseChannelService(ABC):
     repository: BaseChannelRepository
-    serializer_class: Type[Serializer]
 
     @abstractmethod
-    def get_channel(self, user: User) -> dict: ...
+    def get_channel(self, user: User) -> Channel: ...
 
     @abstractmethod
     def delete_channel(self, user: User) -> None: ...
 
 
-class CachedORMChannelService(BaseChannelService):
-    # TODO:  перенести в отдельный CacheService в common для переиспользования
-    def get_channel(self, user: User) -> dict:
-        cache_key = f'retrieve_channel_{user.pk}'
-        cached_channel = cache.get(cache_key)
-
-        if cached_channel:
-            return cached_channel
-
+class ORMChannelService(BaseChannelService):
+    def get_channel(self, user: User) -> Channel:
         channel = self.repository.get_channel_by_user(user)
         if channel is None:
             raise ChannelNotFoundError(user_id=user.pk)
 
-        serializer = self.serializer_class(channel)
-        cache.set(key=cache_key, value=serializer.data, timeout=60 * 15)
-
-        return serializer.data
+        return channel
 
     def delete_channel(self, user: User) -> None:
         self.repository.delete_channel(user)
@@ -126,7 +112,7 @@ class CeleryChannelAvatarService(BaseChannelAvatarService):
         self.validator_service.validate_avatar(channel)
 
         self.provider.delete_avatar(user.pk)
-        return {'Status': 'Your avatar will be deleted soon, it can take a few minutes'}
+        return {'status': 'Your avatar will be deleted soon, it can take a few minutes'}
 
 
 @dataclass(eq=False)
@@ -173,7 +159,7 @@ class SubscriptionService(BaseSubscriptionService):
         if not subscribed_to:
             raise ChannelNotFoundError(user_id=user.pk)
 
-        if not subscriber.pk != subscribed_to.pk:
+        if subscriber.pk == subscribed_to.pk:
             raise SelfSubscriptionError(channel_slug=subscriber.slug)
 
         return subscriber, subscribed_to

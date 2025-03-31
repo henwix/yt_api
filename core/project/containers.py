@@ -2,6 +2,7 @@ from functools import lru_cache
 
 import punq
 from apps.channels.containers import initialize_channels
+from apps.common.services.cache import BaseCacheService, CacheService
 from apps.reports.containers import initialize_reports
 from apps.videos.containers import initialize_videos
 
@@ -17,5 +18,7 @@ def _initialize_container() -> punq.Container:
     initialize_channels(container)
     initialize_reports(container)
     initialize_videos(container)
+
+    container.register(BaseCacheService, CacheService)
 
     return container

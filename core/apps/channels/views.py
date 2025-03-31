@@ -1,6 +1,5 @@
 import logging
 
-from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from drf_spectacular.utils import OpenApiExample, OpenApiTypes, extend_schema
@@ -12,6 +11,7 @@ from rest_framework.views import APIView
 
 from apps.common.mixins import PaginationMixin
 from apps.common.pagination import CustomCursorPagination
+from apps.common.services.cache import BaseCacheService
 
 from . import serializers
 from .models import Channel, SubscriptionItem
@@ -43,17 +43,29 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         container = get_container()
-        self.service: BaseChannelService = container.resolve(BaseChannelService)
+        self.channel_service: BaseChannelService = container.resolve(BaseChannelService)
+        self.cache_service: BaseCacheService = container.resolve(BaseCacheService)
 
     def get_object(self):
-        return self.service.repository.get_channel_by_user(self.request.user)
+        return self.channel_service.repository.get_channel_by_user(self.request.user)
 
     def retrieve(self, request, *args, **kwargs):
-        channel_data = self.service.get_channel(request.user)
-        return Response(channel_data, status.HTTP_200_OK)
+        user = request.user
+        cache_key = f'retrieve_channel_{user.pk}'
+
+        cached_data = self.cache_service.get_cached_data(cache_key)
+
+        if cached_data:
+            return Response(cached_data, status.HTTP_200_OK)
+
+        channel = self.channel_service.get_channel(user)
+        serializer = self.get_serializer(channel)
+        self.cache_service.cache_data(cache_key, serializer.data, 60 * 15)
+
+        return Response(serializer.data, status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
-        self.service.delete_channel(request.user)
+        self.channel_service.delete_channel(request.user)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -72,28 +84,30 @@ class ChannelSubscribersView(generics.ListAPIView, PaginationMixin):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         container = get_container()
-        self.service: BaseChannelSubsService = container.resolve(BaseChannelSubsService)
+        self.sub_service: BaseChannelSubsService = container.resolve(BaseChannelSubsService)
+        self.cache_service: BaseCacheService = container.resolve(BaseCacheService)
 
     def list(self, request, *args, **kwargs):
         """Custom list method to cache response."""
 
-        cursor = request.query_params.get('c', '1')
-        cache_key = f'cached_subs_{request.user.pk}_c_{cursor}'
-        cached_data = cache.get(key=cache_key)
+        cache_key = f'subs_{request.user.pk}_{request.query_params.get("c", "1")}'
+
+        cached_data = self.cache_service.get_cached_data(cache_key)
 
         if cached_data:
             return Response(cached_data, status.HTTP_200_OK)
 
-        qs = self.filter_queryset(self.service.get_subscriber_list(channel=request.user.channel))
-
+        qs = self.filter_queryset(self.sub_service.get_subscriber_list(channel=request.user.channel))
         paginated_response = self.mixin_pagination(qs)
+
         if paginated_response:
-            cache.set(cache_key, paginated_response.data, 60 * 15)
+            self.cache_service.cache_data(cache_key, paginated_response.data, 60 * 15)
             return paginated_response
 
         serializer = self.get_serializer(qs, many=True)
+        self.cache_service.cache_data(cache_key, serializer.data, 60 * 15)
+
         response = Response(serializer.data, status.HTTP_200_OK)
-        cache.set(cache_key, response.data, 60 * 15)
         return response
 
 

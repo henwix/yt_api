@@ -1,9 +1,17 @@
 import pytest
-from apps.channels.services.channels import BaseChannelMainService
-from project.containers import get_container
+from apps.channels.services.channels import BaseChannelService
+from django.contrib.auth.models import User
+from punq import Container
+
+from tests.factories.channels import ChannelModelFactory
 
 
 @pytest.fixture
-def main_channel_service() -> BaseChannelMainService:
-    container = get_container()
-    return container.resolve(BaseChannelMainService)
+def channel_service(container: Container) -> BaseChannelService:
+    return container.resolve(BaseChannelService)
+
+
+@pytest.fixture
+def user_with_channel() -> User:
+    channel = ChannelModelFactory()
+    return channel.user

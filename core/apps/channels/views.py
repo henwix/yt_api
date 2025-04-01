@@ -27,6 +27,7 @@ from .services.channels import (
 log = logging.getLogger(__name__)
 
 
+### Сделать эндпоинт для создания каналов. Удалять каналы можно без удаления юзеров. Создавать каналы можно только при условии, если есть юзер.
 class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     """
     API endpoint for detail, update and delete 'Channel' instances.

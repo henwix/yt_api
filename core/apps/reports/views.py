@@ -1,7 +1,7 @@
+from project.containers import get_container
 from rest_framework import generics, viewsets
 
 from apps.common.pagination import CustomCursorPagination
-from project.containers import get_container
 
 from .permissions import IsStaffOrCreateOnly
 from .serializers import VideoReportSerializer
@@ -20,4 +20,6 @@ class VideoReportsView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIVi
         self.service: BaseVideoReportsService = container.resolve(BaseVideoReportsService)
 
     def get_queryset(self):
-        return self.service.get_reports(self.action)
+        if self.action == ['list', 'retrieve']:
+            return self.service.get_report_list_related()
+        return self.service.get_report_list()

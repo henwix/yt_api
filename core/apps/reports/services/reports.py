@@ -11,13 +11,12 @@ class BaseVideoReportsService(ABC):
     repository: BaseVideoReportsRepository
 
     @abstractmethod
-    def get_reports(self) -> Iterable[VideoReport]: ...
+    def get_report_list(self) -> Iterable[VideoReport]: ...
 
 
 class VideoReportsService(BaseVideoReportsService):
-    def get_reports(self, action: str) -> Iterable[VideoReport]:
-        qs = self.repository.get_reports()
+    def get_report_list(self) -> Iterable[VideoReport]:
+        return self.repository.get_reports()
 
-        if action in ['retrieve', 'list']:
-            return qs.select_related('video', 'author')
-        return qs
+    def get_report_list_related(self) -> Iterable[VideoReport]:
+        return self.repository.get_reports().select_related('video', 'author')

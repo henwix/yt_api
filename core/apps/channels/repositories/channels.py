@@ -62,6 +62,7 @@ class BaseChannelMainRepository(ABC):
 
 
 class ORMChannelMainRepository(BaseChannelMainRepository):
+    # TODO: вытащить фильтрацию в сервис
     def get_channel_main_page_list(self) -> Iterable[Channel]:
         second_qs = (
             Video.objects.select_related('author')

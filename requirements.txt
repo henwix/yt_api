@@ -33,6 +33,7 @@ djangorestframework_simplejwt==5.4.0
 djoser==2.3.1
 drf-spectacular==0.28.0
 executing==2.2.0
+factory_boy==3.3.3
 Faker==37.1.0
 gprof2dot==2024.6.6
 idna==3.10

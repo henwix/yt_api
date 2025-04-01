@@ -11,10 +11,10 @@ fake = Faker()
 
 
 class VideoReportModelFactory(DjangoModelFactory):
+    class Meta:
+        model = VideoReport
+
     video = factory.SubFactory(VideoModelFactory)
     author = factory.SubFactory(ChannelModelFactory)
     reason = factory.fuzzy.FuzzyChoice([i[0] for i in VideoReport.ReportReasons.choices])
     description = factory.Faker('text')
-
-    class Meta:
-        model = VideoReport

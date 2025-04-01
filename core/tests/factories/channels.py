@@ -23,6 +23,6 @@ class ChannelModelFactory(DjangoModelFactory):
         model = Channel
 
     user = factory.SubFactory(UserModelFactory)
-    name = factory_lazy_function(fake.first_name, 40)
-    slug = factory_lazy_function(fake.slug, 40)
+    name = factory_lazy_function(fake.first_name, max_length=40)
+    slug = factory_lazy_function(fake.slug, max_length=40)
     country = factory.Faker('country')

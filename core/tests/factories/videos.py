@@ -17,5 +17,5 @@ class VideoModelFactory(DjangoModelFactory):
 
     video_id = factory.LazyFunction(generate_video_link)
     author = factory.SubFactory(ChannelModelFactory)
-    name = factory_lazy_function(fake.text, 40)
+    name = factory_lazy_function(fake.text, max_length=40)
     created_at = factory.LazyFunction(datetime.now)

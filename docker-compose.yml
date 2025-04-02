@@ -7,13 +7,11 @@ services:
     ports:
       - "${DJANGO_PORT}:8000"
     volumes:
-      - ./core:/app/
+      - .:/app/
     env_file:
       - .env
     command: >
       sh -c "python manage.py runserver 0.0.0.0:8000"
-    environment:
-      - PYTHONUNBUFFERED=1
     depends_on:
       - postgres
       - redis
@@ -41,7 +39,7 @@ services:
     image: yt-web
     command: celery -A project worker -l info -Q media-queue,email-queue
     volumes:
-      - ./core:/app/
+      - .:/app/
     env_file:
       - .env
     depends_on:
@@ -53,7 +51,7 @@ services:
     image: yt-web
     command: celery -A project beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     volumes:
-      - ./core:/app/
+      - .:/app/
     env_file:
       - .env
     depends_on:

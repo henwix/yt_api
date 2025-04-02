@@ -11,3 +11,5 @@ README.md
 Dockerfile
 docker-compose.yml
 api.http
+.git
+requirements.txt

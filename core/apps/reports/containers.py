@@ -1,7 +1,7 @@
 import punq
 
-from apps.reports.repositories.reports import BaseVideoReportsRepository, ORMVideoReportRepository
-from apps.reports.services.reports import BaseVideoReportsService, VideoReportsService
+from core.apps.reports.repositories.reports import BaseVideoReportsRepository, ORMVideoReportRepository
+from core.apps.reports.services.reports import BaseVideoReportsService, VideoReportsService
 
 
 def initialize_reports(container: punq.Container) -> None:

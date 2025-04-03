@@ -60,7 +60,7 @@ class BaseChannelSubsService(ABC):
 
 class ChannelSubsService(BaseChannelSubsService):
     def get_subscriber_list(self, channel: Channel) -> Iterable[SubscriptionItem]:
-        return self.repository.get_subscriber_list(channel=channel)
+        return self.repository.get_subscriber_list(channel=channel).select_related('subscriber', 'subscribed_to')
 
 
 @dataclass(eq=False)
@@ -146,15 +146,15 @@ class BaseSubscriptionService(ABC):
     repository: BaseSubscriptionRepository
 
     @abstractmethod
-    def subscribe(self, user: User, slug: str) -> dict: ...
+    def subscribe(self, user: User, channel_slug: str) -> dict: ...
 
     @abstractmethod
-    def unsubscribe(self, user: User, slug: str) -> dict: ...
+    def unsubscribe(self, user: User, channel_slug: str) -> dict: ...
 
 
 class SubscriptionService(BaseSubscriptionService):
-    def _validate_subscription(self, user: User, slug: str) -> Tuple[Channel, Channel]:
-        subscriber, subscribed_to = self.repository.get_channels(user, slug)
+    def validate_subscription(self, user: User, channel_slug: str) -> Tuple[Channel, Channel]:
+        subscriber, subscribed_to = self.repository.get_channels(user, channel_slug)
 
         if not subscribed_to:
             raise ChannelNotFoundError(user_id=user.pk)
@@ -164,8 +164,8 @@ class SubscriptionService(BaseSubscriptionService):
 
         return subscriber, subscribed_to
 
-    def subscribe(self, user: User, slug: str) -> dict:
-        subscriber, subscribed_to = self._validate_subscription(user, slug)
+    def subscribe(self, user: User, channel_slug: str) -> dict:
+        subscriber, subscribed_to = self.validate_subscription(user, channel_slug)
 
         _, created = self.repository.get_or_create_sub(subscriber=subscriber, subscribed_to=subscribed_to)
 
@@ -174,8 +174,8 @@ class SubscriptionService(BaseSubscriptionService):
 
         return {'status': 'Subscription created'}
 
-    def unsubscribe(self, user: User, slug: str) -> dict:
-        subscriber, subscribed_to = self._validate_subscription(user, slug)
+    def unsubscribe(self, user: User, channel_slug: str) -> dict:
+        subscriber, subscribed_to = self.validate_subscription(user, channel_slug)
 
         deleted, _ = self.repository.delete_sub(subscriber=subscriber, subscribed_to=subscribed_to)
 

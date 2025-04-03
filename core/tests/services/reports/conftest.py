@@ -1,6 +1,7 @@
 import pytest
-from apps.reports.services.reports import BaseVideoReportsService
 from punq import Container
+
+from core.apps.reports.services.reports import BaseVideoReportsService
 
 
 @pytest.fixture

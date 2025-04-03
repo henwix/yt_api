@@ -13,7 +13,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from datetime import timedelta
 from pathlib import Path
+
 from kombu import Queue
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 
@@ -40,12 +42,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # API apps
-    'apps.channels.apps.ChannelsConfig',
-    'apps.common.apps.CommonConfig',
-    'apps.posts.apps.PostsConfig',
-    'apps.users.apps.UsersConfig',
-    'apps.videos.apps.VideosConfig',
-    'apps.reports.apps.ReportsConfig',
+    'core.apps.channels.apps.ChannelsConfig',
+    'core.apps.common.apps.CommonConfig',
+    'core.apps.posts.apps.PostsConfig',
+    'core.apps.users.apps.UsersConfig',
+    'core.apps.videos.apps.VideosConfig',
+    'core.apps.reports.apps.ReportsConfig',
     # other
     'rest_framework',
     'django_extensions',
@@ -163,10 +165,10 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_THROTTLE_CLASSES': [
-        'apps.common.throttles.AnonBurstRateThrottle',
-        'apps.common.throttles.AnonSustainedRateThrottle',
-        'apps.common.throttles.UserBurstRateThrottle',
-        'apps.common.throttles.UserSustainedRateThrottle',
+        'core.apps.common.throttles.AnonBurstRateThrottle',
+        'core.apps.common.throttles.AnonSustainedRateThrottle',
+        'core.apps.common.throttles.UserBurstRateThrottle',
+        'core.apps.common.throttles.UserSustainedRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
         'anon_burst': '1000/day',
@@ -198,13 +200,13 @@ DJOSER = {
     'EMAIL_FRONTEND_DOMAIN': 'front-domain.com',
     'EMAIL_FRONTEND_SITE_NAME': 'YT',
     'SERIALIZERS': {
-        'user_create': 'apps.users.serializers.CustomUserCreateSerializer',
-        'user_create_password_retype': 'apps.users.serializers.CustomUserCreatePasswordRetypeSerializer',
-        'user': 'apps.users.serializers.CustomUserSerializer',
-        'current_user': 'apps.users.serializers.CustomUserSerializer',
+        'user_create': 'core.apps.users.serializers.CustomUserCreateSerializer',
+        'user_create_password_retype': 'core.apps.users.serializers.CustomUserCreatePasswordRetypeSerializer',
+        'user': 'core.apps.users.serializers.CustomUserSerializer',
+        'current_user': 'core.apps.users.serializers.CustomUserSerializer',
     },
 }
-
+print("DJOSER SERIALIZERS:", DJOSER['SERIALIZERS'])
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=7),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
@@ -289,10 +291,7 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
-CELERY_TASK_QUEUES = (
-    Queue('media-queue'),
-    Queue('email-queue')
-)
+CELERY_TASK_QUEUES = (Queue('media-queue'), Queue('email-queue'))
 
 
 # SMTP

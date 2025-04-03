@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import Count, OuterRef, Prefetch, Q, Subquery
 
-from apps.videos.models import Video
+from core.apps.videos.models import Video
 
 from ..models import Channel, SubscriptionItem
 
@@ -41,7 +41,7 @@ class BaseChannelSubsRepository(ABC):
 
 class ORMChannelSubsRepository(BaseChannelSubsRepository):
     def get_subscriber_list(self, channel: Channel) -> Iterable[SubscriptionItem]:
-        return SubscriptionItem.objects.filter(subscribed_to=channel).select_related('subscriber', 'subscribed_to')
+        return SubscriptionItem.objects.filter(subscribed_to=channel)
 
 
 class BaseChannelAvatarRepository(ABC):

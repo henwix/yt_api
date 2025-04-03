@@ -24,6 +24,7 @@ dependencies = [
     "django-filter (==25.1)",
     "punq (==0.7.0)",
     "pillow (==11.1.0)",
+    "django-extensions (==3.2.3)",
 ]
 
 
@@ -36,6 +37,9 @@ build-backend = "poetry.core.masonry.api"
 django-silk = "5.3.2"
 ipython = "8.32.0"
 pytest-django = "4.10.0"
-django-extensions = "3.2.3"
 factory-boy = "3.3.3"
 
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "core.project.settings.local"
+python_files = ["test_*.py", "*_test.py", "testing/python/*.py"]

@@ -4,8 +4,8 @@ from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from djoser.serializers import UserCreatePasswordRetypeSerializer, UserCreateSerializer, UserSerializer, ValidationError
 
-from apps.channels.models import Channel
-from apps.channels.serializers import ChannelSerializer
+from core.apps.channels.models import Channel
+from core.apps.channels.serializers import ChannelSerializer
 
 
 class CustomUserCreatePasswordRetypeSerializer(UserCreatePasswordRetypeSerializer):

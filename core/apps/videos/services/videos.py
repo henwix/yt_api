@@ -5,7 +5,7 @@ from typing import Iterable, Tuple
 from django.contrib.auth.models import User
 from django.db.models import Count, Q
 
-from apps.channels.models import Channel
+from core.apps.channels.models import Channel
 
 from ..exceptions.videos import LikeNotFound, VideoNotFound, ViewExistsError
 from ..models import Video

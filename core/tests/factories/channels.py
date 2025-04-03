@@ -1,8 +1,9 @@
 import factory
-from apps.channels.models import Channel
 from django.contrib.auth.models import User
 from factory.django import DjangoModelFactory
 from faker import Faker
+
+from core.apps.channels.models import Channel, SubscriptionItem
 
 from .common import factory_lazy_function
 
@@ -25,4 +26,12 @@ class ChannelModelFactory(DjangoModelFactory):
     user = factory.SubFactory(UserModelFactory)
     name = factory_lazy_function(fake.first_name, max_length=40)
     slug = factory_lazy_function(fake.slug, max_length=40)
-    country = factory.Faker('country')
+    country = factory_lazy_function(fake.country, max_length=40)
+
+
+class SubscriptionItemModelFactory(DjangoModelFactory):
+    class Meta:
+        model = SubscriptionItem
+
+    subscriber = factory.SubFactory(ChannelModelFactory)
+    subscribed_to = factory.SubFactory(ChannelModelFactory)

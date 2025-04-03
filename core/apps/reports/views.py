@@ -1,7 +1,7 @@
-from project.containers import get_container
 from rest_framework import generics, viewsets
 
-from apps.common.pagination import CustomCursorPagination
+from core.apps.common.pagination import CustomCursorPagination
+from core.project.containers import get_container
 
 from .permissions import IsStaffOrCreateOnly
 from .serializers import VideoReportSerializer

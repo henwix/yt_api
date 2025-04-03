@@ -638,7 +638,7 @@ version = "3.2.3"
 description = "Extensions for Django"
 optional = false
 python-versions = ">=3.6"
-groups = ["dev"]
+groups = ["main"]
 files = [
     {file = "django-extensions-3.2.3.tar.gz", hash = "sha256:44d27919d04e23b3f40231c4ab7af4e61ce832ef46d610cc650d53e68328410a"},
     {file = "django_extensions-3.2.3-py3-none-any.whl", hash = "sha256:9600b7562f79a92cbf1fde6403c04fee314608fefbb595502e34383ae8203401"},
@@ -1949,4 +1949,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "53a1cc469af6266ec0acc9a23d466677eff5fb960478fb9f8dc82cee707617d5"
+content-hash = "4abd81afeba9bdd082e4d08bb318a98eb88a64e83957659bdb6e264f0aa16360"

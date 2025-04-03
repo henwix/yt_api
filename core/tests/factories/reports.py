@@ -1,8 +1,9 @@
 import factory
 import factory.fuzzy
-from apps.reports.models import VideoReport
 from factory.django import DjangoModelFactory
 from faker import Faker
+
+from core.apps.reports.models import VideoReport
 
 from .channels import ChannelModelFactory
 from .videos import VideoModelFactory

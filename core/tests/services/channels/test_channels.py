@@ -1,18 +1,19 @@
+import random
+
 import pytest
-from apps.channels.exceptions.channels import ChannelNotFoundError
-from apps.channels.models import Channel
-from apps.channels.services.channels import BaseChannelService
 from django.contrib.auth.models import User
 from faker import Faker
-from rest_framework.test import APIClient
 
-from tests.factories.channels import UserModelFactory
+from core.apps.channels.exceptions.channels import ChannelNotFoundError, SelfSubscriptionError, SubscriptionExistsError
+from core.apps.channels.models import Channel
+from core.apps.channels.services.channels import BaseChannelService, BaseChannelSubsService, BaseSubscriptionService
+from core.tests.factories.channels import SubscriptionItemModelFactory, UserModelFactory
 
 fake = Faker()
 
 
 @pytest.mark.django_db
-def test_channel_not_exists(channel_service: BaseChannelService):
+def test_channel_not_exists_error(channel_service: BaseChannelService):
     """Test get_channel when user's channel does not exists in database"""
     with pytest.raises(ChannelNotFoundError):
         user = UserModelFactory()
@@ -35,9 +36,41 @@ def test_channel_and_user_delete(channel_service: BaseChannelService, user_with_
 
 
 @pytest.mark.django_db
-def test_channel_patch_data(client: APIClient, jwt_access: str):
-    """Test GET request to retrieve channel's data. Status code should be 200"""
-    client.credentials(HTTP_AUTHORIZATION=jwt_access)
-    response = client.get('/api/v1/channel/')
+def test_subscribers_list_empty(channel_sub_service: BaseChannelSubsService, channel: Channel):
+    """Test subscriptions count zero with no subscribers in database"""
+    subs = channel_sub_service.get_subscriber_list(channel=channel)
+    assert subs.count() == 0
 
-    assert response.status_code == 200
+
+@pytest.mark.django_db
+def test_subscribers_exists(channel_sub_service: BaseChannelSubsService, channel: Channel):
+    """Test channel's subscribers retrieved from database"""
+    expected_value = random.randint(1, 15)
+
+    SubscriptionItemModelFactory.create_batch(size=expected_value, subscribed_to=channel)
+    subs = channel_sub_service.get_subscriber_list(channel=channel)
+
+    assert subs.count() == expected_value
+
+
+@pytest.mark.django_db
+def test_subscribe_exists_error(subscription_service: BaseSubscriptionService):
+    """Test subscription to channel already exists"""
+    with pytest.raises(SubscriptionExistsError):
+        subscription = SubscriptionItemModelFactory()
+
+        subscription_service.subscribe(user=subscription.subscriber.user, channel_slug=subscription.subscribed_to.slug)
+
+
+@pytest.mark.django_db
+def test_subscribe_to_yourself_error(subscription_service: BaseSubscriptionService, channel: Channel):
+    """Test if the channels are the same when subscribing"""
+    with pytest.raises(SelfSubscriptionError):
+        subscription_service.subscribe(user=channel.user, channel_slug=channel.slug)
+
+
+@pytest.mark.django_db
+def test_unsubscribe_from_yourself_error(subscription_service: BaseSubscriptionService, channel: Channel):
+    """Test if the channels are the same when unsubscribing"""
+    with pytest.raises(SelfSubscriptionError):
+        subscription_service.unsubscribe(user=channel.user, channel_slug=channel.slug)

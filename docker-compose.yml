@@ -37,7 +37,7 @@ services:
   celery:
     container_name: yt-celery
     image: yt-web
-    command: celery -A project worker -l info -Q media-queue,email-queue
+    command: celery -A core.project.celery worker -l info -Q media-queue,email-queue
     volumes:
       - .:/app/
     env_file:
@@ -49,7 +49,7 @@ services:
   celery-beat:
     container_name: yt-celery-beat
     image: yt-web
-    command: celery -A project beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    command: celery -A core.project.celery beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     volumes:
       - .:/app/
     env_file:

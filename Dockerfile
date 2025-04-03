@@ -12,7 +12,7 @@ COPY pyproject.toml /app/
 RUN pip install --upgrade pip && \
     pip install poetry && \
     poetry config virtualenvs.create false && \
-    poetry install --only main --no-root --no-interaction --no-ansi
+    poetry install --no-root --no-interaction --no-ansi
 
 RUN adduser --disabled-password yt-user
 USER yt-user

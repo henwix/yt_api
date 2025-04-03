@@ -3,15 +3,15 @@ import logging
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from drf_spectacular.utils import OpenApiExample, OpenApiTypes, extend_schema
-from project.containers import get_container
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.common.mixins import PaginationMixin
-from apps.common.pagination import CustomCursorPagination
-from apps.common.services.cache import BaseCacheService
+from core.apps.common.mixins import PaginationMixin
+from core.apps.common.pagination import CustomCursorPagination
+from core.apps.common.services.cache import BaseCacheService
+from core.project.containers import get_container
 
 from . import serializers
 from .models import Channel, SubscriptionItem
@@ -213,7 +213,7 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
         Example: api/v1/subscription/subscribe/
         """
 
-        result = self.service.subscribe(user=request.user, slug=request.data.get('to'))
+        result = self.service.subscribe(user=request.user, channel_slug=request.data.get('to'))
         return Response(result, status.HTTP_201_CREATED)
 
     @extend_schema(
@@ -244,5 +244,5 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
         Example: api/v1/subscription/unsubscribe/
         """
 
-        result = self.service.unsubscribe(user=request.user, slug=request.data.get('to'))
+        result = self.service.unsubscribe(user=request.user, channel_slug=request.data.get('to'))
         return Response(result, status.HTTP_204_NO_CONTENT)

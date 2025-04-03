@@ -1,8 +1,9 @@
 import pytest
-from project.containers import get_container
 from punq import Container
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from core.project.containers import get_container
 
 from .factories.channels import ChannelModelFactory
 
@@ -19,5 +20,7 @@ def client() -> APIClient:
 
 @pytest.fixture
 def jwt_access() -> str:
+    """Generates JWT token to API access"""
+
     channel = ChannelModelFactory()
     return f'Bearer {RefreshToken().for_user(channel.user).access_token}'

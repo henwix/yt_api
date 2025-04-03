@@ -1,9 +1,10 @@
 from datetime import datetime
 
 import factory
-from apps.videos.models import Video, generate_video_link
 from factory.django import DjangoModelFactory
 from faker import Faker
+
+from core.apps.videos.models import Video, generate_video_link
 
 from .channels import ChannelModelFactory
 from .common import factory_lazy_function

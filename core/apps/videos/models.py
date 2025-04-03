@@ -3,7 +3,7 @@ import string
 
 from django.db import models
 
-from apps.channels.models import Channel
+from core.apps.channels.models import Channel
 
 
 class PublicAndUnlistedVideosManager(models.Manager):

@@ -6,11 +6,12 @@ from djoser import signals
 from djoser.compat import get_user_email
 from djoser.conf import settings
 from djoser.views import UserViewSet
-from project.containers import get_container  # noqa
 from rest_framework import generics, status  # noqa
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken  # noqa
+
+from core.project.containers import get_container  # noqa
 
 from .tasks import (
     send_activation_email,

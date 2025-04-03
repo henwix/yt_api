@@ -5,7 +5,7 @@ from typing import Iterable, Tuple
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-from apps.channels.models import Channel
+from core.apps.channels.models import Channel
 
 from ..models import Video, VideoLike, VideoView
 

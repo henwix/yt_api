@@ -1,7 +1,7 @@
 from django.db import models
 
-from apps.channels.models import Channel
-from apps.videos.models import Video
+from core.apps.channels.models import Channel
+from core.apps.videos.models import Video
 
 
 class VideoReport(models.Model):

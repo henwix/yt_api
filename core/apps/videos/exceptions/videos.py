@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from rest_framework import status
 
-from apps.common.exceptions import ServiceException
+from core.apps.common.exceptions import ServiceException
 
 
 @dataclass

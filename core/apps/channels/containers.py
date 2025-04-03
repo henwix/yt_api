@@ -1,6 +1,6 @@
 import punq
 
-from apps.channels.repositories.channels import (
+from core.apps.channels.repositories.channels import (
     BaseChannelAboutRepository,
     BaseChannelAvatarRepository,
     BaseChannelMainRepository,
@@ -14,7 +14,7 @@ from apps.channels.repositories.channels import (
     ORMChannelSubsRepository,
     ORMSubscriptionRepository,
 )
-from apps.channels.services.channels import (
+from core.apps.channels.services.channels import (
     AvatarValidatorService,
     BaseAvatarValidatorService,
     BaseChannelAboutService,

@@ -206,7 +206,7 @@ DJOSER = {
         'current_user': 'core.apps.users.serializers.CustomUserSerializer',
     },
 }
-print("DJOSER SERIALIZERS:", DJOSER['SERIALIZERS'])
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=7),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),

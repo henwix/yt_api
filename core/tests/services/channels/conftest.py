@@ -2,8 +2,12 @@ import pytest
 from django.contrib.auth.models import User
 from punq import Container
 
-from core.apps.channels.models import Channel
-from core.apps.channels.services.channels import BaseChannelService, BaseChannelSubsService, BaseSubscriptionService
+from core.apps.channels.services.channels import (
+    BaseChannelMainService,
+    BaseChannelService,
+    BaseChannelSubsService,
+    BaseSubscriptionService,
+)
 from core.tests.factories.channels import ChannelModelFactory
 
 
@@ -23,11 +27,11 @@ def subscription_service(container: Container) -> BaseSubscriptionService:
 
 
 @pytest.fixture
-def user_with_channel() -> User:
-    channel = ChannelModelFactory()
-    return channel.user
+def channel_main_service(container: Container) -> BaseChannelMainService:
+    return container.resolve(BaseChannelMainService)
 
 
 @pytest.fixture
-def channel() -> Channel:
-    return ChannelModelFactory()
+def user_with_channel() -> User:
+    channel = ChannelModelFactory()
+    return channel.user

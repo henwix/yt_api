@@ -1,5 +1,3 @@
-import random
-
 import pytest
 
 from core.apps.reports.services.reports import BaseVideoReportsService
@@ -16,7 +14,7 @@ def test_get_reports_list_empty(report_service: BaseVideoReportsService):
 @pytest.mark.django_db
 def test_get_reports_list_exists(report_service: BaseVideoReportsService):
     """Test all reports retrieved from database"""
-    expected_value = random.randint(1, 15)
+    expected_value = 5
     VideoReportModelFactory.create_batch(size=expected_value)
 
     qs = report_service.get_report_list()

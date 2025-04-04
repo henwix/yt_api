@@ -8,3 +8,4 @@ api.http
 core/project/settings/local.py
 core/scripts
 .pytest_cache
+.pre-commit-config.yaml

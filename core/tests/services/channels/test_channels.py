@@ -129,5 +129,5 @@ def test_main_channel_page_correct(channel_main_service: BaseChannelMainService,
     assert response.slug == channel.slug
     assert response.name == channel.name
     assert response.description == channel.description
-    assert response.subs_count == channel.followers.count()
-    assert response.videos.count() == channel.videos.count()
+    assert response.subs_count == expected_subs
+    assert response.videos.count() == expected_videos

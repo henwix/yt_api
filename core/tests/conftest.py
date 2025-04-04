@@ -20,11 +20,19 @@ def client() -> APIClient:
 
 
 @pytest.fixture
-def jwt_access() -> str:
+def jwt() -> str:
     """Generates JWT token to API access"""
 
     channel = ChannelModelFactory()
     return f'Bearer {RefreshToken().for_user(channel.user).access_token}'
+
+
+@pytest.fixture
+def jwt_and_channel() -> tuple:
+    """Generates JWT token to API access and returns channel"""
+
+    channel = ChannelModelFactory()
+    return f'Bearer {RefreshToken().for_user(channel.user).access_token}', channel
 
 
 @pytest.fixture

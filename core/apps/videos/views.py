@@ -1,19 +1,32 @@
 import logging
 import os
 
-import boto3
-import django_filters
 from django.db import IntegrityError
 from django.db.models import Count
 from django.utils import timezone
-from drf_spectacular.utils import OpenApiParameter, extend_schema
-from rest_framework import filters, generics, mixins, status, viewsets
+from rest_framework import (
+    filters,
+    generics,
+    mixins,
+    status,
+    viewsets,
+)
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.apps.common.pagination import CustomCursorPagination, CustomPageNumberPagination
+import boto3
+import django_filters
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiParameter,
+)
+
+from core.apps.common.pagination import (
+    CustomCursorPagination,
+    CustomPageNumberPagination,
+)
 from core.apps.common.permissions import (
     IsAuthenticatedOrAdminOrReadOnly,
     IsAuthenticatedOrAuthorOrReadOnly,
@@ -22,10 +35,17 @@ from core.project.containers import get_container
 
 from . import serializers
 from .filters import VideoFilter
-from .models import Playlist, PlaylistItem, Video, VideoComment, VideoHistory
+from .models import (
+    Playlist,
+    PlaylistItem,
+    Video,
+    VideoComment,
+    VideoHistory,
+)
 from .pagination import HistoryCursorPagination
 from .permissions import IsAuthorOrReadOnlyPlaylist
 from .services.videos import BaseVideoService
+
 
 log = logging.getLogger(__name__)
 
@@ -52,18 +72,7 @@ class VideoViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'views_count']
     throttle_scope = 'video'
 
-    # TODO: доделать multipart upload
-    # def create(self, request, *args, **kwargs):
-    #     file = request.data.pop('file')
-
-    #     if not file:
-    #         return Response("File field cannot be blank!")
-
-    #     serializer = self.get_serializer(data=request.data)
-    #     serializer.is_valid()
-    #     self.perform_create(serializer)
-
-    #     return super().create(request, *args, **kwargs)
+    # TODO: multipart video upload
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         container = get_container()

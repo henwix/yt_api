@@ -84,7 +84,7 @@ class VideoView(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'View on video: {self.video}, by ch: {getattr(self, "channel")} | ip: {getattr(self, "ip_address")}'
+        return f'View on video{self.video} by {getattr(self, "channel")}'
 
 
 class VideoComment(models.Model):

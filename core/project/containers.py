@@ -3,7 +3,10 @@ from functools import lru_cache
 import punq
 
 from core.apps.channels.containers import initialize_channels
-from core.apps.common.services.cache import BaseCacheService, CacheService
+from core.apps.common.services.cache import (
+    BaseCacheService,
+    CacheService,
+)
 from core.apps.reports.containers import initialize_reports
 from core.apps.videos.containers import initialize_videos
 

@@ -2,11 +2,21 @@ import logging
 
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
-from drf_spectacular.utils import OpenApiExample, OpenApiTypes, extend_schema
-from rest_framework import generics, permissions, status, viewsets
+from rest_framework import (
+    generics,
+    permissions,
+    status,
+    viewsets,
+)
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiExample,
+    OpenApiTypes,
+)
 
 from core.apps.common.mixins import PaginationMixin
 from core.apps.common.pagination import CustomCursorPagination
@@ -14,7 +24,10 @@ from core.apps.common.services.cache import BaseCacheService
 from core.project.containers import get_container
 
 from . import serializers
-from .models import Channel, SubscriptionItem
+from .models import (
+    Channel,
+    SubscriptionItem,
+)
 from .services.channels import (
     BaseChannelAboutService,
     BaseChannelAvatarService,
@@ -24,17 +37,18 @@ from .services.channels import (
     BaseSubscriptionService,
 )
 
+
 log = logging.getLogger(__name__)
 
 
-### TODO: Сделать эндпоинт для создания каналов. Удалять каналы можно без удаления юзеров. Создавать каналы можно только при условии, если есть юзер.
+# TODO: Add endpoint to create/delete channels
 class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    API endpoint for detail, update and delete 'Channel' instances.
+    """API endpoint for detail, update and delete 'Channel' instances.
 
     If the request method is DELETE, related/associated 'User' will also be deleted.
 
     Example: /api/v1/channel/
+
     """
 
     queryset = Channel.objects.all()
@@ -71,10 +85,11 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ChannelSubscribersView(generics.ListAPIView, PaginationMixin):
-    """
-    API endpoint to channel's subscribers listing.
+    """API endpoint to channel's subscribers listing.
+
     Supports cache for 15 minutes and Cursor pagination.
     Example: /api/v1/channel/subscribers/
+
     """
 
     serializer_class = serializers.SubscriptionSerializer
@@ -126,10 +141,11 @@ class ChannelAvatarDestroy(APIView):
 
 
 class ChannelMainView(generics.RetrieveAPIView):
-    """
-    API endpoint to get channel main page. Main page includes info about channel and last 5 public videos.
+    """API endpoint to get channel main page. Main page includes info about
+    channel and last 5 public videos.
 
     Example: /api/v1/c/henwixchannel
+
     """
 
     serializer_class = serializers.ChannelAndVideosSerializer
@@ -147,12 +163,12 @@ class ChannelMainView(generics.RetrieveAPIView):
 
 
 class ChannelAboutView(generics.RetrieveAPIView):
-    """
-    API endpoint to get info about channel.
+    """API endpoint to get info about channel.
 
     Supports caching. Cache available in 15 minutes.
 
     Example: /api/v1/c/henwixchannel/about
+
     """
 
     serializer_class = serializers.ChannelAboutSerializer
@@ -191,10 +207,10 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
                         'type': 'string',
                         'description': "'slug' field from channel instance to subscribe",
                         'example': 'henwix',
-                    }
+                    },
                 },
                 'required': ['to'],
-            }
+            },
         },
         responses={
             200: OpenApiTypes.OBJECT,
@@ -207,10 +223,11 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
     )
     @action(methods=['post'], url_path='subscribe', detail=False)
     def subscribe(self, request):
-        """
-        API endpoint to subscribe.
+        """API endpoint to subscribe.
+
         JSON-body parameters: 'slug' - channel's slug to subscribe
         Example: api/v1/subscription/subscribe/
+
         """
 
         result = self.service.subscribe(user=request.user, channel_slug=request.data.get('to'))
@@ -225,10 +242,10 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
                         'type': 'string',
                         'description': "'slug' field from channel's instance to unsubscribe",
                         'example': 'henwix',
-                    }
+                    },
                 },
                 'required': ['to'],
-            }
+            },
         },
         responses={
             204: OpenApiTypes.OBJECT,
@@ -238,10 +255,11 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
     )
     @action(methods=['post'], url_path='unsubscribe', detail=False)
     def unsubscribe(self, request):
-        """
-        API endpoint to unsubscribe.
+        """API endpoint to unsubscribe.
+
         JSON-body parameters: 'to' - channel's slug to unsubscribe
         Example: api/v1/subscription/unsubscribe/
+
         """
 
         result = self.service.unsubscribe(user=request.user, channel_slug=request.data.get('to'))

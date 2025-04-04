@@ -1,14 +1,31 @@
 import logging
-from abc import ABC, abstractmethod
-from typing import Dict, Iterable, Tuple
+from abc import (
+    ABC,
+    abstractmethod,
+)
+from typing import (
+    Dict,
+    Iterable,
+    Tuple,
+)
 
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.db.models import Count, OuterRef, Prefetch, Q, Subquery
+from django.db.models import (
+    Count,
+    OuterRef,
+    Prefetch,
+    Q,
+    Subquery,
+)
 
 from core.apps.videos.models import Video
 
-from ..models import Channel, SubscriptionItem
+from ..models import (
+    Channel,
+    SubscriptionItem,
+)
+
 
 log = logging.getLogger(__name__)
 
@@ -79,7 +96,7 @@ class ORMChannelMainRepository(BaseChannelMainRepository):
                     Video.objects.filter(pk__in=Subquery(second_qs))
                     .annotate(views_count=Count('views', distinct=True))
                     .order_by('-created_at'),
-                )
+                ),
             )
         )
         return qs

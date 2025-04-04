@@ -10,6 +10,7 @@ from core.apps.videos.models import Video
 
 from .models import VideoReport
 
+
 log = logging.getLogger(__name__)
 
 
@@ -46,7 +47,7 @@ class VideoReportSerializer(serializers.ModelSerializer):
 
         #  check if user's limit report have reached 10
         user_reports = VideoReport.objects.filter(
-            author=user_channel, created_at__gt=timezone.now() - timedelta(days=1)
+            author=user_channel, created_at__gt=timezone.now() - timedelta(days=1),
         ).count()
         if user_reports >= 10:
             raise ValidationError('You have reached the limit of reports: 10/day')

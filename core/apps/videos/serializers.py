@@ -1,6 +1,11 @@
 from rest_framework import serializers
 
-from .models import Playlist, Video, VideoComment, VideoHistory
+from .models import (
+    Playlist,
+    Video,
+    VideoComment,
+    VideoHistory,
+)
 
 
 class VideoCommentSerializer(serializers.ModelSerializer):
@@ -16,7 +21,7 @@ class VideoCommentSerializer(serializers.ModelSerializer):
     )
     author_slug = serializers.CharField(source='author.slug', read_only=True)
     update_link = serializers.HyperlinkedIdentityField(
-        view_name='v1:videos:video-comment-detail', many=False, read_only=True
+        view_name='v1:videos:video-comment-detail', many=False, read_only=True,
     )
 
     class Meta:
@@ -31,9 +36,7 @@ class VideoCommentSerializer(serializers.ModelSerializer):
 
 
 class VideoSerializer(serializers.ModelSerializer):
-    """
-    Video serializer for video creation, updating and retrieving.
-    """
+    """Video serializer for video creation, updating and retrieving."""
 
     author_name = serializers.StringRelatedField(source='author')
     author_link = serializers.HyperlinkedRelatedField(
@@ -83,9 +86,7 @@ class VideoSerializer(serializers.ModelSerializer):
 
 
 class VideoPreviewSerializer(serializers.ModelSerializer):
-    """
-    Video serializer for preview.
-    """
+    """Video serializer for preview."""
 
     video_link = serializers.HyperlinkedIdentityField(
         view_name='v1:videos:video-detail',

@@ -1,17 +1,21 @@
 import logging
 
 from django.core.cache import cache
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import (
+    post_save,
+    pre_delete,
+)
 from django.dispatch import receiver
 
 from .models import Channel
 from .tasks import delete_channel_files_task
 
+
 log = logging.getLogger(__name__)
 
 
 def _delete_channel_cache(instance):
-    """Mixin to delete channel's cache"""
+    """Mixin to delete channel's cache."""
 
     cache.delete(f'retrieve_channel_{instance.user.pk}')
     log.info('Cache for %s deleted', instance.name)
@@ -19,7 +23,8 @@ def _delete_channel_cache(instance):
 
 @receiver(signal=[post_save], sender=Channel)
 def invalidate_channel_cache(instance, created, **kwargs):
-    """This signal will delete channel's cache if channel instance has been updated"""
+    """This signal will delete channel's cache if channel instance has been
+    updated."""
 
     if not created:
         # Delete channel's cache
@@ -29,9 +34,8 @@ def invalidate_channel_cache(instance, created, **kwargs):
 # FIXME: починить количество запросов на удаление канала(мб через транзакции или как-то вручную удалять связи)
 @receiver(signal=[pre_delete], sender=Channel)
 def delete_channel_files_signal(instance, **kwargs):
-    """
-    This signal will collect channel's related videos and avatar into list and call celery task to delete them via boto3
-    """
+    """This signal will collect channel's related videos and avatar into list
+    and call celery task to delete them via boto3."""
 
     # Delete channel's cache
     _delete_channel_cache(instance)

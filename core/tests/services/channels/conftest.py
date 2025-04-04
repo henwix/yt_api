@@ -1,5 +1,6 @@
-import pytest
 from django.contrib.auth.models import User
+
+import pytest
 from punq import Container
 
 from core.apps.channels.services.channels import (

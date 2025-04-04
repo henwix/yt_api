@@ -2,16 +2,18 @@ from rest_framework import serializers
 
 from core.apps.videos.serializers import VideoPreviewSerializer
 
-from .models import Channel, SubscriptionItem
+from .models import (
+    Channel,
+    SubscriptionItem,
+)
+
 
 # TODO:    - likes to comments and posts: add, delete
 # TODO:    - posts: add, detail, delete
 
 
 class ChannelSerializer(serializers.ModelSerializer):
-    """
-    Channel serializer for user creation and detail endpoints.
-    """
+    """Channel serializer for user creation and detail endpoints."""
 
     class Meta:
         model = Channel
@@ -42,9 +44,10 @@ class ChannelSerializer(serializers.ModelSerializer):
 
 
 class ChannelAndVideosSerializer(ChannelSerializer):
-    """
-    Channel serializer for detail endpoints with extra video field.
+    """Channel serializer for detail endpoints with extra video field.
+
     Used in 'ChannelMainView'.
+
     """
 
     videos = VideoPreviewSerializer(read_only=True, many=True)
@@ -56,9 +59,7 @@ class ChannelAndVideosSerializer(ChannelSerializer):
 
 
 class ChannelAboutSerializer(serializers.ModelSerializer):
-    """
-    Channel serializer for /about/ page.
-    """
+    """Channel serializer for /about/ page."""
 
     total_videos = serializers.IntegerField(read_only=True)
     total_views = serializers.IntegerField(read_only=True)

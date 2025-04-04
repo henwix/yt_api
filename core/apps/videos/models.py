@@ -7,9 +7,7 @@ from core.apps.channels.models import Channel
 
 
 class PublicAndUnlistedVideosManager(models.Manager):
-    """
-    Custom manager to return public and unlisted videos.
-    """
+    """Custom manager to return public and unlisted videos."""
 
     def get_queryset(self):
         return super().get_queryset().filter(status__in=[Video.VideoStatus.UNLISTED, Video.VideoStatus.PUBLIC])
@@ -21,7 +19,7 @@ def generate_video_link():
     chars = string.digits + string.ascii_letters + '-' + '_'
 
     while True:
-        link = ''.join(random.choices(chars, k=11))
+        link = ''.join(random.choices(chars, k=11))  # noqa
         if not Video.objects.filter(video_id=link).exists():
             return link
 
@@ -38,7 +36,11 @@ class Video(models.Model):
         FINISHED = 'FINISHED', 'Finished'
 
     video_id = models.CharField(
-        max_length=11, unique=True, primary_key=True, default=generate_video_link, editable=False
+        max_length=11,
+        unique=True,
+        primary_key=True,
+        default=generate_video_link,
+        editable=False,
     )
     author = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='videos', db_index=True)
     name = models.CharField(max_length=100, db_index=True)
@@ -78,7 +80,12 @@ class VideoLike(models.Model):
 class VideoView(models.Model):
     video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='views', db_index=True)
     channel = models.ForeignKey(
-        Channel, on_delete=models.CASCADE, related_name='video_views', blank=True, null=True, db_index=True
+        Channel,
+        on_delete=models.CASCADE,
+        related_name='video_views',
+        blank=True,
+        null=True,
+        db_index=True,
     )
     ip_address = models.GenericIPAddressField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -112,11 +119,7 @@ def generate_playlist_link():
     """Function to generate unique playlist links."""
 
     chars = string.digits + string.ascii_letters + '-' + '_'
-    return ''.join(random.choices(chars, k=32))
-    # while True:
-    #     link = ''.join(random.choices(chars, k=32))
-    #     if not Playlist.objects.filter(id=link).exists():
-    #         return link
+    return ''.join(random.choices(chars, k=32))  # noqa
 
 
 class Playlist(models.Model):
@@ -127,7 +130,12 @@ class Playlist(models.Model):
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='playlists', db_index=True)
     videos = models.ManyToManyField(Video, through='PlaylistItem', db_index=True)
     id = models.CharField(
-        primary_key=True, max_length=32, default=generate_playlist_link, unique=True, editable=False, db_index=True
+        primary_key=True,
+        max_length=32,
+        default=generate_playlist_link,
+        unique=True,
+        editable=False,
+        db_index=True,
     )
     title = models.CharField(max_length=150)
     description = models.TextField(blank=True, null=True)

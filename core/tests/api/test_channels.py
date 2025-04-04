@@ -1,11 +1,16 @@
-import pytest
 from django.core.cache import cache
-from faker import Faker
 from rest_framework.test import APIClient
+
+import pytest
+from faker import Faker
 
 from core.apps.channels.models import Channel
 from core.tests.factories.channels import SubscriptionItemModelFactory
-from core.tests.factories.videos import VideoModelFactory, VideoViewModelFactory
+from core.tests.factories.videos import (
+    VideoModelFactory,
+    VideoViewModelFactory,
+)
+
 
 fake = Faker()
 
@@ -54,9 +59,10 @@ def test_channel_data_changed_correctly(client: APIClient, jwt: str):
 @pytest.mark.django_db
 @pytest.mark.parametrize('expected_videos, expected_views, expected_subs', ([3, 10, 5], [5, 2, 1], [8, 4, 10]))
 def test_channel_about_data_retrieved_correctly(
-    client: APIClient, channel: Channel, expected_videos, expected_views, expected_subs
+    client: APIClient, channel: Channel, expected_videos, expected_views, expected_subs,
 ):
-    """Test channel's about data retrieved GET request to endpoint: channel's about page"""
+    """Test channel's about data retrieved GET request to endpoint: channel's
+    about page."""
 
     v = VideoModelFactory.create_batch(size=expected_videos, author=channel)  # create videos
     VideoViewModelFactory.create_batch(size=expected_views, video=v[0])  # create views

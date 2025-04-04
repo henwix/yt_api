@@ -1,4 +1,7 @@
-from rest_framework.pagination import CursorPagination, PageNumberPagination
+from rest_framework.pagination import (
+    CursorPagination,
+    PageNumberPagination,
+)
 
 
 class CustomPageNumberPagination(PageNumberPagination):

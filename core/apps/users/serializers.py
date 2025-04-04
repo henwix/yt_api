@@ -2,7 +2,13 @@ import uuid
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
-from djoser.serializers import UserCreatePasswordRetypeSerializer, UserCreateSerializer, UserSerializer, ValidationError
+
+from djoser.serializers import (
+    UserCreatePasswordRetypeSerializer,
+    UserCreateSerializer,
+    UserSerializer,
+    ValidationError,
+)
 
 from core.apps.channels.models import Channel
 from core.apps.channels.serializers import ChannelSerializer
@@ -10,9 +16,8 @@ from core.apps.channels.serializers import ChannelSerializer
 
 class CustomUserCreatePasswordRetypeSerializer(UserCreatePasswordRetypeSerializer):
     def get_fields(self):
-        """
-        Custom 'get_fields' method to add nested 'ChannelSerializer serializer'.
-        """
+        """Custom 'get_fields' method to add nested 'ChannelSerializer
+        serializer'."""
 
         fields = super().get_fields()
         fields['channel'] = ChannelSerializer()
@@ -21,9 +26,11 @@ class CustomUserCreatePasswordRetypeSerializer(UserCreatePasswordRetypeSerialize
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
-    """
-    Custom serializer for user creation. Inherited from UserCreateSerializer by Djoser.
-    Added Channel instance creation in create() method.
+    """Custom serializer for user creation.
+
+    Inherited from UserCreateSerializer by Djoser. Added Channel
+    instance creation in create() method.
+
     """
 
     def create(self, validated_data):
@@ -61,9 +68,8 @@ class CustomUserCreateSerializer(UserCreateSerializer):
             raise ValidationError('A user with that email already exists.')
 
     def validate(self, attrs):
-        """
-        Need to .pop 'channel' attribute to fix error of unexpected field
-        """
+        """Need to .pop 'channel' attribute to fix error of unexpected
+        field."""
 
         channel_data = attrs.pop('channel', {})
         attrs = super().validate(attrs)
@@ -72,9 +78,8 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         return attrs
 
     def get_fields(self):
-        """
-        Custom 'get_fields' method to add nested 'ChannelSerializer serializer'.
-        """
+        """Custom 'get_fields' method to add nested 'ChannelSerializer
+        serializer'."""
 
         fields = super().get_fields()
         fields['channel'] = ChannelSerializer()
@@ -83,9 +88,10 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 
 
 class CustomUserSerializer(UserSerializer):
-    """
-    Inherit from base UserSerializer from Djoser.
+    """Inherit from base UserSerializer from Djoser.
+
     Added ChannelSerializer to get_fields_method.
+
     """
 
     def get_fields(self):

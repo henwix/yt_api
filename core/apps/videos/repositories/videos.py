@@ -1,13 +1,23 @@
-from abc import ABC, abstractmethod
+from abc import (
+    ABC,
+    abstractmethod,
+)
 from datetime import timedelta
-from typing import Iterable, Tuple
+from typing import (
+    Iterable,
+    Tuple,
+)
 
 from django.contrib.auth.models import User
 from django.utils import timezone
 
 from core.apps.channels.models import Channel
 
-from ..models import Video, VideoLike, VideoView
+from ..models import (
+    Video,
+    VideoLike,
+    VideoView,
+)
 
 
 class BaseVideoRepository(ABC):

@@ -1,14 +1,22 @@
 import logging
 
-from django.contrib.auth import authenticate, get_user_model, login  # noqa
+from django.contrib.auth import (  # noqa
+    authenticate,
+    get_user_model,
+    login,
+)
 from django.db import transaction
+from rest_framework import (  # noqa
+    generics,
+    status,
+)
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
 from djoser import signals
 from djoser.compat import get_user_email
 from djoser.conf import settings
 from djoser.views import UserViewSet
-from rest_framework import generics, status  # noqa
-from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken  # noqa
 
 from core.project.containers import get_container  # noqa
@@ -20,6 +28,7 @@ from .tasks import (
     send_reset_username_email,
 )
 from .use_cases.authorize import AuthorizeUserUseCase  # noqa
+
 
 log = logging.getLogger(__name__)
 
@@ -71,11 +80,12 @@ log = logging.getLogger(__name__)
 
 
 class CustomUserViewSet(UserViewSet):
-    """
-    Custom UserViewSet from Djoser.
+    """Custom UserViewSet from Djoser.
+
     Added:
     - To queryset added prefetch_related('channel')
     Mails for account activation, confirmation, reset_password and reset_username will be send via Celery.
+
     """
 
     queryset = get_user_model().objects.all().prefetch_related('channel')

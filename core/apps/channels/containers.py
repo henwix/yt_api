@@ -31,7 +31,10 @@ from core.apps.channels.services.channels import (
     SubscriptionService,
 )
 
-from .providers.channels import BaseChannelAvatarProvider, CeleryChannelProvider
+from .providers.channels import (
+    BaseChannelAvatarProvider,
+    CeleryChannelProvider,
+)
 
 
 def initialize_channels(container: punq.Container) -> None:

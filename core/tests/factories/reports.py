@@ -8,6 +8,7 @@ from core.apps.reports.models import VideoReport
 from .channels import ChannelModelFactory
 from .videos import VideoModelFactory
 
+
 fake = Faker()
 
 

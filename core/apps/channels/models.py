@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 
+
 # Create your models here.
 
 
@@ -10,7 +11,7 @@ class Channel(models.Model):
     slug = models.SlugField(max_length=40, unique=True, blank=True)
     country = models.CharField(max_length=40)
     subscriptions = models.ManyToManyField(
-        to='self', symmetrical=False, through='SubscriptionItem', related_name='subscribers', blank=True
+        to='self', symmetrical=False, through='SubscriptionItem', related_name='subscribers', blank=True,
     )
     description = models.TextField(blank=True)
     channel_avatar = models.ImageField(upload_to='channel_avatars', null=True, blank=True)

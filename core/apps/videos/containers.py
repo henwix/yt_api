@@ -1,7 +1,13 @@
 import punq
 
-from core.apps.videos.repositories.videos import BaseVideoRepository, ORMVideoRepository
-from core.apps.videos.services.videos import BaseVideoService, VideoService
+from core.apps.videos.repositories.videos import (
+    BaseVideoRepository,
+    ORMVideoRepository,
+)
+from core.apps.videos.services.videos import (
+    BaseVideoService,
+    VideoService,
+)
 
 
 def initialize_videos(container: punq.Container) -> None:

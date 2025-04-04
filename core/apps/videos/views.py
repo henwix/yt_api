@@ -51,11 +51,13 @@ log = logging.getLogger(__name__)
 
 
 class VideoViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint for listing, retrieving, creating, editing and deleting 'Video' instances.
+    """API endpoint for listing, retrieving, creating, editing and deleting
+    'Video' instances.
+
     Supports searching by 'name', 'description', 'author__name', 'author__slug' fields.
     Returns nothing if 'search' query-param was not provided - '?search' param for listing is required.
     Example: api/v1/video?search=airplane
+
     """
 
     lookup_field = 'video_id'
@@ -80,13 +82,13 @@ class VideoViewSet(viewsets.ModelViewSet):
 
     @action(url_path='like', methods=['post'], detail=True)
     def like_create(self, request, video_id):
-        """
-        API endpoint to create like or dislike.
+        """API endpoint to create like or dislike.
 
         Only one field can be provided: 'is_like' - true by default and means like, but false - dislike.
         Video determines by 'video_id' URL-parameter.
 
         Example: http://127.0.0.1:8001/api/v1/video/JDcWD0w9aJD/like/
+
         """
         result = self.service.like_create(request.user, video_id, request.data.get('is_like', True))
 
@@ -94,13 +96,13 @@ class VideoViewSet(viewsets.ModelViewSet):
 
     @action(url_path='unlike', methods=['delete'], detail=True)
     def like_delete(self, request, video_id):
-        """
-        API endpoint to delete like or dislike.
+        """API endpoint to delete like or dislike.
 
         No parameters required.
         Video determines by 'video_id' URL-parameter.
 
         Example: http://127.0.0.1:8001/api/v1/video/JDcWD0w9aJD/unlike/
+
         """
         result = self.service.like_delete(request.user, video_id)
 
@@ -108,13 +110,13 @@ class VideoViewSet(viewsets.ModelViewSet):
 
     @action(url_path='view', methods=['post'], detail=True)
     def view_create(self, request, video_id):
-        """
-        API endpoint for adding views to videos.
+        """API endpoint for adding views to videos.
 
         Have no required fields.
         Allows add a view if the previous one was more than 24 hours ago.
 
         Example: http://127.0.0.1:8001/api/v1/video/JDcWD0w9aJD/view/
+
         """
         result = self.service.view_create(
             user=request.user,
@@ -124,22 +126,22 @@ class VideoViewSet(viewsets.ModelViewSet):
         return Response(result, status.HTTP_201_CREATED)
 
     def get_serializer_class(self):
-        """
-        Custom 'get_serializer_class' method.
+        """Custom 'get_serializer_class' method.
 
         If action is list - return VideoPreviewSerializer else VideoSerializer
+
         """
         if action == 'list':
             return serializers.VideoPreviewSerializer
         return serializers.VideoSerializer
 
     def get_queryset(self):
-        """
-        Custom get_queryset method.
+        """Custom get_queryset method.
 
         Add 'views_count' annotated field if action == 'list' for 'Video' preview.
 
         If action == 'retrieve' - add views_count and likes_count for 'Video' detail info.
+
         """
         if self.action == 'list':
             if not self.request.query_params.get('search'):
@@ -159,8 +161,8 @@ class VideoViewSet(viewsets.ModelViewSet):
 
 
 class CommentVideoAPIView(viewsets.ModelViewSet):
-    """
-    API endpoint for listing, retrieving, updating and deleting Video Comments.
+    """API endpoint for listing, retrieving, updating and deleting Video
+    Comments.
 
     Permissions:
         GET - Everyone
@@ -170,6 +172,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet):
     Supports pagination by cursor.
 
     Example: /api/v1/video-comment/?v=uN9qVyjTrO6
+
     """
 
     serializer_class = serializers.VideoCommentSerializer
@@ -191,8 +194,8 @@ class CommentVideoAPIView(viewsets.ModelViewSet):
                 description="Parameter identifying video to get related video's comment",
                 required=True,
                 type=str,
-            )
-        ]
+            ),
+        ],
     )
     def list(self, request, *args, **kwargs):
         if not request.query_params.get('v'):
@@ -201,10 +204,12 @@ class CommentVideoAPIView(viewsets.ModelViewSet):
 
 
 class GeneratePresignedUrlView(APIView):
-    """
-    API endpoint to generate presigned URL for channel_avatar uploading to S3.
+    """API endpoint to generate presigned URL for channel_avatar uploading to
+    S3.
+
     Takes one required parameter: 'filename' to generate URL based on that name.
     Example: /api/v1/get-upload-link/17388dff.jpg/
+
     """
 
     def get(self, request, filename):
@@ -235,10 +240,11 @@ class GeneratePresignedUrlView(APIView):
 
 
 class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
-    """
-    API endpoint to get list of watched videos.
+    """API endpoint to get list of watched videos.
+
     Supports cursor pagination.
     Example: api/v1/history/
+
     """
 
     lookup_field = 'video_id'
@@ -258,15 +264,16 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
                 description='Parameter identifying video to add in playlist.',
                 required=True,
                 type=str,
-            )
-        ]
+            ),
+        ],
     )
     @action(methods=['post'], detail=False, url_path='add', url_name='add')
     def add_video_in_history(self, request):
-        """
-        API endpoint to add video in watching history.
+        """API endpoint to add video in watching history.
+
         To add video you need to provide required query parameter - 'v' with video_id.
         Example: api/v1/history/add/?v=au90D2BoHuT
+
         """
 
         video_id = request.query_params.get('v')
@@ -302,17 +309,17 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
                 description='Parameter identifying video to delete from history.',
                 required=True,
                 type=str,
-            )
-        ]
+            ),
+        ],
     )
     @action(methods=['delete'], url_path='delete', url_name='delete', detail=False)
     def delete_video_from_history(self, request):
-        """
-        API endpoint to delete video from watching history.
+        """API endpoint to delete video from watching history.
 
         To delete video you need to provide required query parameter - 'v' with video_id.
 
         Example: api/v1/history/delete/?v=au90D2BoHuT
+
         """
 
         video_id = request.query_params.get('v')
@@ -335,12 +342,12 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 
 class MyVideoView(generics.ListAPIView):
-    """
-    API endpoint to get all user's videos.
+    """API endpoint to get all user's videos.
 
     Supports cursor pagination.
 
     Example: api/v1/my-videos/
+
     """
 
     serializer_class = serializers.VideoPreviewSerializer
@@ -352,8 +359,7 @@ class MyVideoView(generics.ListAPIView):
 
 
 class PlaylistAPIView(viewsets.ModelViewSet):
-    """
-    API endpoint to list/retrieve/create/update/delete playlists.
+    """API endpoint to list/retrieve/create/update/delete playlists.
 
     Permissions and access:
     - create: authenticated only
@@ -362,6 +368,7 @@ class PlaylistAPIView(viewsets.ModelViewSet):
     - delete and update: author or staff only
 
     Example: api/v1/playlists/, api/v1/playlists/kn2puLWEDmqIvavBgvYRSypsb162jSHE/
+
     """
 
     lookup_field = 'id'
@@ -397,8 +404,8 @@ class PlaylistAPIView(viewsets.ModelViewSet):
                 description='Parameter identifying video to add to playlist.',
                 required=True,
                 type=str,
-            )
-        ]
+            ),
+        ],
     )
     @action(
         methods=['post'],
@@ -407,12 +414,12 @@ class PlaylistAPIView(viewsets.ModelViewSet):
         detail=True,
     )
     def add_video_in_playlist(self, request, id):
-        """
-        API endpoint to add video in playlist.
+        """API endpoint to add video in playlist.
 
         Requires 'playlist id' in URL and 'v' query param which contains video_id.
 
         Example: /api/v1/playlists/W9MghI-EVXdkfYzfuvUmCCWlJRcPm1FT/add-video/?v=33CjPuGJsEZ
+
         """
 
         if not id:
@@ -444,8 +451,8 @@ class PlaylistAPIView(viewsets.ModelViewSet):
                 description='Parameter identifying video to delete from playlist.',
                 required=True,
                 type=str,
-            )
-        ]
+            ),
+        ],
     )
     @action(
         methods=['delete'],
@@ -454,12 +461,12 @@ class PlaylistAPIView(viewsets.ModelViewSet):
         detail=True,
     )
     def delete_video_from_playlist(self, request, id):
-        """
-        API endpoint to delete video from playlist.
+        """API endpoint to delete video from playlist.
 
         Requires 'playlist id' in URL and 'v' query param which contains video_id.
 
         Example: /api/v1/playlists/W9MghI-EVXdkfYzfuvUmCCWlJRcPm1FT/delete-video/?v=33CjPuGJsEZ
+
         """
 
         if not id:

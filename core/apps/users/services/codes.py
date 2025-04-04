@@ -3,7 +3,10 @@ from abc import ABC
 
 from django.core.cache import cache
 
-from ..exceptions.codes import CodeNotEqualException, CodeNotFoundException
+from ..exceptions.codes import (
+    CodeNotEqualException,
+    CodeNotFoundException,
+)
 
 
 class BaseCodeService(ABC):
@@ -14,7 +17,7 @@ class BaseCodeService(ABC):
 
 class EmailCodeService(BaseCodeService):
     def generate_code(self, email):
-        code = random.randint(100000, 999999)
+        code = random.randint(100000, 999999)  # noqa
         cache.set(email, code, 60 * 5)
         return code
 

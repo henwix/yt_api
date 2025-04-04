@@ -1,4 +1,7 @@
-from rest_framework import generics, viewsets
+from rest_framework import (
+    generics,
+    viewsets,
+)
 
 from core.apps.common.pagination import CustomCursorPagination
 from core.project.containers import get_container

@@ -4,10 +4,15 @@ import factory
 from factory.django import DjangoModelFactory
 from faker import Faker
 
-from core.apps.videos.models import Video, VideoView, generate_video_link
+from core.apps.videos.models import (
+    generate_video_link,
+    Video,
+    VideoView,
+)
 
 from .channels import ChannelModelFactory
 from .common import factory_lazy_function
+
 
 fake = Faker()
 

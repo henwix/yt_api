@@ -1,6 +1,7 @@
+from rest_framework.test import APIClient
+
 import pytest
 from punq import Container
-from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.apps.channels.models import Channel
@@ -21,7 +22,7 @@ def client() -> APIClient:
 
 @pytest.fixture
 def jwt() -> str:
-    """Generates JWT token to API access"""
+    """Generates JWT token to API access."""
 
     channel = ChannelModelFactory()
     return f'Bearer {RefreshToken().for_user(channel.user).access_token}'
@@ -29,7 +30,7 @@ def jwt() -> str:
 
 @pytest.fixture
 def jwt_and_channel() -> tuple:
-    """Generates JWT token to API access and returns channel"""
+    """Generates JWT token to API access and returns channel."""
 
     channel = ChannelModelFactory()
     return f'Bearer {RefreshToken().for_user(channel.user).access_token}', channel

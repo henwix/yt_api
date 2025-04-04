@@ -1,11 +1,16 @@
-import factory
 from django.contrib.auth.models import User
+
+import factory
 from factory.django import DjangoModelFactory
 from faker import Faker
 
-from core.apps.channels.models import Channel, SubscriptionItem
+from core.apps.channels.models import (
+    Channel,
+    SubscriptionItem,
+)
 
 from .common import factory_lazy_function
+
 
 fake = Faker()
 

@@ -1,7 +1,13 @@
 import logging
-from abc import ABC, abstractmethod
+from abc import (
+    ABC,
+    abstractmethod,
+)
 from dataclasses import dataclass
-from typing import Iterable, Tuple
+from typing import (
+    Iterable,
+    Tuple,
+)
 
 from django.contrib.auth.models import User
 
@@ -13,7 +19,10 @@ from ..exceptions.channels import (
     SubscriptionDoesNotExistsError,
     SubscriptionExistsError,
 )
-from ..models import Channel, SubscriptionItem
+from ..models import (
+    Channel,
+    SubscriptionItem,
+)
 from ..providers.channels import BaseChannelAvatarProvider
 from ..repositories.channels import (
     BaseChannelAboutRepository,
@@ -23,6 +32,7 @@ from ..repositories.channels import (
     BaseChannelSubsRepository,
     BaseSubscriptionRepository,
 )
+
 
 log = logging.getLogger(__name__)
 

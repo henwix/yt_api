@@ -110,7 +110,7 @@ class VideoPreviewSerializer(serializers.ModelSerializer):
 
 
 class VideoHistorySerializer(serializers.ModelSerializer):
-    video = VideoPreviewSerializer(many=False)
+    video = VideoPreviewSerializer(many=False, read_only=True)
 
     class Meta:
         model = VideoHistory

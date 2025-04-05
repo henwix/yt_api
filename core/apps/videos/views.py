@@ -1,9 +1,5 @@
 import logging
-import os
 
-from django.db import IntegrityError
-from django.db.models import Count
-from django.utils import timezone
 from rest_framework import (
     filters,
     generics,
@@ -16,7 +12,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-import boto3
 import django_filters
 from drf_spectacular.utils import (
     extend_schema,
@@ -36,15 +31,18 @@ from core.project.containers import get_container
 from . import serializers
 from .filters import VideoFilter
 from .models import (
-    Playlist,
-    PlaylistItem,
     Video,
     VideoComment,
     VideoHistory,
 )
 from .pagination import HistoryCursorPagination
 from .permissions import IsAuthorOrReadOnlyPlaylist
-from .services.videos import BaseVideoService
+from .services.videos import (
+    BaseVideoHistoryService,
+    BaseVideoPlaylistService,
+    BaseVideoPresignedURLService,
+    BaseVideoService,
+)
 
 
 log = logging.getLogger(__name__)
@@ -182,8 +180,6 @@ class CommentVideoAPIView(viewsets.ModelViewSet):
     def get_queryset(self):
         if self.action == 'list':
             video = self.request.query_params.get('v')
-            if not video:
-                return []
             return VideoComment.objects.all().select_related('author', 'video').filter(video__video_id=video)
         return VideoComment.objects.all().select_related('author', 'video')
 
@@ -212,31 +208,14 @@ class GeneratePresignedUrlView(APIView):
 
     """
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        container = get_container()
+        self.service: BaseVideoPresignedURLService = container.resolve(BaseVideoPresignedURLService)
+
     def get(self, request, filename):
-        if filename and filename[-4:] not in ['.png', '.jpg']:
-            return Response(
-                {'error': 'Unsupported file format'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        s3_client = boto3.client(
-            's3',
-            aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
-            aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
-            region_name=os.environ.get('AWS_S3_REGION_NAME'),
-        )
-
-        url = s3_client.generate_presigned_url(
-            'put_object',
-            Params={
-                'Bucket': os.environ.get('AWS_STORAGE_BUCKET_NAME'),
-                'Key': f'channel_avatars/{filename}',
-            },
-            ExpiresIn=120,
-            HttpMethod='PUT',
-        )
-
-        return Response({'put_url': url}, status=status.HTTP_200_OK)
+        result = self.service.generate_url(filename=filename)
+        return Response(result, status=status.HTTP_200_OK)
 
 
 class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -251,6 +230,11 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
     pagination_class = HistoryCursorPagination
     serializer_class = serializers.VideoHistorySerializer
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        container = get_container()
+        self.service: BaseVideoHistoryService = container.resolve(BaseVideoHistoryService)
 
     def get_queryset(self):
         if self.action == 'delete':
@@ -275,32 +259,10 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
         Example: api/v1/history/add/?v=au90D2BoHuT
 
         """
-
         video_id = request.query_params.get('v')
 
-        if not video_id:
-            return Response(
-                {'error': 'To add video in history you need to provide his video_id'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            history_item, created = VideoHistory.objects.get_or_create(channel=request.user.channel, video_id=video_id)
-        except IntegrityError:
-            return Response({'error': 'Video does not exists'})
-
-        if not created:
-            history_item.watched_at = timezone.now()
-            history_item.save(update_fields=['watched_at'])
-            return Response(
-                {'status': 'Success: Updated previous history item'},
-                status=status.HTTP_200_OK,
-            )
-
-        return Response(
-            {'status': 'Success: Created new history item'},
-            status=status.HTTP_201_CREATED,
-        )
+        result = self.service.add_video_in_history(user=request.user, video_id=video_id)
+        return Response(result, status.HTTP_201_CREATED)
 
     @extend_schema(
         parameters=[
@@ -321,24 +283,10 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
         Example: api/v1/history/delete/?v=au90D2BoHuT
 
         """
-
         video_id = request.query_params.get('v')
+        result = self.service.delete_video_from_history(user=request.user, video_id=video_id)
 
-        if not video_id:
-            return Response({'error': 'To delete video from history you need to provide his video_id'})
-
-        deleted, _ = VideoHistory.objects.filter(channel=request.user.channel, video_id=video_id).delete()
-
-        if deleted:
-            return Response(
-                {'status': 'Video successfully deleted from history'},
-                status=status.HTTP_204_NO_CONTENT,
-            )
-
-        return Response(
-            {'error': 'Video does not exists or never been in history'},
-            status=status.HTTP_404_NOT_FOUND,
-        )
+        return Response(result, status.HTTP_204_NO_CONTENT)
 
 
 class MyVideoView(generics.ListAPIView):
@@ -376,6 +324,11 @@ class PlaylistAPIView(viewsets.ModelViewSet):
     permission_classes = [IsAuthorOrReadOnlyPlaylist]
     pagination_class = CustomPageNumberPagination
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        container = get_container()
+        self.service: BaseVideoPlaylistService = container.resolve(BaseVideoPlaylistService)
+
     def get_serializer_class(self):
         if self.action == 'list':
             return serializers.PlaylistPreviewSerializer
@@ -383,19 +336,10 @@ class PlaylistAPIView(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.action == 'list':
-            return (
-                Playlist.objects.filter(channel=self.request.user.channel)
-                .prefetch_related('videos__author')
-                .select_related('channel')
-                .annotate(videos_count=Count('videos', distinct=True))
-            )
+            return self.service.get_playlists_for_listing(self.request.user)
         if self.action == 'retrieve':
-            return (
-                Playlist.objects.prefetch_related('videos__author')
-                .select_related('channel')
-                .annotate(videos_count=Count('videos', distinct=True))
-            )
-        return Playlist.objects.all()
+            return self.service.get_playlists_for_retrieving()
+        return self.service.playlist_repository.get_all_playlists()
 
     @extend_schema(
         parameters=[
@@ -421,28 +365,10 @@ class PlaylistAPIView(viewsets.ModelViewSet):
         Example: /api/v1/playlists/W9MghI-EVXdkfYzfuvUmCCWlJRcPm1FT/add-video/?v=33CjPuGJsEZ
 
         """
-
-        if not id:
-            return Response(
-                {'error': 'To add video you need to provide playlist id'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         video_id = request.query_params.get('v')
+        result = self.service.add_video_in_playlist(playlist_id=id, video_id=video_id)
 
-        if not video_id:
-            return Response(
-                {'error': 'To add video in that playlist you need to provide video_id'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        playlist_item, created = PlaylistItem.objects.get_or_create(playlist_id=id, video_id=video_id)
-        if created:
-            return Response({'status': 'Video added in playlist'}, status=status.HTTP_200_OK)
-        return Response(
-            {'status': 'Video already exists in that playlist'},
-            status=status.HTTP_200_OK,
-        )
+        return Response(result, status.HTTP_201_CREATED)
 
     @extend_schema(
         parameters=[
@@ -468,29 +394,7 @@ class PlaylistAPIView(viewsets.ModelViewSet):
         Example: /api/v1/playlists/W9MghI-EVXdkfYzfuvUmCCWlJRcPm1FT/delete-video/?v=33CjPuGJsEZ
 
         """
-
-        if not id:
-            return Response(
-                {'error': 'To delete video you need to provide playlist id'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         video_id = request.query_params.get('v')
+        result = self.service.delete_video_from_playlist(playlist_id=id, video_id=video_id)
 
-        if not video_id:
-            return Response(
-                {'error': 'To delete video in that playlist you need to provide video_id'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        deleted, _ = PlaylistItem.objects.filter(playlist_id=id, video_id=video_id).delete()
-
-        if deleted:
-            return Response(
-                {'status': 'Video successfully deleted from playlist'},
-                status=status.HTTP_204_NO_CONTENT,
-            )
-        return Response(
-            {'status': 'Video does not exists in that playlist'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return Response(result, status.HTTP_204_NO_CONTENT)

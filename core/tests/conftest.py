@@ -5,7 +5,9 @@ from punq import Container
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.apps.channels.models import Channel
+from core.apps.videos.models import Video
 from core.project.containers import get_container
+from core.tests.factories.videos import VideoModelFactory
 
 from .factories.channels import ChannelModelFactory
 
@@ -39,3 +41,8 @@ def jwt_and_channel() -> tuple:
 @pytest.fixture
 def channel() -> Channel:
     return ChannelModelFactory()
+
+
+@pytest.fixture
+def video() -> Video:
+    return VideoModelFactory()

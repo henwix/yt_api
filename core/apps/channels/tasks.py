@@ -1,9 +1,8 @@
 import logging
-import os
 
-import boto3
 from celery import shared_task
 
+from core.apps.common.services.boto_client import BaseBotoClientService
 from core.project.containers import get_container
 
 from .repositories.channels import (
@@ -17,12 +16,10 @@ log = logging.getLogger(__name__)
 
 @shared_task
 def delete_channel_files_task(files):
-    s3_client = boto3.client(
-        's3',
-        aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
-        aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
-        region_name=os.environ.get('AWS_S3_REGION_NAME'),
-    )
+    container = get_container()
+    boto_service: BaseBotoClientService = container.resolve(BaseBotoClientService)
+    s3_client = boto_service.get_s3_client()
+
     try:
         response = s3_client.delete_objects(Bucket='django-henwix-bucket', Delete={'Objects': files})
         return f'Files successfully deleted: {len(response.get("Deleted", []))}'

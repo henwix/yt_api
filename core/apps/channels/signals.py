@@ -47,6 +47,7 @@ def delete_channel_files_signal(instance, **kwargs):
     if instance.videos.exists():
         videos = [{'Key': video.file.name} for video in instance.videos.all() if video.file]
         files.extend(videos)
+
     # If channel_avatar exists it'll append to files list
     if instance.channel_avatar and instance.channel_avatar.name:
         files.append({'Key': instance.channel_avatar.name})

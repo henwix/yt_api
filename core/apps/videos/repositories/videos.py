@@ -14,7 +14,10 @@ from django.utils import timezone
 from core.apps.channels.models import Channel
 
 from ..models import (
+    Playlist,
+    PlaylistItem,
     Video,
+    VideoHistory,
     VideoLike,
     VideoView,
 )
@@ -25,7 +28,7 @@ class BaseVideoRepository(ABC):
     def get_channel(self, user: User) -> Channel | None: ...
 
     @abstractmethod
-    def get_video(self, video_id: str) -> Video | None: ...
+    def get_video_by_id(self, video_id: str) -> Video | None: ...
 
     @abstractmethod
     def like_get_or_create(self, channel: Channel, video: Video, is_like: bool) -> Tuple[VideoLike, bool]: ...
@@ -46,7 +49,7 @@ class ORMVideoRepository(BaseVideoRepository):
     def get_channel(self, user: User) -> Channel | None:
         return Channel.objects.filter(user=user).first()
 
-    def get_video(self, video_id: str) -> Video | None:
+    def get_video_by_id(self, video_id: str) -> Video | None:
         return Video.objects.filter(video_id=video_id).first()
 
     def like_get_or_create(self, channel: Channel, video: Video, is_like: bool) -> Tuple[VideoLike, bool]:
@@ -80,3 +83,54 @@ class ORMVideoRepository(BaseVideoRepository):
 
     def get_videos_list(self) -> Iterable[Video]:
         return Video.objects.all()
+
+
+class BaseVideoHistoryRepository(ABC):
+    @abstractmethod
+    def get_or_create_history_item(self, video: Video, channel: Channel) -> dict: ...
+
+    @abstractmethod
+    def delete_history_item(self, video: Video, channel: Channel) -> dict: ...
+
+    @abstractmethod
+    def update_watch_time(self, history_item: VideoHistory) -> None: ...
+
+
+class VideoHistoryRepository(BaseVideoHistoryRepository):
+    def get_or_create_history_item(self, video: Video, channel: Channel) -> dict:
+        return VideoHistory.objects.get_or_create(channel=channel, video=video)
+
+    def delete_history_item(self, video: Video, channel: Channel) -> dict:
+        return VideoHistory.objects.filter(channel=channel, video_id=video).delete()
+
+    def update_watch_time(self, history_item: VideoHistory) -> None:
+        history_item.watched_at = timezone.now()
+        history_item.save(update_fields=['watched_at'])
+
+
+class BasePlaylistRepository(ABC):
+    @abstractmethod
+    def get_all_playlists(self) -> Iterable[Playlist]: ...
+
+    @abstractmethod
+    def get_playlist_by_id(playlist_id: str) -> Playlist | None: ...
+
+    @abstractmethod
+    def playlist_item_get_or_create(playlist: Playlist, video: Video) -> PlaylistItem | None: ...
+
+    @abstractmethod
+    def playlist_item_delete(playlist: Playlist, video: Video) -> dict: ...
+
+
+class PlaylistRepository(BasePlaylistRepository):
+    def get_all_playlists(self) -> Iterable[Playlist]:
+        return Playlist.objects.all()
+
+    def get_playlist_by_id(playlist_id: str) -> Playlist | None:
+        return Playlist.objects.filter(id=playlist_id).first()
+
+    def playlist_item_get_or_create(playlist: Playlist, video: Video) -> PlaylistItem | None:
+        return PlaylistItem.objects.get_or_create(playlist=playlist, video=video)
+
+    def playlist_item_delete(playlist: Playlist, video: Video) -> dict:
+        return PlaylistItem.objects.filter(playlist=playlist, video=video).delete()

@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 
 # class UserLoginView(APIView):
 #     def post(self, request):
-#         container = get_container()
+#         container: punq.Container = get_container()
 #         use_case: AuthorizeUserUseCase = container.resolve(AuthorizeUserUseCase)
 
 #         result = use_case.execute(
@@ -62,7 +62,7 @@ log = logging.getLogger(__name__)
 
 # class OTPVerifyView(APIView):
 #     def post(self, request):
-#         container = get_container()
+#         container: punq.Container = get_container()
 #         service: BaseAuthService = container.resolve(BaseAuthService)
 
 #         code = request.data.get('code')

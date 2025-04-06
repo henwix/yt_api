@@ -14,7 +14,7 @@ router = DefaultRouter()
 router.register('video', views.VideoViewSet, basename='video')
 router.register('video-comment', views.CommentVideoAPIView, basename='video-comment')
 router.register('history', views.VideoHistoryView, basename='history')
-router.register('playlists', views.PlaylistAPIView, basename='playlists')
+router.register('playlist', views.PlaylistAPIView, basename='playlist')
 
 urlpatterns = [
     path('', include(router.urls)),

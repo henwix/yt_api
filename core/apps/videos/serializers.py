@@ -21,7 +21,9 @@ class VideoCommentSerializer(serializers.ModelSerializer):
     )
     author_slug = serializers.CharField(source='author.slug', read_only=True)
     update_link = serializers.HyperlinkedIdentityField(
-        view_name='v1:videos:video-comment-detail', many=False, read_only=True,
+        view_name='v1:videos:video-comment-detail',
+        many=False,
+        read_only=True,
     )
 
     class Meta:
@@ -134,7 +136,7 @@ class PlaylistPreviewSerializer(serializers.ModelSerializer):
         source='channel',
     )
     playlist_link = serializers.HyperlinkedIdentityField(
-        view_name='v1:videos:playlists-detail',
+        view_name='v1:videos:playlist-detail',
         lookup_field='id',
         lookup_url_kwarg='id',
         read_only=True,

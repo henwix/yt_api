@@ -1,5 +1,6 @@
 import logging
 
+import punq
 from celery import shared_task
 
 from core.apps.common.services.boto_client import BaseBotoClientService
@@ -16,7 +17,7 @@ log = logging.getLogger(__name__)
 
 @shared_task
 def delete_channel_files_task(files):
-    container = get_container()
+    container: punq.Container = get_container()
     boto_service: BaseBotoClientService = container.resolve(BaseBotoClientService)
     s3_client = boto_service.get_s3_client()
 
@@ -30,7 +31,7 @@ def delete_channel_files_task(files):
 
 @shared_task(bind=True, max_retries=3)
 def delete_channel_avatar(self, user_id: int):
-    container = get_container()
+    container: punq.Container = get_container()
     avatar_repository = container.resolve(BaseChannelAvatarRepository)
     channel_repository = container.resolve(BaseChannelRepository)
 

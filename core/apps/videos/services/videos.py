@@ -18,16 +18,18 @@ from django.db.models import (
 from core.apps.channels.models import Channel
 from core.apps.channels.repositories.channels import BaseChannelRepository
 from core.apps.common.services.boto_client import BaseBotoClientService
+from core.apps.videos.exceptions.playlists import (
+    PlaylistIdNotProvidedError,
+    PlaylistNotFoundError,
+    VideoNotInPlaylistError,
+)
 
 from ..exceptions.videos import (
     LikeNotFoundError,
-    PlaylistIdNotProvidedError,
-    PlaylistNotFoundError,
     UnsupportedFileFormatError,
     VideoIdNotProvidedError,
     VideoNotFoundError,
     VideoNotFoundInHistoryError,
-    VideoNotInPlaylistError,
     ViewExistsError,
 )
 from ..models import (
@@ -117,7 +119,7 @@ class VideoService(BaseVideoService):
             .annotate(
                 views_count=Count('views', distinct=True),
                 likes_count=Count('likes', filter=Q(likes__is_like=True), distinct=True),
-                comments_count=Count('comments'),
+                comments_count=Count('comments', distinct=True),
                 subs_count=Count('author__followers', distinct=True),
             )
         )
@@ -216,7 +218,6 @@ class BaseVideoPlaylistService(ABC):
     def delete_video_from_playlist(self, playlist_id: str, video_id: str) -> dict: ...
 
 
-# FIXME: Починить ошибку в методе get_playlist_by_id при добавлении видоса
 @dataclass
 class VideoPlaylistService(BaseVideoPlaylistService):
     channel_repository: BaseChannelRepository
@@ -227,7 +228,7 @@ class VideoPlaylistService(BaseVideoPlaylistService):
         if not playlist_id:
             raise PlaylistIdNotProvidedError()
 
-        playlist = self.playlist_repository.get_playlist_by_id(playlist_id)
+        playlist = self.playlist_repository.get_playlist_by_id(playlist_id=playlist_id)
         video = self.video_repository.get_video_by_id(video_id=video_id)
 
         if not video:

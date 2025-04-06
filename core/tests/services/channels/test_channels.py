@@ -3,8 +3,8 @@ from django.contrib.auth.models import User
 import pytest
 from faker import Faker
 
-from core.apps.channels.exceptions.channels import (
-    ChannelNotFoundError,
+from core.apps.channels.exceptions.channels import ChannelNotFoundError
+from core.apps.channels.exceptions.subscriptions import (
     SelfSubscriptionError,
     SubscriptionDoesNotExistsError,
     SubscriptionExistsError,
@@ -138,5 +138,7 @@ def test_main_channel_page_correct(channel_main_service: BaseChannelMainService,
     assert response.slug == channel.slug
     assert response.name == channel.name
     assert response.description == channel.description
+    assert response.subs_count == expected_subs
+    assert response.videos.count() == expected_videos
     assert response.subs_count == expected_subs
     assert response.videos.count() == expected_videos

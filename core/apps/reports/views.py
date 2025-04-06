@@ -5,6 +5,8 @@ from rest_framework import (
 )
 from rest_framework.response import Response
 
+import punq
+
 from core.apps.common.pagination import CustomCursorPagination
 from core.project.containers import get_container
 
@@ -20,7 +22,7 @@ class VideoReportsView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIVi
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        container = get_container()
+        container: punq.Container = get_container()
         self.service: BaseVideoReportsService = container.resolve(BaseVideoReportsService)
 
     def get_queryset(self):
@@ -33,10 +35,10 @@ class VideoReportsView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIVi
         serializer.is_valid(raise_exception=True)
 
         result = self.service.create_report(
-            video_id=request.data.get('video'),
+            video_id=serializer.validated_data.get('video'),
             user=request.user,
-            reason=request.data.get('reason'),
-            description=request.data.get('description'),
+            reason=serializer.validated_data.get('reason'),
+            description=serializer.validated_data.get('description'),
         )
 
         return Response(result, status.HTTP_201_CREATED)

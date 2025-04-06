@@ -1,12 +1,13 @@
-from datetime import datetime
-
 import factory
 from factory.django import DjangoModelFactory
 from faker import Faker
 
 from core.apps.videos.models import (
-    generate_video_link,
+    Playlist,
+    PlaylistItem,
     Video,
+    VideoComment,
+    VideoLike,
     VideoView,
 )
 
@@ -21,10 +22,9 @@ class VideoModelFactory(DjangoModelFactory):
     class Meta:
         model = Video
 
-    video_id = factory.LazyFunction(generate_video_link)
     author = factory.SubFactory(ChannelModelFactory)
     name = factory_lazy_function(fake.text, max_length=40)
-    created_at = factory.LazyFunction(datetime.now)
+    description = factory.Faker('text')
 
 
 class VideoViewModelFactory(DjangoModelFactory):
@@ -33,3 +33,38 @@ class VideoViewModelFactory(DjangoModelFactory):
 
     video = factory.SubFactory(VideoModelFactory)
     channel = factory.SubFactory(ChannelModelFactory)
+
+
+class VideoLikeModelFactory(DjangoModelFactory):
+    class Meta:
+        model = VideoLike
+
+    channel = factory.SubFactory(ChannelModelFactory)
+    video = factory.SubFactory(VideoModelFactory)
+    is_like = True
+
+
+class VideoCommentModelFactory(DjangoModelFactory):
+    class Meta:
+        model = VideoComment
+
+    author = factory.SubFactory(ChannelModelFactory)
+    video = factory.SubFactory(VideoModelFactory)
+    text = factory.Faker('text')
+
+
+class PlaylistModelFactory(DjangoModelFactory):
+    class Meta:
+        model = Playlist
+
+    channel = factory.SubFactory(ChannelModelFactory)
+    title = factory_lazy_function(fake.text, max_length=150)
+    description = factory.Faker('text')
+
+
+class PlaylistItemModelFactory(DjangoModelFactory):
+    class Meta:
+        model = PlaylistItem
+
+    playlist = factory.SubFactory(PlaylistModelFactory)
+    video = factory.SubFactory(VideoModelFactory)

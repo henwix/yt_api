@@ -11,13 +11,16 @@ from typing import (
 
 from django.contrib.auth.models import User
 
+from core.apps.channels.exceptions.subscriptions import (
+    SelfSubscriptionError,
+    SubscriptionDoesNotExistsError,
+    SubscriptionExistsError,
+)
+
 from ..exceptions.channels import (
     AvatarDoesNotExistsError,
     AvatarExceptionError,
     ChannelNotFoundError,
-    SelfSubscriptionError,
-    SubscriptionDoesNotExistsError,
-    SubscriptionExistsError,
 )
 from ..models import (
     Channel,

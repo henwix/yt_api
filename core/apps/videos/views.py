@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 import django_filters
+import punq
 from drf_spectacular.utils import (
     extend_schema,
     OpenApiParameter,
@@ -75,7 +76,7 @@ class VideoViewSet(viewsets.ModelViewSet):
     # TODO: multipart video upload
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        container = get_container()
+        container: punq.Container = get_container()
         self.service: BaseVideoService = container.resolve(BaseVideoService)
 
     @action(url_path='like', methods=['post'], detail=True)
@@ -210,7 +211,7 @@ class GeneratePresignedUrlView(APIView):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        container = get_container()
+        container: punq.Container = get_container()
         self.service: BaseVideoPresignedURLService = container.resolve(BaseVideoPresignedURLService)
 
     def get(self, request, filename):
@@ -233,7 +234,7 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        container = get_container()
+        container: punq.Container = get_container()
         self.service: BaseVideoHistoryService = container.resolve(BaseVideoHistoryService)
 
     def get_queryset(self):
@@ -315,7 +316,7 @@ class PlaylistAPIView(viewsets.ModelViewSet):
     - retrieve: allow any if not private
     - delete and update: author or staff only
 
-    Example: api/v1/playlists/, api/v1/playlists/kn2puLWEDmqIvavBgvYRSypsb162jSHE/
+    Example: api/v1/playlist/, api/v1/playlist/kn2puLWEDmqIvavBgvYRSypsb162jSHE/
 
     """
 
@@ -326,7 +327,7 @@ class PlaylistAPIView(viewsets.ModelViewSet):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        container = get_container()
+        container: punq.Container = get_container()
         self.service: BaseVideoPlaylistService = container.resolve(BaseVideoPlaylistService)
 
     def get_serializer_class(self):
@@ -362,7 +363,7 @@ class PlaylistAPIView(viewsets.ModelViewSet):
 
         Requires 'playlist id' in URL and 'v' query param which contains video_id.
 
-        Example: /api/v1/playlists/W9MghI-EVXdkfYzfuvUmCCWlJRcPm1FT/add-video/?v=33CjPuGJsEZ
+        Example: /api/v1/playlist/W9MghI-EVXdkfYzfuvUmCCWlJRcPm1FT/add-video/?v=33CjPuGJsEZ
 
         """
         video_id = request.query_params.get('v')
@@ -391,7 +392,7 @@ class PlaylistAPIView(viewsets.ModelViewSet):
 
         Requires 'playlist id' in URL and 'v' query param which contains video_id.
 
-        Example: /api/v1/playlists/W9MghI-EVXdkfYzfuvUmCCWlJRcPm1FT/delete-video/?v=33CjPuGJsEZ
+        Example: /api/v1/playlist/W9MghI-EVXdkfYzfuvUmCCWlJRcPm1FT/delete-video/?v=33CjPuGJsEZ
 
         """
         video_id = request.query_params.get('v')

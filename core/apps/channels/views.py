@@ -12,6 +12,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+import punq
 from drf_spectacular.utils import (
     extend_schema,
     OpenApiExample,
@@ -57,7 +58,7 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        container = get_container()
+        container: punq.Container = get_container()
         self.channel_service: BaseChannelService = container.resolve(BaseChannelService)
         self.cache_service: BaseCacheService = container.resolve(BaseCacheService)
 
@@ -99,7 +100,7 @@ class ChannelSubscribersView(generics.ListAPIView, PaginationMixin):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        container = get_container()
+        container: punq.Container = get_container()
         self.sub_service: BaseChannelSubsService = container.resolve(BaseChannelSubsService)
         self.cache_service: BaseCacheService = container.resolve(BaseCacheService)
 
@@ -132,7 +133,7 @@ class ChannelAvatarDestroy(APIView):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        container = get_container()
+        container: punq.Container = get_container()
         self.service: BaseChannelAvatarService = container.resolve(BaseChannelAvatarService)
 
     def delete(self, request):
@@ -155,7 +156,7 @@ class ChannelMainView(generics.RetrieveAPIView):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        container = get_container()
+        container: punq.Container = get_container()
         self.service: BaseChannelMainService = container.resolve(BaseChannelMainService)
 
     def get_queryset(self):
@@ -177,7 +178,7 @@ class ChannelAboutView(generics.RetrieveAPIView):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        container = get_container()
+        container: punq.Container = get_container()
         self.service: BaseChannelAboutService = container.resolve(BaseChannelAboutService)
 
     def get_queryset(self):
@@ -195,7 +196,7 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        container = get_container()
+        container: punq.Container = get_container()
         self.service: BaseSubscriptionService = container.resolve(BaseSubscriptionService)
 
     @extend_schema(

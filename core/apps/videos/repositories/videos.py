@@ -113,24 +113,24 @@ class BasePlaylistRepository(ABC):
     def get_all_playlists(self) -> Iterable[Playlist]: ...
 
     @abstractmethod
-    def get_playlist_by_id(playlist_id: str) -> Playlist | None: ...
+    def get_playlist_by_id(self, playlist_id: str) -> Playlist | None: ...
 
     @abstractmethod
-    def playlist_item_get_or_create(playlist: Playlist, video: Video) -> PlaylistItem | None: ...
+    def playlist_item_get_or_create(self, playlist: Playlist, video: Video) -> PlaylistItem | None: ...
 
     @abstractmethod
-    def playlist_item_delete(playlist: Playlist, video: Video) -> dict: ...
+    def playlist_item_delete(self, playlist: Playlist, video: Video) -> dict: ...
 
 
 class PlaylistRepository(BasePlaylistRepository):
     def get_all_playlists(self) -> Iterable[Playlist]:
         return Playlist.objects.all()
 
-    def get_playlist_by_id(playlist_id: str) -> Playlist | None:
+    def get_playlist_by_id(self, playlist_id: str) -> Playlist | None:
         return Playlist.objects.filter(id=playlist_id).first()
 
-    def playlist_item_get_or_create(playlist: Playlist, video: Video) -> PlaylistItem | None:
+    def playlist_item_get_or_create(self, playlist: Playlist, video: Video) -> PlaylistItem | None:
         return PlaylistItem.objects.get_or_create(playlist=playlist, video=video)
 
-    def playlist_item_delete(playlist: Playlist, video: Video) -> dict:
+    def playlist_item_delete(self, playlist: Playlist, video: Video) -> dict:
         return PlaylistItem.objects.filter(playlist=playlist, video=video).delete()

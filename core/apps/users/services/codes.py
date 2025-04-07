@@ -1,5 +1,8 @@
 import random
-from abc import ABC
+from abc import (
+    ABC,
+    abstractmethod,
+)
 
 from django.core.cache import cache
 
@@ -10,8 +13,10 @@ from ..exceptions.codes import (
 
 
 class BaseCodeService(ABC):
+    @abstractmethod
     def generate_code(self): ...
 
+    @abstractmethod
     def validate_code(self): ...
 
 

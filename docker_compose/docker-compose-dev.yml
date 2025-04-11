@@ -1,15 +1,16 @@
 services:
   web:
-    container_name: yt-web
+    container_name: yt-web-dev  
     build:
-      context: .
-    image: yt-web
+      context: ..
+      dockerfile: Dockerfile
+    image: yt-web-dev
     ports:
       - "${DJANGO_PORT}:8000"
     volumes:
-      - .:/app/
+      - ..:/app/
     env_file:
-      - .env
+      - ../.env
     command: >
       sh -c "python manage.py runserver 0.0.0.0:8000"
     depends_on:
@@ -17,17 +18,17 @@ services:
       - redis
   
   postgres:
-    container_name: yt-postgres
+    container_name: yt-postgres-dev
     image: postgres:17.2-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     ports:
       - "${POSTGRES_PORT}:5432"
     env_file:
-      - .env
+      - ../.env
 
   redis:
-    container_name: yt-redis
+    container_name: yt-redis-dev
     image: redis:7-alpine
     ports:
       - "${REDIS_PORT}:6379"
@@ -35,29 +36,31 @@ services:
       - redis_data:/data/
   
   celery:
-    container_name: yt-celery
-    image: yt-web
+    container_name: yt-celery-dev
+    image: yt-web-dev
     command: celery -A core.project.celery worker -l info -Q media-queue,email-queue
     volumes:
-      - .:/app/
+      - ..:/app/
     env_file:
-      - .env
+      - ../.env
     depends_on:
       - redis
       - postgres
 
   celery-beat:
-    container_name: yt-celery-beat
-    image: yt-web
+    container_name: yt-celery-beat-dev
+    image: yt-web-dev
     command: celery -A core.project.celery beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     volumes:
-      - .:/app/
+      - ..:/app/
     env_file:
-      - .env
+      - ../.env
     depends_on:
       - redis
       - postgres
 
 volumes:
   postgres_data:
+    name: yt_api_postgres_data
   redis_data:
+    name: yt_api_redis_data

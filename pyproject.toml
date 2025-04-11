@@ -34,16 +34,20 @@ build-backend = "poetry.core.masonry.api"
 
 
 [tool.poetry.group.dev.dependencies]
-django-silk = "5.3.2"
 ipython = "8.32.0"
 pytest-django = "4.10.0"
 factory-boy = "3.3.3"
 isort = "^6.0.1"
 pre-commit = "^4.2.0"
+django-silk = "5.3.2"
 
+
+
+[tool.poetry.group.prod.dependencies]
+gunicorn = "^23.0.0"
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "core.project.settings.local"
+DJANGO_SETTINGS_MODULE = "core.project.settings.middle"
 python_files = ["test_*.py", "*_test.py", "testing/python/*.py"]
 
 

@@ -5,8 +5,6 @@ services:
       context: ..
       dockerfile: Dockerfile.middle
     image: yt-web-middle
-    ports:
-      - "${DJANGO_PORT}:8000"
     volumes:
       # - ..:/app/
       - ../static:/app/static
@@ -73,6 +71,6 @@ services:
 
 volumes:
   postgres_data:
-    name: yt_api_postgres_data_middle
+    name: yt_api_postgres_data
   redis_data:
-    name: yt_api_redis_data_middle
+    name: yt_api_redis_data

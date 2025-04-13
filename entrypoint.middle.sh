@@ -1,3 +1,3 @@
 python manage.py collectstatic --noinput
 python manage.py migrate --noinput
-gunicorn core.project.wsgi:application --timeout 3600 --bind 0.0.0.0:8000
+gunicorn core.project.wsgi:application --timeout 300 --workers 4 --bind 0.0.0.0:8000

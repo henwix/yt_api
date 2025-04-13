@@ -1,8 +1,10 @@
 __pycache__/
+__pycache__
+.pytest_cache
 *.pyc
 *.pyo
-.venv
 .vscode
+.venv
 .env
 .env*
 .gitignore
@@ -15,3 +17,5 @@ api.http
 .git
 requirements.txt
 core/tests
+.pre-commit-config.yaml
+core/scripts

@@ -47,7 +47,7 @@ django-silk = "5.3.2"
 gunicorn = "^23.0.0"
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "core.project.settings.middle"
+DJANGO_SETTINGS_MODULE = "core.project.settings.local"
 python_files = ["test_*.py", "*_test.py", "testing/python/*.py"]
 
 

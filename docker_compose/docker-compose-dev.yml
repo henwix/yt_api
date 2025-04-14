@@ -30,8 +30,6 @@ services:
   redis:
     container_name: yt-redis-dev
     image: redis:7-alpine
-    ports:
-      - "${REDIS_PORT}:6379"
     volumes:
       - redis_data:/data/
   

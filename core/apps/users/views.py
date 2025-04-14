@@ -19,6 +19,7 @@ from djoser.conf import settings
 from djoser.views import UserViewSet
 from rest_framework_simplejwt.tokens import RefreshToken  # noqa
 
+from core.apps.common.pagination import CustomPageNumberPagination
 from core.project.containers import get_container  # noqa
 
 from .tasks import (
@@ -87,7 +88,7 @@ class CustomUserViewSet(UserViewSet):
     Mails for account activation, confirmation, reset_password and reset_username will be send via Celery.
 
     """
-
+    pagination_class = CustomPageNumberPagination
     queryset = get_user_model().objects.all().prefetch_related('channel')
 
     def _get_mail_args(self, user):

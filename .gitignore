@@ -10,3 +10,4 @@ core/scripts
 .pytest_cache
 .git
 static
+certs

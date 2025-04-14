@@ -19,3 +19,5 @@ requirements.txt
 core/tests
 .pre-commit-config.yaml
 core/scripts
+certs
+nginx.conf

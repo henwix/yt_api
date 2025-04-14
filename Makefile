@@ -92,7 +92,6 @@ test-dev:
 .PHONY: build
 build:
 	${DC} -f ${APP_MIDDLE_FILE} build
-
 .PHONY: app
 app:
 	${DC} -f ${APP_MIDDLE_FILE} up -d
@@ -104,6 +103,10 @@ app-down:
 .PHONY: app-restart
 app-restart:
 	${DC} -f ${APP_MIDDLE_FILE} down && ${DC} -f ${APP_MIDDLE_FILE} up -d
+
+.PHONY: app-logs
+app-logs:
+	${LOGS} ${APP_CONTAINER_MIDDLE} -f
 
 .PHONY: superuser
 superuser:

@@ -10,6 +10,6 @@ from core.apps.common.services.cache import (
 )
 
 
-def initialize_common(container: punq.Container):
+def init_common(container: punq.Container):
     container.register(BaseCacheService, CacheService)
     container.register(BaseBotoClientService, BotoClientService)

@@ -37,7 +37,7 @@ from .providers.channels import (
 )
 
 
-def initialize_channels(container: punq.Container) -> None:
+def init_channels(container: punq.Container) -> None:
     # repositories
     container.register(BaseChannelRepository, ORMChannelRepository)
     container.register(BaseChannelSubsRepository, ORMChannelSubsRepository)

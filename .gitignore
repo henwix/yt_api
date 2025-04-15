@@ -5,8 +5,8 @@ __pycache__/
 test.py
 media
 api.http
-core/project/settings/local.py
-core/scripts
+local.py
+scripts
 .pytest_cache
 .git
 static

@@ -10,7 +10,7 @@ from core.apps.reports.services.reports import (
 )
 
 
-def initialize_reports(container: punq.Container) -> None:
+def init_reports(container: punq.Container) -> None:
     # repositories
     container.register(BaseVideoReportsRepository, ORMVideoReportRepository)
 

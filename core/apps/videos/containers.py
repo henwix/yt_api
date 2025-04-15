@@ -20,7 +20,7 @@ from core.apps.videos.services.videos import (
 )
 
 
-def initialize_videos(container: punq.Container) -> None:
+def init_videos(container: punq.Container) -> None:
     # repositories
     container.register(BaseVideoRepository, ORMVideoRepository)
     container.register(BaseVideoHistoryRepository, VideoHistoryRepository)

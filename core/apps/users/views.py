@@ -1,10 +1,6 @@
 import logging
 
-from django.contrib.auth import (  # noqa
-    authenticate,
-    get_user_model,
-    login,
-)
+from django.contrib.auth import get_user_model  # noqa
 from django.db import transaction
 from rest_framework import (  # noqa
     generics,
@@ -12,7 +8,9 @@ from rest_framework import (  # noqa
 )
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
+import punq
 from djoser import signals
 from djoser.compat import get_user_email
 from djoser.conf import settings
@@ -28,56 +26,41 @@ from .tasks import (
     send_reset_password_email,
     send_reset_username_email,
 )
-from .use_cases.authorize import AuthorizeUserUseCase  # noqa
+from .use_cases.auth import (  # noqa
+    AuthorizeUserUseCase,
+    VerifyCodeUseCase,
+)
 
 
 log = logging.getLogger(__name__)
 
-
-# class UserLoginView(APIView):
-#     def post(self, request):
-#         container: punq.Container = get_container()
-#         use_case: AuthorizeUserUseCase = container.resolve(AuthorizeUserUseCase)
-
-#         result = use_case.execute(
-#             {'username': request.data.get('username')},
-#         )
-
-#         username = request.data.get('username')
-#         password = request.data.get('password')
-
-#         user = authenticate(username=username, password=password)
-
-#         if not user.otp_enabled:
-#             refresh = RefreshToken.for_user(user)
-#             access = refresh.access_token
-
-#             return Response({'refresh': refresh, 'access': refresh}, status=201)
-
-#         # генерируем код
-#         # сейвим в кеш с почтой
-#         # отправляем письмо
-
-#         return Response({'Email sent': 'We send email, please, confirm access'}, status=200)
+# TODO: уведомления о входе через бота Telegram
 
 
-# class OTPVerifyView(APIView):
-#     def post(self, request):
-#         container: punq.Container = get_container()
-#         service: BaseAuthService = container.resolve(BaseAuthService)
+class UserLoginView(APIView):
+    def post(self, request):
+        container: punq.Container = get_container()
+        use_case: AuthorizeUserUseCase = container.resolve(AuthorizeUserUseCase)
 
-#         code = request.data.get('code')
-#         email = request.data.get('email')
+        result = use_case.execute(
+            login=request.data.get('login'),
+            password=request.data.get('password'),
+        )
 
-#         cached_code = cache.get(f"code for: {email}")
+        return Response(result, status=status.HTTP_200_OK)
 
-#         if cached_code == code:
-#             user = User.objects.filter(email).first()
 
-#             refresh = RefreshToken.for_user(user)
-#             access = refresh.access_token
+class CodeVerifyView(APIView):
+    def post(self, request):
+        container: punq.Container = get_container()
+        use_case: VerifyCodeUseCase = container.resolve(VerifyCodeUseCase)
 
-#             return Response({'refresh': refresh, 'access': refresh}, status=201)
+        result = use_case.execute(
+            email=request.data.get('code'),
+            code=request.data.get('email'),
+        )
+
+        return Response(result, status=201)
 
 
 class CustomUserViewSet(UserViewSet):
@@ -88,6 +71,7 @@ class CustomUserViewSet(UserViewSet):
     Mails for account activation, confirmation, reset_password and reset_username will be send via Celery.
 
     """
+
     pagination_class = CustomPageNumberPagination
     queryset = get_user_model().objects.all().prefetch_related('channel')
 

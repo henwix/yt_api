@@ -18,6 +18,6 @@ api.http
 requirements.txt
 core/tests
 .pre-commit-config.yaml
-core/scripts
+scripts
 certs
 nginx.conf

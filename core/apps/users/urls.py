@@ -11,7 +11,11 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 
-from .views import CustomUserViewSet
+from .views import (
+    CodeVerifyView,
+    CustomUserViewSet,
+    UserLoginView,
+)
 
 
 app_name = 'users'
@@ -27,4 +31,6 @@ urlpatterns = [
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path('users/login/', UserLoginView.as_view(), name='user_login'),
+    path('users/verify_code/', CodeVerifyView.as_view(), name='user_verify_code'),
 ]

@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 import pytest
 from punq import Container
@@ -10,6 +10,9 @@ from core.apps.channels.services.channels import (
     BaseSubscriptionService,
 )
 from core.tests.factories.channels import ChannelModelFactory
+
+
+User = get_user_model()
 
 
 @pytest.fixture

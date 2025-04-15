@@ -8,7 +8,7 @@ from typing import (
     Tuple,
 )
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from core.apps.channels.models import Channel
@@ -21,6 +21,9 @@ from ..models import (
     VideoLike,
     VideoView,
 )
+
+
+User = get_user_model()
 
 
 class BaseVideoRepository(ABC):

@@ -9,7 +9,7 @@ from typing import (
     Tuple,
 )
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 from core.apps.channels.exceptions.subscriptions import (
     SelfSubscriptionError,
@@ -38,6 +38,7 @@ from ..repositories.channels import (
 
 
 log = logging.getLogger(__name__)
+User = get_user_model()
 
 
 @dataclass(eq=False)

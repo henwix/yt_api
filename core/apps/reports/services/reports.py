@@ -5,7 +5,7 @@ from abc import (
 from dataclasses import dataclass
 from typing import Iterable
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 from core.apps.channels.models import Channel
 from core.apps.channels.repositories.channels import BaseChannelRepository
@@ -16,6 +16,9 @@ from core.apps.videos.repositories.videos import BaseVideoRepository
 
 from ..models import VideoReport
 from ..repositories.reports import BaseVideoReportsRepository
+
+
+User = get_user_model()
 
 
 @dataclass(eq=False)

@@ -1,3 +1,4 @@
+import logging
 import random
 from abc import (
     ABC,
@@ -10,6 +11,9 @@ from ..exceptions.codes import (
     CodeNotEqualException,
     CodeNotFoundException,
 )
+
+
+log = logging.getLogger(__name__)
 
 
 class BaseCodeService(ABC):

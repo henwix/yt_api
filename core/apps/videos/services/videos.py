@@ -9,7 +9,7 @@ from typing import (
     Tuple,
 )
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db.models import (
     Count,
     Q,
@@ -41,6 +41,9 @@ from ..repositories.videos import (
     BaseVideoHistoryRepository,
     BaseVideoRepository,
 )
+
+
+User = get_user_model()
 
 
 @dataclass(eq=False)

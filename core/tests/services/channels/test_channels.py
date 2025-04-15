@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 import pytest
 from faker import Faker
@@ -28,6 +28,7 @@ from core.tests.factories.videos import VideoModelFactory
 
 
 fake = Faker()
+User = get_user_model()
 
 
 @pytest.mark.django_db

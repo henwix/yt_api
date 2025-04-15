@@ -9,7 +9,7 @@ from typing import (
     Tuple,
 )
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import (
     Count,
@@ -28,6 +28,7 @@ from ..models import (
 
 
 log = logging.getLogger(__name__)
+User = get_user_model()
 
 
 class BaseChannelRepository(ABC):

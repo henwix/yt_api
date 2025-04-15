@@ -56,8 +56,8 @@ class CodeVerifyView(APIView):
         use_case: VerifyCodeUseCase = container.resolve(VerifyCodeUseCase)
 
         result = use_case.execute(
-            email=request.data.get('code'),
-            code=request.data.get('email'),
+            email=request.data.get('email'),
+            code=request.data.get('code'),
         )
 
         return Response(result, status=201)

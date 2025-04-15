@@ -4,12 +4,15 @@ from abc import (
 )
 from dataclasses import dataclass
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.apps.users.exceptions.users import UserNotFoundError
 from core.apps.users.repositories.users import BaseUserRepository
+
+
+User = get_user_model()
 
 
 class BaseUserValidatorService(ABC):
@@ -19,7 +22,7 @@ class BaseUserValidatorService(ABC):
 
 class UserValidatorService(BaseUserValidatorService):
     def validate(self, user: User) -> None:
-        if not user:
+        if not user or user is None:
             raise UserNotFoundError()
 
 
@@ -52,4 +55,4 @@ class UserService(BaseUserService):
     def generate_jwt(self, user: User) -> dict:
         refresh = RefreshToken.for_user(user)
         access = refresh.access_token
-        return {'refresh': refresh, 'access': access}
+        return {'refresh': str(refresh), 'access': str(access)}

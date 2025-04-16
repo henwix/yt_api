@@ -42,7 +42,7 @@ class BaseUserService(ABC):
 
 
 class UserService(BaseUserService):
-    def authenticate(self, login, password) -> User:
+    def authenticate(self, login: str, password: str) -> User:
         user = self.repository.authenticate(login=login, password=password)
         self.validator_service.validate(user=user)
         return user

@@ -5,13 +5,16 @@ from rest_framework import status
 from core.apps.common.exceptions import ServiceException
 
 
+@dataclass
 class CodeNotFoundException(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
     default_detail = {'error': 'Code not found'}
 
+    email: str
+
     @property
     def message(self):
-        return f'Code {self.code} not found'
+        return f'Code not found for email {self.email}'
 
 
 @dataclass

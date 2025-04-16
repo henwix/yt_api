@@ -1,5 +1,6 @@
 import punq
 
+from core.apps.common.clients.email_client import EmailClient
 from core.apps.users.providers.senders import (
     BaseSenderProvider,
     EmailSenderProvider,
@@ -39,3 +40,6 @@ def init_users(container: punq.Container) -> None:
     #  use cases
     container.register(AuthorizeUserUseCase)
     container.register(VerifyCodeUseCase)
+
+    #  clients
+    container.register(EmailClient)

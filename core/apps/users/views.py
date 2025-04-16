@@ -60,7 +60,7 @@ class CodeVerifyView(APIView):
             code=request.data.get('code'),
         )
 
-        return Response(result, status=201)
+        return Response(result, status=status.HTTP_201_CREATED)
 
 
 class CustomUserViewSet(UserViewSet):

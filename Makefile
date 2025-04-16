@@ -17,97 +17,97 @@ APP_MIDDLE_FILE = docker_compose/docker-compose-middle.yml
 # --DEV--
 
 
-.PHONY: build-dev
-build-dev:
+.PHONY: build
+build:
 	${DC} -f ${APP_DEV_FILE} build
 
-.PHONY: db-dev
-db-dev:
+.PHONY: db
+db:
 	${DC} -f ${APP_DEV_FILE} up -d ${DB_SERVICE}
 
-.PHONY: db-down-dev
-db-down-dev:
+.PHONY: db-down
+db-down:
 	${DC} -f ${APP_DEV_FILE} down ${DB_SERVICE}
 
-.PHONY: db-logs-dev
-db-logs-dev:
+.PHONY: db-logs
+db-logs:
 	${LOGS} ${DB_CONTAINER} -f
 
-.PHONY: db-shell-dev
-db-shell-dev:
+.PHONY: db-shell
+db-shell:
 	${EXEC} ${DB_CONTAINER} psql -U yt-user -d yt
 
-.PHONY: app-dev
-app-dev:
+.PHONY: app
+app:
 	${DC} -f ${APP_DEV_FILE} up -d
 
-.PHONY: app-down-dev
-app-down-dev:
+.PHONY: app-down
+app-down:
 	${DC} -f ${APP_DEV_FILE} down
 
-.PHONY: app-restart-dev
-app-restart-dev:
+.PHONY: app-restart
+app-restart:
 	${DC} -f ${APP_DEV_FILE} down && ${DC} -f ${APP_DEV_FILE} up -d
 
-.PHONY: app-logs-dev
-app-logs-dev:
+.PHONY: app-logs
+app-logs:
 	${LOGS} ${APP_CONTAINER} -f
 
-.PHONY: app-shell-dev
-app-shell-dev:
+.PHONY: app-shell
+app-shell:
 	${EXEC} ${APP_CONTAINER} ${MANAGE_PY} shell_plus
 
-.PHONY: celery-logs-dev
-celery-logs-dev:
+.PHONY: celery-logs
+celery-logs:
 	${LOGS} ${CELERY_CONTAINER} -f
 
-.PHONY: beat-logs-dev
-beat-logs-dev:
+.PHONY: beat-logs
+beat-logs:
 	${LOGS} ${CELERY_BEAT_CONTAINER} -f
 
-.PHONY: makemigrations-dev
-makemigrations-dev:
+.PHONY: makemigrations
+makemigrations:
 	${EXEC} ${APP_CONTAINER} ${MANAGE_PY} makemigrations
 
-.PHONY: migrate-dev
-migrate-dev:
+.PHONY: migrate
+migrate:
 	${EXEC} ${APP_CONTAINER} ${MANAGE_PY} migrate
 
-.PHONY: superuser-dev
-superuser-dev:
+.PHONY: superuser
+superuser:
 	${EXEC} ${APP_CONTAINER} ${MANAGE_PY} createsuperuser
 
-.PHONY: collectstatic-dev
-collectstatic-dev:
+.PHONY: collectstatic
+collectstatic:
 	${EXEC} ${APP_CONTAINER} ${MANAGE_PY} collectstatic
 
-.PHONY: test-dev
-test-dev:
+.PHONY: test
+test:
 	${EXEC} ${APP_CONTAINER} pytest
 
 
 # --MIDDLE--
 
 
-.PHONY: build
-build:
+.PHONY: build-middle
+build-middle:
 	${DC} -f ${APP_MIDDLE_FILE} build
-.PHONY: app
-app:
+.PHONY: app-middle
+app-middle:
 	${DC} -f ${APP_MIDDLE_FILE} up -d
 
-.PHONY: app-down
-app-down:
+.PHONY: app-down-middle
+app-down-middle:
 	${DC} -f ${APP_MIDDLE_FILE} down
 
-.PHONY: app-restart
-app-restart:
+.PHONY: app-restart-middle
+app-restart-middle:
 	${DC} -f ${APP_MIDDLE_FILE} down && ${DC} -f ${APP_MIDDLE_FILE} up -d
 
-.PHONY: app-logs
-app-logs:
+.PHONY: app-logs-middle
+app-logs-middle:
 	${LOGS} ${APP_CONTAINER_MIDDLE} -f
 
-.PHONY: superuser
-superuser:
+.PHONY: superuser-middle
+superuser-middle:
 	${EXEC} ${APP_CONTAINER_MIDDLE} ${MANAGE_PY} createsuperuser

@@ -94,6 +94,11 @@ class CustomUserSerializer(UserSerializer):
 
     """
 
+    class Meta:
+        model = UserSerializer.Meta.model
+        fields = UserSerializer.Meta.fields + ('otp_enabled',)
+        read_only_fields = ['username']
+
     def get_fields(self):
         fields = super().get_fields()
         fields['channel'] = ChannelSerializer(read_only=True)

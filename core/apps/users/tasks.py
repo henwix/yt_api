@@ -1,11 +1,11 @@
 import logging
 
 from django.contrib.auth import get_user_model
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
 
 from celery import shared_task
 from djoser.conf import settings
+
+from core.apps.common.clients.email_client import EmailClient
 
 
 log = logging.getLogger(__name__)
@@ -49,27 +49,17 @@ def send_reset_username_email(context, to):
     log.info(SUCCESS_LOG_FORMAT, 'Username reset', to[0])
 
 
-def _smtp_connection(email, code):
-    html_content = render_to_string(
-        'users/otp_email.html',
-        context={'email': email, 'code': code},
-    )
-
-    msg = EmailMultiAlternatives(
-        subject='OTP Email Confirmation',
-        to=[email],
-    )
-    msg.attach_alternative(html_content, 'text/html')
-
-    return msg
-
-
 @shared_task(bind=True, max_retries=5)
 def send_otp_code_email(self, email: str, code: str):
+    email_client: EmailClient = EmailClient()
+
     try:
         log.info('Trying to set SMTP connection and send email to %s', email)
-        msg = _smtp_connection(email, code)
-        msg.send()
+        msg = email_client.build_smtp_email(
+            to=[email],
+            context={'email': email, 'code': code},
+        )
+        email_client.send_email(msg)
     except Exception as e:
         log.info('Error raise while SMTP connect: %s', e)
         raise self.retry(countdown=5)

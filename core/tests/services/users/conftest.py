@@ -1,6 +1,9 @@
-# import pytest
-# from punq import Container
+import pytest
+from punq import Container
+
+from core.apps.users.services.users import BaseUserService
 
 
-# # @pytest.fixture
-# # def user_service()
+@pytest.fixture
+def user_service(container: Container):
+    return container.resolve(BaseUserService)

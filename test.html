@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test CORS</title>
+</head>
+<body>
+    <button onclick="testCORS()">Test CORS</button>
+
+    <script>
+        function testCORS() {
+            fetch('https://localhost/api/v1/video/?search=mix', {
+                method: 'DELETE',
+                headers: {
+                    'Origin': 'http://localhost:80'
+                }
+            })
+            .then(response => {
+                console.log('Response:', response);
+                console.log('Access-Control-Allow-Origin:', response.headers.get('Access-Control-Allow-Origin'));
+            })
+            .catch(error => console.log('Error:', error));
+        }
+    </script>
+</body>
+</html>

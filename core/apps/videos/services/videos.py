@@ -143,7 +143,7 @@ class VideoPresignedURLService(BaseVideoPresignedURLService):
     def generate_url(self, filename: str) -> str:
         s3_client = self.boto_service.get_s3_client()
 
-        if filename and filename[-4:] not in ['.mp4', '.mkv']:
+        if filename and filename[-4:] not in ['.mp4', '.mkv', '.png', '.jpg']:
             raise UnsupportedFileFormatError(filename=filename)
 
         url = s3_client.generate_presigned_url(
@@ -152,7 +152,8 @@ class VideoPresignedURLService(BaseVideoPresignedURLService):
                 'Bucket': os.environ.get('AWS_STORAGE_BUCKET_NAME'),
                 'Key': f'channel_avatars/{filename}',
             },
-            ExpiresIn=120,
+            # ExpiresIn=120,
+            ExpiresIn=600,
             HttpMethod='PUT',
         )
 

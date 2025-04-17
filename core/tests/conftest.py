@@ -9,7 +9,10 @@ from core.apps.videos.models import Video
 from core.project.containers import get_container
 from core.tests.factories.videos import VideoModelFactory
 
-from .factories.channels import ChannelModelFactory
+from .factories.channels import (
+    ChannelModelFactory,
+    UserModelFactory,
+)
 
 
 @pytest.fixture
@@ -39,10 +42,20 @@ def jwt_and_channel() -> tuple:
 
 
 @pytest.fixture
+def jwt_and_user() -> tuple:
+    """Generates JWT token to API access and returns user."""
+
+    user = UserModelFactory()
+    return f'Bearer {RefreshToken().for_user(user).access_token}', user
+
+
+@pytest.fixture
 def channel() -> Channel:
+    """Returns channel object."""
     return ChannelModelFactory()
 
 
 @pytest.fixture
 def video() -> Video:
+    """Returns video object."""
     return VideoModelFactory()

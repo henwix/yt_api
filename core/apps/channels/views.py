@@ -84,6 +84,13 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         self.channel_service.delete_channel(request.user)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    def put(self, request, *args, **kwargs):
+        # file = request.FILES.get('channel_avatar')
+        # log.info(file.__dict__)
+        # storage = storages['local']
+        # storage.save(file.name, file.file)
+        return super().put(request, *args, **kwargs)
+
 
 class ChannelSubscribersView(generics.ListAPIView, PaginationMixin):
     """API endpoint to channel's subscribers listing.

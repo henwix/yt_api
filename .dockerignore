@@ -5,7 +5,7 @@ __pycache__
 *.pyo
 .vscode
 .venv
-.env
+.env.dev
 .env*
 .gitignore
 Makefile
@@ -22,5 +22,4 @@ scripts
 certs
 nginx.conf
 test.py
-test.html
 test.html

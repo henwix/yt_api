@@ -149,7 +149,7 @@ AUTHENTICATION_BACKENDS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Yerevan'
 
 USE_I18N = True
 
@@ -207,9 +207,9 @@ SPECTACULAR_SETTINGS = {
 }
 
 DJOSER = {
-    'SEND_ACTIVATION_EMAIL': True,
-    'SEND_CONFIRMATION_EMAIL': True,
-    'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': True,
+    'SEND_ACTIVATION_EMAIL': False,
+    'SEND_CONFIRMATION_EMAIL': False,
+    'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': False,
     'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm?uid={uid}&token={token}',
     'USERNAME_RESET_CONFIRM_URL': 'username/reset/confirm?uid={uid}&token={token}',
     'ACTIVATION_URL': 'activate/?uid={uid}&token={token}',

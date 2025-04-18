@@ -1,8 +1,10 @@
 .vscode
 .venv
-.env
+.env.middle
+.env.dev
 __pycache__/
 test.py
+test.html
 media
 api.http
 local.py

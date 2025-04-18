@@ -3,12 +3,16 @@ EXEC = docker exec -it
 LOGS = docker logs
 MANAGE_PY = python manage.py
 
+ENV = --env-file .env.dev
+
 APP_CONTAINER = yt-web-dev
 APP_CONTAINER_MIDDLE = yt-web-middle
 DB_CONTAINER = yt-postgres-dev
 DB_SERVICE = postgres
 CELERY_CONTAINER = yt-celery-dev
 CELERY_BEAT_CONTAINER = yt-celery-beat-dev
+
+NGINX_CONTAINER = yt-nginx-middle
 
 APP_DEV_FILE = docker_compose/docker-compose-dev.yml
 APP_MIDDLE_FILE = docker_compose/docker-compose-middle.yml
@@ -39,7 +43,7 @@ db-shell:
 
 .PHONY: app
 app:
-	${DC} -f ${APP_DEV_FILE} up -d
+	${DC} -f ${APP_DEV_FILE} ${ENV} up -d
 
 .PHONY: app-down
 app-down:
@@ -47,7 +51,7 @@ app-down:
 
 .PHONY: app-restart
 app-restart:
-	${DC} -f ${APP_DEV_FILE} down && ${DC} -f ${APP_DEV_FILE} up -d
+	${DC} -f ${APP_DEV_FILE} down && ${DC} -f ${APP_DEV_FILE} ${ENV} up -d
 
 .PHONY: app-logs
 app-logs:
@@ -107,6 +111,10 @@ app-restart-middle:
 .PHONY: app-logs-middle
 app-logs-middle:
 	${LOGS} ${APP_CONTAINER_MIDDLE} -f
+
+.PHONY: nginx-logs-middle
+nginx-logs-middle:
+	${LOGS} ${NGINX_CONTAINER} -f
 
 .PHONY: superuser-middle
 superuser-middle:

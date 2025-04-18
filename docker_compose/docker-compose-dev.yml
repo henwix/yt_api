@@ -10,7 +10,7 @@ services:
     volumes:
       - ..:/app/
     env_file:
-      - ../.env
+      - ../.env.dev
     command: >
       sh -c "python manage.py runserver 0.0.0.0:8000"
     depends_on:
@@ -25,7 +25,7 @@ services:
     ports:
       - "${POSTGRES_PORT}:5432"
     env_file:
-      - ../.env
+      - ../.env.dev
 
   redis:
     container_name: yt-redis-dev
@@ -40,7 +40,7 @@ services:
     volumes:
       - ..:/app/
     env_file:
-      - ../.env
+      - ../.env.dev
     depends_on:
       - redis
       - postgres
@@ -52,7 +52,7 @@ services:
     volumes:
       - ..:/app/
     env_file:
-      - ../.env
+      - ../.env.dev
     depends_on:
       - redis
       - postgres

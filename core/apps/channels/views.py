@@ -74,7 +74,7 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         if cached_data:
             return Response(cached_data, status.HTTP_200_OK)
 
-        channel = self.channel_service.get_channel(user)
+        channel = self.channel_service.get_channel_by_user(user)
         serializer = self.get_serializer(channel)
         self.cache_service.cache_data(cache_key, serializer.data, 60 * 15)
 

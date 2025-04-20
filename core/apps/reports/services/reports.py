@@ -34,7 +34,7 @@ class BaseVideoReportsService(ABC):
     def create_report(self, video_id: str, user: User, reason: str, description: str) -> dict: ...
 
 
-class VideoReportsService(BaseVideoReportsService):
+class ORMVideoReportsService(BaseVideoReportsService):
     def _report_validation(self, video: Video, video_id: str, channel: Channel) -> None:
         if not video:
             raise VideoNotFoundError(video_id=video_id)

@@ -53,6 +53,10 @@ app-down:
 app-restart:
 	${DC} -f ${APP_DEV_FILE} down && ${DC} -f ${APP_DEV_FILE} ${ENV} up -d
 
+.PHONY: app-restart-logs
+app-restart-logs:
+	${DC} -f ${APP_DEV_FILE} down && ${DC} -f ${APP_DEV_FILE} ${ENV} up -d && ${LOGS} ${APP_CONTAINER} -f
+
 .PHONY: app-logs
 app-logs:
 	${LOGS} ${APP_CONTAINER} -f

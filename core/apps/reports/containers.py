@@ -6,7 +6,7 @@ from core.apps.reports.repositories.reports import (
 )
 from core.apps.reports.services.reports import (
     BaseVideoReportsService,
-    VideoReportsService,
+    ORMVideoReportsService,
 )
 
 
@@ -15,4 +15,4 @@ def init_reports(container: punq.Container) -> None:
     container.register(BaseVideoReportsRepository, ORMVideoReportRepository)
 
     # services
-    container.register(BaseVideoReportsService, VideoReportsService)
+    container.register(BaseVideoReportsService, ORMVideoReportsService)

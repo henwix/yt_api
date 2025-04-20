@@ -1,33 +1,49 @@
 import punq
 
+from core.apps.videos.repositories.comments import (
+    BaseVideoCommentRepository,
+    ORMVideoCommentRepository,
+)
 from core.apps.videos.repositories.videos import (
     BasePlaylistRepository,
     BaseVideoHistoryRepository,
     BaseVideoRepository,
+    ORMPlaylistRepository,
+    ORMVideoHistoryRepository,
     ORMVideoRepository,
-    PlaylistRepository,
-    VideoHistoryRepository,
+)
+from core.apps.videos.services.comments import (
+    BaseCommentService,
+    ORMCommentService,
 )
 from core.apps.videos.services.videos import (
     BaseVideoHistoryService,
     BaseVideoPlaylistService,
     BaseVideoPresignedURLService,
     BaseVideoService,
-    VideoHistoryService,
-    VideoPlaylistService,
-    VideoPresignedURLService,
-    VideoService,
+    ORMVideoHistoryService,
+    ORMVideoPlaylistService,
+    ORMVideoPresignedURLService,
+    ORMVideoService,
 )
+from core.apps.videos.use_cases.comments.like_create import LikeCreateUseCase
+from core.apps.videos.use_cases.comments.like_delete import LikeDeleteUseCase
 
 
 def init_videos(container: punq.Container) -> None:
     # repositories
     container.register(BaseVideoRepository, ORMVideoRepository)
-    container.register(BaseVideoHistoryRepository, VideoHistoryRepository)
-    container.register(BasePlaylistRepository, PlaylistRepository)
+    container.register(BaseVideoHistoryRepository, ORMVideoHistoryRepository)
+    container.register(BasePlaylistRepository, ORMPlaylistRepository)
+    container.register(BaseVideoCommentRepository, ORMVideoCommentRepository)
 
     # services
-    container.register(BaseVideoService, VideoService)
-    container.register(BaseVideoHistoryService, VideoHistoryService)
-    container.register(BaseVideoPresignedURLService, VideoPresignedURLService)
-    container.register(BaseVideoPlaylistService, VideoPlaylistService)
+    container.register(BaseVideoService, ORMVideoService)
+    container.register(BaseVideoHistoryService, ORMVideoHistoryService)
+    container.register(BaseVideoPresignedURLService, ORMVideoPresignedURLService)
+    container.register(BaseVideoPlaylistService, ORMVideoPlaylistService)
+    container.register(BaseCommentService, ORMCommentService)
+
+    # use cases
+    container.register(LikeCreateUseCase)
+    container.register(LikeDeleteUseCase)

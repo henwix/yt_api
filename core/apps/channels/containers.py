@@ -24,11 +24,11 @@ from core.apps.channels.services.channels import (
     BaseChannelSubsService,
     BaseSubscriptionService,
     CeleryChannelAvatarService,
-    ChannelAboutService,
-    ChannelMainService,
-    ChannelSubsService,
+    ORMChannelAboutService,
+    ORMChannelMainService,
     ORMChannelService,
-    SubscriptionService,
+    ORMChannelSubsService,
+    ORMSubscriptionService,
 )
 
 from .providers.channels import (
@@ -49,11 +49,11 @@ def init_channels(container: punq.Container) -> None:
     # services
     container.register(BaseAvatarValidatorService, AvatarValidatorService)
     container.register(BaseChannelService, ORMChannelService)
-    container.register(BaseChannelSubsService, ChannelSubsService)
+    container.register(BaseChannelSubsService, ORMChannelSubsService)
     container.register(BaseChannelAvatarService, CeleryChannelAvatarService)
-    container.register(BaseChannelMainService, ChannelMainService)
-    container.register(BaseChannelAboutService, ChannelAboutService)
-    container.register(BaseSubscriptionService, SubscriptionService)
+    container.register(BaseChannelMainService, ORMChannelMainService)
+    container.register(BaseChannelAboutService, ORMChannelAboutService)
+    container.register(BaseSubscriptionService, ORMSubscriptionService)
 
     # providers
     container.register(BaseChannelAvatarProvider, CeleryChannelProvider)

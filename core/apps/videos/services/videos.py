@@ -25,9 +25,9 @@ from core.apps.videos.exceptions.playlists import (
 )
 
 from ..exceptions.videos import (
-    LikeNotFoundError,
     UnsupportedFileFormatError,
     VideoIdNotProvidedError,
+    VideoLikeNotFoundError,
     VideoNotFoundError,
     VideoNotFoundInHistoryError,
     ViewExistsError,
@@ -60,7 +60,7 @@ class BaseVideoService(ABC):
     def view_create(self, user: User, video_id: str, ip_address: str) -> dict: ...
 
 
-class VideoService(BaseVideoService):
+class ORMVideoService(BaseVideoService):
     def _get_channel(self, user: User) -> Channel | None:
         return self.repository.get_channel(user)
 
@@ -84,7 +84,7 @@ class VideoService(BaseVideoService):
             like.is_like = is_like
             like.save()
 
-        return {'status': 'Success', 'is_like': is_like}
+        return {'status': 'success', 'is_like': is_like}
 
     def like_delete(self, user: User, video_id: str) -> dict:
         channel, video = self._user_and_video_validate(user, video_id)
@@ -92,7 +92,7 @@ class VideoService(BaseVideoService):
         deleted, _ = self.repository.like_delete(channel, video)
 
         if not deleted:
-            raise LikeNotFoundError(channel_slug=channel.slug, video_id=video.video_id)
+            raise VideoLikeNotFoundError(channel_slug=channel.slug, video_id=video.video_id)
 
         return {'status': 'Success'}
 
@@ -139,7 +139,7 @@ class BaseVideoPresignedURLService(ABC):
     def generate_url(self, filename: str) -> str: ...
 
 
-class VideoPresignedURLService(BaseVideoPresignedURLService):
+class ORMVideoPresignedURLService(BaseVideoPresignedURLService):
     def generate_url(self, filename: str) -> str:
         s3_client = self.boto_service.get_s3_client()
 
@@ -173,7 +173,7 @@ class BaseVideoHistoryService(ABC):
     def delete_video_from_history(self, user: User, video_id: str) -> dict: ...
 
 
-class VideoHistoryService(BaseVideoHistoryService):
+class ORMVideoHistoryService(BaseVideoHistoryService):
     def _validate_video_id_and_get_objects(self, video_id: str, user: User) -> Tuple[Channel, Video]:
         """Validate video_id and returns channel and video objects from
         database."""
@@ -223,7 +223,7 @@ class BaseVideoPlaylistService(ABC):
 
 
 @dataclass
-class VideoPlaylistService(BaseVideoPlaylistService):
+class ORMVideoPlaylistService(BaseVideoPlaylistService):
     channel_repository: BaseChannelRepository
 
     def _validate_data_and_return_objects(self, playlist_id: str, video_id: str):

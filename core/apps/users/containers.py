@@ -7,7 +7,7 @@ from core.apps.users.providers.senders import (
 )
 from core.apps.users.repositories.users import (
     BaseUserRepository,
-    UserRepository,
+    ORMUserRepository,
 )
 from core.apps.users.services.codes import (
     BaseCodeService,
@@ -16,7 +16,7 @@ from core.apps.users.services.codes import (
 from core.apps.users.services.users import (
     BaseUserService,
     BaseUserValidatorService,
-    UserService,
+    ORMUserService,
     UserValidatorService,
 )
 from core.apps.users.use_cases.auth import (
@@ -27,12 +27,12 @@ from core.apps.users.use_cases.auth import (
 
 def init_users(container: punq.Container) -> None:
     #  services
-    container.register(BaseUserService, UserService)
+    container.register(BaseUserService, ORMUserService)
     container.register(BaseUserValidatorService, UserValidatorService)
     container.register(BaseCodeService, EmailCodeService)
 
     #  repositories
-    container.register(BaseUserRepository, UserRepository)
+    container.register(BaseUserRepository, ORMUserRepository)
 
     #  senders
     container.register(BaseSenderProvider, EmailSenderProvider)

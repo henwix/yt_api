@@ -4,6 +4,7 @@ from rest_framework import (
     filters,
     generics,
     mixins,
+    serializers as drf_serializers,
     status,
     viewsets,
 )
@@ -16,9 +17,13 @@ import django_filters
 import punq
 from drf_spectacular.utils import (
     extend_schema,
+    inline_serializer,
+    OpenApiExample,
     OpenApiParameter,
+    OpenApiResponse,
 )
 
+from core.apps.common.mixins import PaginationMixin
 from core.apps.common.pagination import (
     CustomCursorPagination,
     CustomPageNumberPagination,
@@ -27,13 +32,15 @@ from core.apps.common.permissions import (
     IsAuthenticatedOrAdminOrReadOnly,
     IsAuthenticatedOrAuthorOrReadOnly,
 )
+from core.apps.videos.services.comments import BaseCommentService
+from core.apps.videos.use_cases.comments.like_create import LikeCreateUseCase
+from core.apps.videos.use_cases.comments.like_delete import LikeDeleteUseCase
 from core.project.containers import get_container
 
 from . import serializers
 from .filters import VideoFilter
 from .models import (
     Video,
-    VideoComment,
     VideoHistory,
 )
 from .pagination import HistoryCursorPagination
@@ -79,6 +86,44 @@ class VideoViewSet(viewsets.ModelViewSet):
         container: punq.Container = get_container()
         self.service: BaseVideoService = container.resolve(BaseVideoService)
 
+    @extend_schema(
+        request=inline_serializer(
+            name='Like Create Request',
+            fields={
+                'is_like': drf_serializers.BooleanField(required=False),
+            },
+        ),
+        responses={
+            201: OpenApiResponse(
+                response=inline_serializer(
+                    name='Like Create Response',
+                    fields={
+                        'status': drf_serializers.CharField(),
+                        'is_like': drf_serializers.BooleanField(),
+                    },
+                ),
+                description="Like created",
+                examples=[
+                    OpenApiExample(
+                        name="Like: True",
+                        value={
+                            "status": "success",
+                            "is_like": True,
+                        },
+                        response_only=True,
+                    ),
+                    OpenApiExample(
+                        name="Like: False",
+                        value={
+                            "status": "success",
+                            "is_like": False,
+                        },
+                        response_only=True,
+                    ),
+                ],
+            ),
+        },
+    )
     @action(url_path='like', methods=['post'], detail=True)
     def like_create(self, request, video_id):
         """API endpoint to create like or dislike.
@@ -107,6 +152,7 @@ class VideoViewSet(viewsets.ModelViewSet):
 
         return Response(result, status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(request=None)
     @action(url_path='view', methods=['post'], detail=True)
     def view_create(self, request, video_id):
         """API endpoint for adding views to videos.
@@ -159,7 +205,9 @@ class VideoViewSet(viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
 
 
-class CommentVideoAPIView(viewsets.ModelViewSet):
+# TODO: валидация на анонимного юзера
+# TODO: фильтрация комментов
+class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
     """API endpoint for listing, retrieving, updating and deleting Video
     Comments.
 
@@ -178,11 +226,15 @@ class CommentVideoAPIView(viewsets.ModelViewSet):
     pagination_class = CustomCursorPagination
     permission_classes = [IsAuthenticatedOrAuthorOrReadOnly]
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.container = get_container()
+        self.service: BaseCommentService = self.container.resolve(BaseCommentService)
+
     def get_queryset(self):
-        if self.action == 'list':
-            video = self.request.query_params.get('v')
-            return VideoComment.objects.all().select_related('author', 'video').filter(video__video_id=video)
-        return VideoComment.objects.all().select_related('author', 'video')
+        if self.action in ['destroy', 'update', 'partial_update']:
+            return self.service.repository.get_all_comments()
+        return self.service.get_related_queryset()
 
     @extend_schema(
         parameters=[
@@ -195,9 +247,81 @@ class CommentVideoAPIView(viewsets.ModelViewSet):
         ],
     )
     def list(self, request, *args, **kwargs):
-        if not request.query_params.get('v'):
-            return Response({'None': 'No comments found.'})
-        return super().list(request, *args, **kwargs)
+        qs = self.service.get_comments_by_video_id(
+            video_id=request.query_params.get('v'),
+        )
+        result = self.mixin_filter_and_pagination(qs)
+        return result
+
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        self.service.change_updated_status(comment_id=kwargs.get('pk'))
+        return response
+
+    @action(url_path='replies', url_name='replies', detail=True)
+    def get_replies_list(self, request, pk):
+        qs = self.service.get_replies_by_comment_id(comment_id=pk)
+        result = self.mixin_filter_and_pagination(qs)
+
+        return result
+
+    @extend_schema(
+        request=inline_serializer(
+            name='Like Create Request',
+            fields={
+                'is_like': drf_serializers.BooleanField(required=False),
+            },
+        ),
+        responses={
+            201: OpenApiResponse(
+                response=inline_serializer(
+                    name='Like Create Response',
+                    fields={
+                        'status': drf_serializers.CharField(),
+                        'is_like': drf_serializers.BooleanField(),
+                    },
+                ),
+                description="Like created",
+                examples=[
+                    OpenApiExample(
+                        name="Like: True",
+                        value={
+                            "status": "success",
+                            "is_like": True,
+                        },
+                        response_only=True,
+                    ),
+                    OpenApiExample(
+                        name="Like: False",
+                        value={
+                            "status": "success",
+                            "is_like": False,
+                        },
+                        response_only=True,
+                    ),
+                ],
+            ),
+        },
+    )
+    @action(methods=['post'], url_path='like', detail=True)
+    def like_create(self, request, pk):
+        use_case: LikeCreateUseCase = self.container.resolve(LikeCreateUseCase)
+        result = use_case.execute(
+            user=request.user,
+            comment_id=pk,
+            is_like=request.data.get('is_like', True),
+        )
+
+        return Response(result, status.HTTP_201_CREATED)
+
+    @action(methods=['delete'], url_path='unlike', detail=True)
+    def like_delete(self, request, pk):
+        use_case: LikeDeleteUseCase = self.container.resolve(LikeDeleteUseCase)
+        result = use_case.execute(
+            user=request.user,
+            comment_id=pk,
+        )
+        return Response(result, status.HTTP_204_NO_CONTENT)
 
 
 class GeneratePresignedUrlView(APIView):

@@ -20,7 +20,7 @@ class BaseUserRepository(ABC):
     def get_by_email(self, email: str) -> User | None: ...
 
 
-class UserRepository(BaseUserRepository):
+class ORMUserRepository(BaseUserRepository):
     def authenticate(self, login: str, password: str) -> User:
         return authenticate(username=login, password=password)
 

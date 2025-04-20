@@ -31,9 +31,9 @@ class VideoNotFoundInHistoryError(ServiceException):
 
 
 @dataclass
-class LikeNotFoundError(ServiceException):
+class VideoLikeNotFoundError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
-    default_detail = {'error': 'Like/dislike not found'}
+    default_detail = {'error': 'Video like/dislike not found'}
 
     channel_slug: str
     video_id: str

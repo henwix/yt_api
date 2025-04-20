@@ -41,7 +41,7 @@ class BaseUserService(ABC):
     def generate_jwt(self, user: User) -> dict: ...
 
 
-class UserService(BaseUserService):
+class ORMUserService(BaseUserService):
     def authenticate(self, login: str, password: str) -> User:
         user = self.repository.authenticate(login=login, password=password)
         self.validator_service.validate(user=user)

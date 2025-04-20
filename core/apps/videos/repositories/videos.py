@@ -28,24 +28,32 @@ User = get_user_model()
 
 class BaseVideoRepository(ABC):
     @abstractmethod
-    def get_channel(self, user: User) -> Channel | None: ...
+    def get_channel(self, user: User) -> Channel | None:
+        ...
 
     @abstractmethod
-    def get_video_by_id(self, video_id: str) -> Video | None: ...
+    def get_video_by_id(self, video_id: str) -> Video | None:
+        ...
 
     @abstractmethod
-    def like_get_or_create(self, channel: Channel, video: Video, is_like: bool) -> Tuple[VideoLike, bool]: ...
+    def like_get_or_create(self, channel: Channel, video: Video, is_like: bool) -> Tuple[VideoLike, bool]:
+        ...
 
     @abstractmethod
-    def like_delete(self, channel: Channel, video: Video) -> Tuple[int, dict]: ...
+    def like_delete(self, channel: Channel, video: Video) -> Tuple[int, dict]:
+        ...
 
     @abstractmethod
-    def last_view_exists(self, channel: Channel, video: Video, ip_address: str) -> bool: ...
+    def last_view_exists(self, channel: Channel, video: Video, ip_address: str) -> bool:
+        ...
 
     @abstractmethod
-    def create_view(self, channel: Channel, video: Video, ip_address: str) -> None: ...
+    def create_view(self, channel: Channel, video: Video, ip_address: str) -> None:
+        ...
 
-    def get_videos_list(self) -> Iterable[Video]: ...
+    @abstractmethod
+    def get_videos_list(self) -> Iterable[Video]:
+        ...
 
 
 class ORMVideoRepository(BaseVideoRepository):
@@ -99,7 +107,7 @@ class BaseVideoHistoryRepository(ABC):
     def update_watch_time(self, history_item: VideoHistory) -> None: ...
 
 
-class VideoHistoryRepository(BaseVideoHistoryRepository):
+class ORMVideoHistoryRepository(BaseVideoHistoryRepository):
     def get_or_create_history_item(self, video: Video, channel: Channel) -> dict:
         return VideoHistory.objects.get_or_create(channel=channel, video=video)
 
@@ -113,19 +121,23 @@ class VideoHistoryRepository(BaseVideoHistoryRepository):
 
 class BasePlaylistRepository(ABC):
     @abstractmethod
-    def get_all_playlists(self) -> Iterable[Playlist]: ...
+    def get_all_playlists(self) -> Iterable[Playlist]:
+        ...
 
     @abstractmethod
-    def get_playlist_by_id(self, playlist_id: str) -> Playlist | None: ...
+    def get_playlist_by_id(self, playlist_id: str) -> Playlist | None:
+        ...
 
     @abstractmethod
-    def playlist_item_get_or_create(self, playlist: Playlist, video: Video) -> PlaylistItem | None: ...
+    def playlist_item_get_or_create(self, playlist: Playlist, video: Video) -> PlaylistItem | None:
+        ...
 
     @abstractmethod
-    def playlist_item_delete(self, playlist: Playlist, video: Video) -> dict: ...
+    def playlist_item_delete(self, playlist: Playlist, video: Video) -> dict:
+        ...
 
 
-class PlaylistRepository(BasePlaylistRepository):
+class ORMPlaylistRepository(BasePlaylistRepository):
     def get_all_playlists(self) -> Iterable[Playlist]:
         return Playlist.objects.all()
 

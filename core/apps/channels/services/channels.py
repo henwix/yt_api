@@ -46,14 +46,14 @@ class BaseChannelService(ABC):
     repository: BaseChannelRepository
 
     @abstractmethod
-    def get_channel(self, user: User) -> Channel: ...
+    def get_channel_by_user(self, user: User) -> Channel: ...
 
     @abstractmethod
     def delete_channel(self, user: User) -> None: ...
 
 
 class ORMChannelService(BaseChannelService):
-    def get_channel(self, user: User) -> Channel:
+    def get_channel_by_user(self, user: User) -> Channel:
         channel = self.repository.get_channel_by_user(user)
         if channel is None:
             raise ChannelNotFoundError(user_id=user.pk)
@@ -72,7 +72,7 @@ class BaseChannelSubsService(ABC):
     def get_subscriber_list(self, channel: Channel) -> Iterable[SubscriptionItem]: ...
 
 
-class ChannelSubsService(BaseChannelSubsService):
+class ORMChannelSubsService(BaseChannelSubsService):
     def get_subscriber_list(self, channel: Channel) -> Iterable[SubscriptionItem]:
         return self.repository.get_subscriber_list(channel=channel).select_related('subscriber', 'subscribed_to')
 
@@ -137,7 +137,7 @@ class BaseChannelMainService(ABC):
     def get_channel_main_page_list(self) -> Iterable[Channel]: ...
 
 
-class ChannelMainService(BaseChannelMainService):
+class ORMChannelMainService(BaseChannelMainService):
     def get_channel_main_page_list(self) -> Iterable[Channel]:
         return self.repository.get_channel_main_page_list()
 
@@ -150,7 +150,7 @@ class BaseChannelAboutService(ABC):
     def get_channel_about_list(self) -> Iterable[Channel]: ...
 
 
-class ChannelAboutService(BaseChannelAboutService):
+class ORMChannelAboutService(BaseChannelAboutService):
     def get_channel_about_list(self) -> Iterable[Channel]:
         return self.repository.get_channel_about_list()
 
@@ -166,7 +166,7 @@ class BaseSubscriptionService(ABC):
     def unsubscribe(self, user: User, channel_slug: str) -> dict: ...
 
 
-class SubscriptionService(BaseSubscriptionService):
+class ORMSubscriptionService(BaseSubscriptionService):
     def validate_subscription(self, user: User, channel_slug: str) -> Tuple[Channel, Channel]:
         subscriber, subscribed_to = self.repository.get_channels(user, channel_slug)
 

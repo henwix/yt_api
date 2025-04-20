@@ -25,10 +25,27 @@ class VideoCommentSerializer(serializers.ModelSerializer):
         many=False,
         read_only=True,
     )
+    likes_count = serializers.IntegerField(read_only=True)
+    replies_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = VideoComment
-        fields = ['pk', 'author_slug', 'author_link', 'author', 'video', 'text', 'update_link']
+        fields = [
+            'pk',
+            'author_slug',
+            'author_link',
+            'author',
+            'video',
+            'text',
+            'update_link',
+            'reply_level',
+            'is_updated',
+            'created_at',
+            'likes_count',
+            'replies_count',
+            'comment',
+        ]
+        read_only_fields = ['pk', 'is_updated', 'created_at']
 
     def create(self, validated_data):
         user = self.context.get('request').user

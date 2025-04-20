@@ -6,13 +6,6 @@ from django.db import models
 from core.apps.channels.models import Channel
 
 
-class PublicAndUnlistedVideosManager(models.Manager):
-    """Custom manager to return public and unlisted videos."""
-
-    def get_queryset(self):
-        return super().get_queryset().filter(status__in=[Video.VideoStatus.UNLISTED, Video.VideoStatus.PUBLIC])
-
-
 def generate_video_link():
     """Function to generate unique video's links."""
 
@@ -22,6 +15,20 @@ def generate_video_link():
         link = ''.join(random.choices(chars, k=11))  # noqa
         if not Video.objects.filter(video_id=link).exists():
             return link
+
+
+def generate_playlist_link():
+    """Function to generate unique playlist links."""
+
+    chars = string.digits + string.ascii_letters + '-' + '_'
+    return ''.join(random.choices(chars, k=32))  # noqa
+
+
+class PublicAndUnlistedVideosManager(models.Manager):
+    """Custom manager to return public and unlisted videos."""
+
+    def get_queryset(self):
+        return super().get_queryset().filter(status__in=[Video.VideoStatus.UNLISTED, Video.VideoStatus.PUBLIC])
 
 
 class Video(models.Model):
@@ -94,16 +101,47 @@ class VideoView(models.Model):
         return f'View on video{self.video} by {getattr(self, "channel")}'
 
 
-class VideoComment(models.Model):
-    author = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='video_comments', db_index=True)
-    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='comments', db_index=True)
+class Comment(models.Model):
+    id = models.BigAutoField(primary_key=True, unique=True, editable=False)
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    likes = models.ManyToManyField(Channel, related_name='liked_video_comments', blank=True)
+    is_updated = models.BooleanField(default=False)
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return f'Comment #{id}'
+
+
+class VideoComment(Comment):
+    reply_level_choices = [
+        (0, 0),
+        (1, 1),
+    ]
+
+    author = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='video_comments', db_index=True)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='comments', db_index=True)
+    comment = models.ForeignKey(to='self', on_delete=models.CASCADE, related_name='replies', null=True, blank=True)
+    reply_level = models.PositiveIntegerField(choices=reply_level_choices, default=0)
+    likes = models.ManyToManyField(Channel, through='VideoCommentLikeItem')
 
     def __str__(self):
         return f'Comment by {self.author}, video: {self.video}'
+
+
+class VideoCommentLikeItem(models.Model):
+    author = models.ForeignKey(to=Channel, on_delete=models.CASCADE, related_name='liked_video_comments')
+    comment = models.ForeignKey(to=VideoComment, on_delete=models.CASCADE, related_name='likes_items')
+    is_like = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['author', 'comment'], name='unique_comment_like'),
+        ]
+
+    def __str__(self):
+        return f'Comment like by {self.author_id} to comment {self.comment_id}'
 
 
 class VideoHistory(models.Model):
@@ -114,12 +152,8 @@ class VideoHistory(models.Model):
     class Meta:
         constraints = [models.UniqueConstraint(fields=['channel', 'video'], name='unique_watch_history')]
 
-
-def generate_playlist_link():
-    """Function to generate unique playlist links."""
-
-    chars = string.digits + string.ascii_letters + '-' + '_'
-    return ''.join(random.choices(chars, k=32))  # noqa
+    def __str__(self):
+        return f'Video {self.video_id} in history {self.channel_id}'
 
 
 class Playlist(models.Model):
@@ -151,3 +185,6 @@ class PlaylistItem(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['playlist', 'video'], name='playlist_item_unique')]
+
+    def __str__(self):
+        return f'Video {self.video_id} in playlist {self.playlist_id}'

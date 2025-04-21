@@ -20,7 +20,7 @@ class LikeDeleteUseCase:
         comment = self.comment_service.get_by_id(id=comment_id)
 
         deleted = self.comment_service.like_delete(
-            channel=channel,
+            author=channel,
             comment=comment,
         )
 

@@ -6,7 +6,6 @@ from core.apps.videos.models import (
     Playlist,
     PlaylistItem,
     Video,
-    VideoComment,
     VideoLike,
     VideoView,
 )
@@ -42,15 +41,6 @@ class VideoLikeModelFactory(DjangoModelFactory):
     channel = factory.SubFactory(ChannelModelFactory)
     video = factory.SubFactory(VideoModelFactory)
     is_like = True
-
-
-class VideoCommentModelFactory(DjangoModelFactory):
-    class Meta:
-        model = VideoComment
-
-    author = factory.SubFactory(ChannelModelFactory)
-    video = factory.SubFactory(VideoModelFactory)
-    text = factory.Faker('text')
 
 
 class PlaylistModelFactory(DjangoModelFactory):

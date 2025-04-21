@@ -4,8 +4,8 @@ import pytest
 
 from core.apps.videos.models import Video
 from core.tests.factories.channels import SubscriptionItemModelFactory
+from core.tests.factories.video_comments import VideoCommentModelFactory
 from core.tests.factories.videos import (
-    VideoCommentModelFactory,
     VideoLikeModelFactory,
     VideoModelFactory,
     VideoViewModelFactory,

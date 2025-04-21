@@ -205,8 +205,6 @@ class VideoViewSet(viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
 
 
-# TODO: валидация на анонимного юзера
-# TODO: фильтрация комментов
 class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
     """API endpoint for listing, retrieving, updating and deleting Video
     Comments.
@@ -225,6 +223,9 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
     serializer_class = serializers.VideoCommentSerializer
     pagination_class = CustomCursorPagination
     permission_classes = [IsAuthenticatedOrAuthorOrReadOnly]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['created_at', 'likes_count']
+    ordering = ['-likes_count']
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

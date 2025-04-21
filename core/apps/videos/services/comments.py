@@ -13,10 +13,7 @@ from django.db.models import (
 from core.apps.channels.models import Channel
 from core.apps.videos.exceptions.comments import CommentNotFoundError
 from core.apps.videos.exceptions.videos import VideoNotFoundError
-from core.apps.videos.models import (
-    VideoComment,
-    VideoCommentLikeItem,
-)
+from core.apps.videos.models import VideoComment
 from core.apps.videos.repositories.comments import BaseVideoCommentRepository
 
 
@@ -41,20 +38,20 @@ class BaseCommentService(ABC):
         ...
 
     @abstractmethod
-    def change_like_status(self, like: VideoCommentLikeItem, is_like: bool) -> None:
+    def change_like_status(self, like_id: int, is_like: bool) -> None:
         ...
 
     @abstractmethod
-    def like_get_or_create(self, channel: Channel, comment: VideoComment, is_like: bool) -> dict:
+    def like_get_or_create(self, author: Channel, comment: VideoComment, is_like: bool) -> dict:
         ...
 
     @abstractmethod
-    def like_delete(self, channel: Channel, comment: VideoComment) -> dict:
+    def like_delete(self, author: Channel, comment: VideoComment) -> dict:
         ...
 
 
 class ORMCommentService(BaseCommentService):
-    def _build_query(self, queryset):
+    def _build_query(self, queryset: Iterable[VideoComment]) -> Iterable[VideoComment]:
         return queryset.select_related('author', 'video').annotate(
             likes_count=Count('likes', distinct=True, filter=Q(likes_items__is_like=True)),
             replies_count=Count('replies', distinct=True),
@@ -95,17 +92,17 @@ class ORMCommentService(BaseCommentService):
     def change_like_status(self, like_id: int, is_like: bool) -> None:
         self.repository.update_like_status(like_id=like_id, is_like=is_like)
 
-    def like_get_or_create(self, channel: Channel, comment: VideoComment, is_like: bool):
+    def like_get_or_create(self, author: Channel, comment: VideoComment, is_like: bool) -> dict:
         like, created = self.repository.like_get_or_create(
-            channel=channel,
+            author=author,
             comment=comment,
             is_like=is_like,
         )
         return like, created
 
-    def like_delete(self, channel: Channel, comment: VideoComment) -> dict:
+    def like_delete(self, author: Channel, comment: VideoComment) -> dict:
         deleted = self.repository.like_delete(
-            channel=channel,
+            author=author,
             comment=comment,
         )
         return deleted

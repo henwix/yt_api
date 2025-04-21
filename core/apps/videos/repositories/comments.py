@@ -21,15 +21,15 @@ class BaseVideoCommentRepository(ABC):
         ...
 
     @abstractmethod
-    def get_by_id(self, id: str) -> VideoComment:
+    def get_by_id(self, id: str) -> VideoComment | None:
         ...
 
     @abstractmethod
-    def like_get_or_create(self, channel: Channel, comment: VideoComment, is_like: bool) -> dict:
+    def like_get_or_create(self, author: Channel, comment: VideoComment, is_like: bool) -> dict:
         ...
 
     @abstractmethod
-    def like_delete(self, channel: Channel, comment: VideoComment) -> int:
+    def like_delete(self, author: Channel, comment: VideoComment) -> int:
         ...
 
     @abstractmethod
@@ -44,12 +44,12 @@ class ORMVideoCommentRepository(BaseVideoCommentRepository):
     def change_comment_updated_status(self, comment_id: str) -> None:
         VideoComment.objects.filter(id=comment_id).update(is_updated=True)
 
-    def get_by_id(self, id: str) -> VideoComment:
+    def get_by_id(self, id: str) -> VideoComment | None:
         return VideoComment.objects.filter(id=id).first()
 
-    def like_get_or_create(self, channel: Channel, comment: VideoComment, is_like: bool) -> dict:
+    def like_get_or_create(self, author: Channel, comment: VideoComment, is_like: bool) -> dict:
         like, created = VideoCommentLikeItem.objects.get_or_create(
-            author=channel,
+            author=author,
             comment=comment,
             defaults={'is_like': is_like},
         )
@@ -58,9 +58,9 @@ class ORMVideoCommentRepository(BaseVideoCommentRepository):
     def update_like_status(self, like_id: int, is_like: bool) -> None:
         VideoCommentLikeItem.objects.filter(id=like_id).update(is_like=is_like)
 
-    def like_delete(self, channel: Channel, comment: VideoComment) -> int:
+    def like_delete(self, author: Channel, comment: VideoComment) -> int:
         deleted, _ = VideoCommentLikeItem.objects.filter(
-            author=channel,
+            author=author,
             comment=comment,
         ).delete()
 

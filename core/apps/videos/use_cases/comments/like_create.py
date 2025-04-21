@@ -19,7 +19,7 @@ class LikeCreateUseCase:
         comment = self.comment_service.get_by_id(id=comment_id)
 
         like, created = self.comment_service.like_get_or_create(
-            channel=channel,
+            author=channel,
             comment=comment,
             is_like=is_like,
         )

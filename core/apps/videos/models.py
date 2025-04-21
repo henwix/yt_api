@@ -123,8 +123,8 @@ class VideoComment(Comment):
     author = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='video_comments', db_index=True)
     video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='comments', db_index=True)
     comment = models.ForeignKey(to='self', on_delete=models.CASCADE, related_name='replies', null=True, blank=True)
-    reply_level = models.PositiveIntegerField(choices=reply_level_choices, default=0)
-    likes = models.ManyToManyField(Channel, through='VideoCommentLikeItem')
+    reply_level = models.PositiveIntegerField(choices=reply_level_choices, default=0, db_index=True)
+    likes = models.ManyToManyField(Channel, through='VideoCommentLikeItem', db_index=True)
 
     def __str__(self):
         return f'Comment by {self.author}, video: {self.video}'
@@ -132,8 +132,8 @@ class VideoComment(Comment):
 
 class VideoCommentLikeItem(models.Model):
     author = models.ForeignKey(to=Channel, on_delete=models.CASCADE, related_name='liked_video_comments')
-    comment = models.ForeignKey(to=VideoComment, on_delete=models.CASCADE, related_name='likes_items')
-    is_like = models.BooleanField(default=True)
+    comment = models.ForeignKey(to=VideoComment, on_delete=models.CASCADE, related_name='likes_items', db_index=True)
+    is_like = models.BooleanField(default=True, db_index=True)
 
     class Meta:
         constraints = [

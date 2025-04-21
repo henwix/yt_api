@@ -8,8 +8,7 @@ from .models import (
 )
 
 
-# TODO:    - likes to comments and posts: add, delete
-# TODO:    - posts: add, detail, delete
+# TODO:    - posts: add, detail, delete, likes
 
 
 class ChannelSerializer(serializers.ModelSerializer):

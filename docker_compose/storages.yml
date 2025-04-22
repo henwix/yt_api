@@ -1,0 +1,22 @@
+services:
+  postgres:
+    container_name: yt-postgres-dev
+    image: postgres:17.2-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    env_file:
+      - ../.env.dev
+
+  redis:
+    container_name: yt-redis-dev
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data/
+
+volumes:
+  postgres_data:
+    name: yt_api_postgres_data
+  redis_data:
+    name: yt_api_redis_data

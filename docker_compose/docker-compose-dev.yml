@@ -16,6 +16,8 @@ services:
     depends_on:
       - postgres
       - redis
+    networks:
+      - dev
   
   postgres:
     container_name: yt-postgres-dev
@@ -26,12 +28,16 @@ services:
       - "${POSTGRES_PORT}:5432"
     env_file:
       - ../.env.dev
+    networks:
+      - dev
 
   redis:
     container_name: yt-redis-dev
     image: redis:7-alpine
     volumes:
       - redis_data:/data/
+    networks:
+      - dev
   
   celery:
     container_name: yt-celery-dev
@@ -44,6 +50,8 @@ services:
     depends_on:
       - redis
       - postgres
+    networks:
+      - dev
 
   celery-beat:
     container_name: yt-celery-beat-dev
@@ -56,9 +64,14 @@ services:
     depends_on:
       - redis
       - postgres
+    networks:
+      - dev
 
 volumes:
   postgres_data:
     name: yt_api_postgres_data
   redis_data:
     name: yt_api_redis_data
+
+networks:
+  dev:

@@ -16,7 +16,7 @@ NGINX_CONTAINER = yt-nginx-middle
 
 APP_DEV_FILE = docker_compose/docker-compose-dev.yml
 APP_MIDDLE_FILE = docker_compose/docker-compose-middle.yml
-
+MONITORING_FILE = docker_compose/monitoring.yml
 
 # --DEV--
 
@@ -44,6 +44,27 @@ db-shell:
 .PHONY: app
 app:
 	${DC} -f ${APP_DEV_FILE} ${ENV} up -d
+
+.PHONY: monitoring-build
+monitoring-build:
+	${DC} -f ${MONITORING_FILE} ${ENV} build
+
+.PHONY: monitoring
+monitoring:
+	${DC} -f ${MONITORING_FILE} ${ENV} up -d
+
+.PHONY: monitoring-down
+monitoring-down:
+	${DC} -f ${MONITORING_FILE} ${ENV} down
+
+.PHONY: monitoring-restart
+monitoring-restart:
+	${DC} -f ${MONITORING_FILE} ${ENV} down && ${DC} -f ${MONITORING_FILE} ${ENV} up -d
+
+.PHONY: monitoring-logs
+monitoring-logs:
+	${DC} -f ${MONITORING_FILE} ${ENV} logs -f
+
 
 .PHONY: app-down
 app-down:

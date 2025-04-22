@@ -10,7 +10,8 @@ log = logging.getLogger(__name__)
 
 class BaseChannelAvatarProvider(ABC):
     @abstractmethod
-    def delete_avatar(self, user_pk: int) -> None: ...
+    def delete_avatar(self, user_pk: int) -> None:
+        ...
 
 
 class CeleryChannelProvider(BaseChannelAvatarProvider):

@@ -88,7 +88,7 @@ class VideoViewSet(viewsets.ModelViewSet):
 
     @extend_schema(
         request=inline_serializer(
-            name='Like Create Request',
+            name='VideoLikeCreate',
             fields={
                 'is_like': drf_serializers.BooleanField(required=False),
             },
@@ -96,7 +96,7 @@ class VideoViewSet(viewsets.ModelViewSet):
         responses={
             201: OpenApiResponse(
                 response=inline_serializer(
-                    name='Like Create Response',
+                    name='VideoLikeCreate',
                     fields={
                         'status': drf_serializers.CharField(),
                         'is_like': drf_serializers.BooleanField(),
@@ -268,7 +268,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
 
     @extend_schema(
         request=inline_serializer(
-            name='Like Create Request',
+            name='VideoLikeCreate',
             fields={
                 'is_like': drf_serializers.BooleanField(required=False),
             },
@@ -276,7 +276,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
         responses={
             201: OpenApiResponse(
                 response=inline_serializer(
-                    name='Like Create Response',
+                    name='CommentLikeCreate',
                     fields={
                         'status': drf_serializers.CharField(),
                         'is_like': drf_serializers.BooleanField(),

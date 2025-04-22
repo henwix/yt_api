@@ -96,7 +96,7 @@ class VideoViewSet(viewsets.ModelViewSet):
         responses={
             201: OpenApiResponse(
                 response=inline_serializer(
-                    name='VideoLikeCreate',
+                    name='VideoLikeCreated',
                     fields={
                         'status': drf_serializers.CharField(),
                         'is_like': drf_serializers.BooleanField(),
@@ -268,7 +268,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
 
     @extend_schema(
         request=inline_serializer(
-            name='VideoLikeCreate',
+            name='VideoCommentLikeCreate',
             fields={
                 'is_like': drf_serializers.BooleanField(required=False),
             },

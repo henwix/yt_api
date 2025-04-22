@@ -3,7 +3,7 @@ EXEC = docker exec -it
 LOGS = docker logs
 MANAGE_PY = python manage.py
 
-ENV = --env-file .env.dev
+ENV = --env-file .env
 
 APP_CONTAINER = yt-web-dev
 APP_CONTAINER_MIDDLE = yt-web-middle
@@ -23,15 +23,16 @@ MONITORING_FILE = docker_compose/monitoring.yml
 
 .PHONY: build
 build:
-	${DC} -f ${APP_DEV_FILE} build
+	${DC} -f ${APP_DEV_FILE} ${ENV} build
+
 
 .PHONY: db
 db:
-	${DC} -f ${APP_DEV_FILE} up -d ${DB_SERVICE}
+	${DC} -f ${APP_DEV_FILE} ${ENV} up -d ${DB_SERVICE}
 
 .PHONY: db-down
 db-down:
-	${DC} -f ${APP_DEV_FILE} down ${DB_SERVICE}
+	${DC} -f ${APP_DEV_FILE} ${ENV} down ${DB_SERVICE}
 
 .PHONY: db-logs
 db-logs:
@@ -41,42 +42,39 @@ db-logs:
 db-shell:
 	${EXEC} ${DB_CONTAINER} psql -U yt-user -d yt
 
-.PHONY: app
-app:
-	${DC} -f ${APP_DEV_FILE} ${ENV} up -d
-
-.PHONY: monitoring-build
-monitoring-build:
-	${DC} -f ${MONITORING_FILE} ${ENV} build
 
 .PHONY: monitoring
 monitoring:
-	${DC} -f ${MONITORING_FILE} ${ENV} up -d
+	${DC} -f ${MONITORING_FILE} up -d
 
 .PHONY: monitoring-down
 monitoring-down:
-	${DC} -f ${MONITORING_FILE} ${ENV} down
+	${DC} -f ${MONITORING_FILE} down
 
 .PHONY: monitoring-restart
 monitoring-restart:
-	${DC} -f ${MONITORING_FILE} ${ENV} down && ${DC} -f ${MONITORING_FILE} ${ENV} up -d
+	${DC} -f ${MONITORING_FILE} down && ${DC} -f ${MONITORING_FILE} up -d
 
 .PHONY: monitoring-logs
 monitoring-logs:
 	${DC} -f ${MONITORING_FILE} ${ENV} logs -f
 
 
+.PHONY: app
+app:
+	${DC} -f ${APP_DEV_FILE} ${ENV} up -d
+
 .PHONY: app-down
 app-down:
-	${DC} -f ${APP_DEV_FILE} down
+	${DC} -f ${APP_DEV_FILE} ${ENV} down
 
 .PHONY: app-restart
 app-restart:
-	${DC} -f ${APP_DEV_FILE} down && ${DC} -f ${APP_DEV_FILE} ${ENV} up -d
+	${DC} -f ${APP_DEV_FILE} ${ENV} down && ${DC} -f ${APP_DEV_FILE} ${ENV} up -d
 
 .PHONY: app-restart-logs
 app-restart-logs:
-	${DC} -f ${APP_DEV_FILE} down && ${DC} -f ${APP_DEV_FILE} ${ENV} up -d && ${LOGS} ${APP_CONTAINER} -f
+	${DC} -f ${APP_DEV_FILE} ${ENV} down && ${DC} -f ${APP_DEV_FILE} ${ENV} up -d && ${LOGS} ${APP_CONTAINER} -f
 
 .PHONY: app-logs
 app-logs:
@@ -86,6 +84,7 @@ app-logs:
 app-shell:
 	${EXEC} ${APP_CONTAINER} ${MANAGE_PY} shell_plus
 
+
 .PHONY: celery-logs
 celery-logs:
 	${LOGS} ${CELERY_CONTAINER} -f
@@ -93,6 +92,7 @@ celery-logs:
 .PHONY: beat-logs
 beat-logs:
 	${LOGS} ${CELERY_BEAT_CONTAINER} -f
+
 
 .PHONY: makemigrations
 makemigrations:
@@ -109,6 +109,7 @@ superuser:
 .PHONY: collectstatic
 collectstatic:
 	${EXEC} ${APP_CONTAINER} ${MANAGE_PY} collectstatic
+
 
 .PHONY: test
 test:

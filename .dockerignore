@@ -5,7 +5,7 @@ __pycache__
 *.pyo
 .vscode
 .venv
-.env.dev
+.env
 .env*
 .gitignore
 Makefile

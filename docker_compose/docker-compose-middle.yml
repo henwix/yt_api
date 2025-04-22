@@ -8,7 +8,7 @@ services:
     volumes:
       - ../static:/app/static
     env_file:
-      - ../.env.dev
+      - ../.env
     command: "sh entrypoint.middle.sh"
     depends_on:
       - postgres
@@ -33,7 +33,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
-      - ../.env.dev
+      - ../.env
 
   redis:
     container_name: yt-redis-middle
@@ -46,7 +46,7 @@ services:
     image: yt-web-middle
     command: celery -A core.project.celery worker -l info -Q media-queue,email-queue
     env_file:
-      - ../.env.dev
+      - ../.env
     depends_on:
       - redis
       - postgres
@@ -56,7 +56,7 @@ services:
     image: yt-web-middle
     command: celery -A core.project.celery beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     env_file:
-      - ../.env.dev
+      - ../.env
     depends_on:
       - redis
       - postgres

@@ -310,7 +310,10 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
-CELERY_TASK_QUEUES = (Queue('media-queue'), Queue('email-queue'))
+CELERY_TASK_QUEUES = (
+    Queue('media-queue'),
+    Queue('email-queue'),
+)
 
 
 # SMTP

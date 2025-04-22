@@ -1,7 +1,7 @@
 .vscode
 .venv
 .env.middle
-.env.dev
+.env
 __pycache__/
 test.py
 test.html

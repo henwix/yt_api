@@ -37,6 +37,7 @@ log = logging.getLogger(__name__)
 # TODO: уведомления о входе через бота Telegram
 
 
+#  TODO: doc schema
 class UserLoginView(APIView):
     def post(self, request):
         container: punq.Container = get_container()

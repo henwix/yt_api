@@ -7,7 +7,7 @@ services:
     ports:
       - "${POSTGRES_PORT}:5432"
     env_file:
-      - ../.env.dev
+      - ../.env
 
   redis:
     container_name: yt-redis-dev

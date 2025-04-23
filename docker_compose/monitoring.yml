@@ -10,8 +10,8 @@ services:
       - ./configs/promtail-config.yml:/etc/promtail/config.yml
     command: -config.file=/etc/promtail/config.yml
     privileged: true
-    networks:
-      - dev
+    # networks:
+      # - dev
 
   loki:
     image: grafana/loki:latest
@@ -21,8 +21,8 @@ services:
     volumes:
       - ./configs/loki-config.yml:/etc/loki/config.yaml
     command: -config.file=/etc/loki/config.yaml
-    networks:
-      - dev
+    # networks:
+      # - dev
 
   prometheus:
     image: prom/prometheus:latest
@@ -32,8 +32,8 @@ services:
     volumes:
       - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheusdata-dev:/prometheus
-    networks:
-      - dev
+    # networks:
+      # - dev
 
   grafana:
     image: grafana/grafana:latest
@@ -46,12 +46,13 @@ services:
     volumes:
       - ./configs/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
       - grafanadata-dev:/var/lib/grafana
-    networks:
-      - dev
+    # networks:
+      # - dev
 
 volumes:
   grafanadata-dev:
   prometheusdata-dev:
 
-networks:
-  dev:
+# networks:
+#   dev:
+#     driver: bridge

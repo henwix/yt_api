@@ -9,6 +9,7 @@ APP_CONTAINER = yt-web-dev
 APP_CONTAINER_MIDDLE = yt-web-middle
 DB_CONTAINER = yt-postgres-dev
 DB_SERVICE = postgres
+DB_CONTAINER_MIDDLE = yt-postgres-middle
 CELERY_CONTAINER = yt-celery-dev
 CELERY_BEAT_CONTAINER = yt-celery-beat-dev
 
@@ -17,7 +18,6 @@ NGINX_CONTAINER = yt-nginx-middle
 APP_DEV_FILE = docker_compose/docker-compose-dev.yml
 APP_MIDDLE_FILE = docker_compose/docker-compose-middle.yml
 MONITORING_FILE = docker_compose/monitoring.yml
-
 # --DEV--
 
 
@@ -145,3 +145,15 @@ nginx-logs-middle:
 .PHONY: superuser-middle
 superuser-middle:
 	${EXEC} ${APP_CONTAINER_MIDDLE} ${MANAGE_PY} createsuperuser
+
+.PHONY: db-logs-middle
+db-logs-middle:
+	${LOGS} ${DB_CONTAINER_MIDDLE} -f
+
+.PHONY: db-middle
+db-middle:
+	${DC} -f ${APP_MIDDLE_FILE} ${ENV} up -d ${DB_SERVICE}
+
+.PHONY: db-down-middle
+db-down-middle:
+	${DC} -f ${APP_MIDDLE_FILE} ${ENV} down ${DB_SERVICE}

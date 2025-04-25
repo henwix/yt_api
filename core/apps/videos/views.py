@@ -1,5 +1,3 @@
-import logging
-
 from rest_framework import (
     filters,
     generics,
@@ -51,9 +49,6 @@ from .services.videos import (
     BaseVideoPresignedURLService,
     BaseVideoService,
 )
-
-
-log = logging.getLogger(__name__)
 
 
 class VideoViewSet(viewsets.ModelViewSet):

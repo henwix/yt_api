@@ -1,4 +1,8 @@
 from functools import lru_cache
+from logging import (
+    getLogger,
+    Logger,
+)
 
 import punq
 
@@ -22,5 +26,8 @@ def _initialize_container() -> punq.Container:
     init_videos(container)
     init_common(container)
     init_users(container)
+
+    #  Logger
+    container.register(Logger, factory=getLogger, name='django.request')
 
     return container

@@ -1,5 +1,3 @@
-import logging
-
 from django.contrib.auth import get_user_model  # noqa
 from django.db import transaction
 from rest_framework import (  # noqa
@@ -31,8 +29,6 @@ from .use_cases.auth import (  # noqa
     VerifyCodeUseCase,
 )
 
-
-log = logging.getLogger(__name__)
 
 # TODO: уведомления о входе через бота Telegram
 

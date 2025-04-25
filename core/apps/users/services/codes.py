@@ -1,9 +1,10 @@
-import logging
 import random
 from abc import (
     ABC,
     abstractmethod,
 )
+from dataclasses import dataclass
+from logging import Logger
 
 from django.core.cache import cache
 
@@ -15,9 +16,6 @@ from ..exceptions.codes import (
 )
 
 
-log = logging.getLogger(__name__)
-
-
 class BaseCodeService(ABC):
     @abstractmethod
     def generate_code(self): ...
@@ -26,7 +24,10 @@ class BaseCodeService(ABC):
     def validate_code(self): ...
 
 
+@dataclass
 class EmailCodeService(BaseCodeService):
+    logger: Logger
+
     _KEY_PREFIX = 'otp_code_'
 
     def generate_code(self, email: str) -> str:
@@ -45,7 +46,7 @@ class EmailCodeService(BaseCodeService):
                 raise CodeNotEqualException(cached_code=cached_code, user_code=code)
 
         except ServiceException as e:
-            log.info(e.message)
+            self.logger.info(e.message)
             raise
 
         cache.delete(key=self._KEY_PREFIX + email)

@@ -1,11 +1,13 @@
-import logging
+from logging import Logger
 
 from celery import shared_task
 
-
-log = logging.getLogger(__name__)
+from core.project.containers import get_container
 
 
 @shared_task
 def test_task():
-    log.info('test task running')
+    container = get_container()
+    logger: Logger = container.resolve(Logger)
+
+    logger.info('test task running')

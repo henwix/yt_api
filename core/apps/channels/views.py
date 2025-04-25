@@ -1,4 +1,4 @@
-import logging
+from logging import Logger
 
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -19,6 +19,7 @@ from drf_spectacular.utils import (
     OpenApiTypes,
 )
 
+from core.apps.common.exceptions import ServiceException
 from core.apps.common.mixins import PaginationMixin
 from core.apps.common.pagination import CustomCursorPagination
 from core.apps.common.services.cache import BaseCacheService
@@ -37,9 +38,6 @@ from .services.channels import (
     BaseChannelSubsService,
     BaseSubscriptionService,
 )
-
-
-log = logging.getLogger(__name__)
 
 
 # TODO: Add endpoint to create/delete channels
@@ -86,7 +84,7 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
 
     def put(self, request, *args, **kwargs):
         # file = request.FILES.get('channel_avatar')
-        # log.info(file.__dict__)
+        # logger.info(file.__dict__)
         # storage = storages['local']
         # storage.save(file.name, file.file)
         return super().put(request, *args, **kwargs)
@@ -142,9 +140,14 @@ class ChannelAvatarDestroy(APIView):
         super().__init__(**kwargs)
         container: punq.Container = get_container()
         self.service: BaseChannelAvatarService = container.resolve(BaseChannelAvatarService)
+        self.logger: Logger = container.resolve(Logger)
 
     def delete(self, request):
-        result = self.service.delete_avatar(request.user)
+        try:
+            result = self.service.delete_avatar(request.user)
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'error_meta': error})
+            raise
         return Response(result, status.HTTP_204_NO_CONTENT)
 
 

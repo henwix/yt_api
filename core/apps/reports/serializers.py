@@ -1,4 +1,3 @@
-import logging
 from datetime import timedelta
 
 from django.db import transaction
@@ -9,9 +8,6 @@ from rest_framework.exceptions import ValidationError
 from core.apps.videos.models import Video
 
 from .models import VideoReport
-
-
-log = logging.getLogger(__name__)
 
 
 class VideoReportSerializer(serializers.ModelSerializer):

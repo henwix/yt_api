@@ -31,6 +31,9 @@ COPY --from=builder --chown=yt-user:yt-user /usr/local/lib/python3.11/site-packa
 COPY --from=builder --chown=yt-user:yt-user /usr/local/bin/ /usr/local/bin/
 COPY --chown=yt-user:yt-user . /app/
 
+# RUN mkdir -p /var/log/django
+# RUN chown yt-user /var/log/django
+
 USER yt-user
 
 EXPOSE 8000

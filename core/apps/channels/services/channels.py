@@ -1,9 +1,9 @@
-import logging
 from abc import (
     ABC,
     abstractmethod,
 )
 from dataclasses import dataclass
+from logging import Logger
 from typing import (
     Iterable,
     Tuple,
@@ -37,7 +37,6 @@ from ..repositories.channels import (
 )
 
 
-log = logging.getLogger(__name__)
 User = get_user_model()
 
 
@@ -100,6 +99,7 @@ class ChannelAvatarService(BaseChannelAvatarService):
     avatar_repository: BaseChannelAvatarRepository
     channel_repository: BaseChannelRepository
     validator_service: BaseAvatarValidatorService
+    logger: Logger
 
     def delete_avatar(self, user: User) -> dict:
         channel = self.channel_repository.get_channel_by_user(user)
@@ -109,7 +109,7 @@ class ChannelAvatarService(BaseChannelAvatarService):
         try:
             self.avatar_repository.delete_avatar(channel)
         except Exception as e:
-            log.info('Channel avatar deletion error: %s', e)
+            self.logger.info('Channel avatar deletion error: %s', e)
             raise AvatarExceptionError(channel_slug=channel.slug)
         else:
             return {'status': 'Success'}

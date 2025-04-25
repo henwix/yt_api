@@ -15,7 +15,7 @@ scrape_configs:
       - localhost
     labels:
       job: docker-logs
-      __path__: /var/log/nginx/*.log
+      __path__: /var/lib/docker/containers/*/*log
 
   pipeline_stages:
 

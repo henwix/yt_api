@@ -1,4 +1,3 @@
-import logging
 from abc import (
     ABC,
     abstractmethod,
@@ -27,7 +26,6 @@ from ..models import (
 )
 
 
-log = logging.getLogger(__name__)
 User = get_user_model()
 
 

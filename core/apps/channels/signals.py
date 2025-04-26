@@ -41,8 +41,8 @@ def delete_channel_files_signal(instance, **kwargs):
     container = get_container()
     logger: Logger = container.resolve(Logger)
 
-    # Delete channel's cache
-    _delete_channel_cache(instance)
+    # # Delete channel's cache
+    # _delete_channel_cache(instance)
 
     # Define empty 'files' list
     files = []

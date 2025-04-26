@@ -8,8 +8,6 @@ from logging import Logger
 
 from django.core.cache import cache
 
-from core.apps.common.exceptions import ServiceException
-
 from ..exceptions.codes import (
     CodeNotEqualException,
     CodeNotFoundException,
@@ -38,15 +36,10 @@ class EmailCodeService(BaseCodeService):
     def validate_code(self, email: str, code: str) -> None:
         cached_code = cache.get(key=self._KEY_PREFIX + email)
 
-        try:
-            if cached_code is None:
-                raise CodeNotFoundException(email=email)
+        if cached_code is None:
+            raise CodeNotFoundException(email=email)
 
-            if cached_code != code:
-                raise CodeNotEqualException(cached_code=cached_code, user_code=code)
-
-        except ServiceException as e:
-            self.logger.info(e.message)
-            raise
+        if cached_code != code:
+            raise CodeNotEqualException(cached_code=cached_code, user_code=code)
 
         cache.delete(key=self._KEY_PREFIX + email)

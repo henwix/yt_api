@@ -14,7 +14,7 @@ class SelfSubscriptionError(ServiceException):
 
     @property
     def message(self):
-        return f"User can't subscribe to himself: {self.channel_slug}"
+        return "Self-subscription not allowed"
 
 
 @dataclass
@@ -27,7 +27,7 @@ class SubscriptionExistsError(ServiceException):
 
     @property
     def message(self):
-        return f'{self.sub_slug} already subscribed to {self.sub_to_slug}'
+        return 'Subscription already exists'
 
 
 @dataclass
@@ -40,4 +40,4 @@ class SubscriptionDoesNotExistsError(ServiceException):
 
     @property
     def message(self):
-        return f'Subscription {self.sub_slug} to {self.sub_to_slug} does not exists'
+        return 'Subscription does not exists'

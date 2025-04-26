@@ -15,4 +15,4 @@ class ReportLimitError(ServiceException):
 
     @property
     def message(self):
-        return f"Channel {self.channel_slug} have reached limit of reports to video {self.video_id}"
+        return 'Channel have reached reports limit'

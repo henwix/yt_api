@@ -1,5 +1,6 @@
 from logging import Logger
 
+import orjson
 import punq
 from celery import shared_task
 
@@ -31,15 +32,24 @@ def delete_channel_avatar(self, user_id: int):
     container: punq.Container = get_container()
     avatar_repository = container.resolve(BaseChannelAvatarRepository)
     channel_repository = container.resolve(BaseChannelRepository)
-    logger = container.resolve(Logger)
+    logger: Logger = container.resolve(Logger)
 
     channel = channel_repository.get_channel_by_id(user_id)
 
     try:
-        logger.info('Trying to delete channel avatar: %s', channel.slug)
+        logger.info(
+            'Trying to delete channel avatar',
+            extra={'log_meta': orjson.dumps({'channel': channel.slug}).decode()},
+        )
         avatar_repository.delete_avatar(channel)
-    except Exception as e:
-        logger.error("AWS can't delete avatar for channel: %s. Error: %s", channel.slug, e)
+    except Exception as error:
+        logger.error(
+            "AWS can't delete channel avatar",
+            extra={'log_meta': orjson.dumps({'channel': channel.slug}).decode(), 'error': error},
+        )
         raise self.retry(countdown=5)
     else:
-        logger.info('%s channel avatar successfully deleted', channel.slug)
+        logger.info(
+            'Channel avatar successfully deleted',
+            extra={'log_meta': orjson.dumps({'channel': channel.slug}).decode()},
+        )

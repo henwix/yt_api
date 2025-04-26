@@ -21,6 +21,7 @@ from ..exceptions.channels import (
     AvatarDoesNotExistsError,
     AvatarExceptionError,
     ChannelNotFoundError,
+    SlugChannelNotFoundError,
 )
 from ..models import (
     Channel,
@@ -171,7 +172,7 @@ class ORMSubscriptionService(BaseSubscriptionService):
         subscriber, subscribed_to = self.repository.get_channels(user, channel_slug)
 
         if not subscribed_to:
-            raise ChannelNotFoundError(user_id=user.pk)
+            raise SlugChannelNotFoundError(channel_slug=user.pk)
 
         if subscriber.pk == subscribed_to.pk:
             raise SelfSubscriptionError(channel_slug=subscriber.slug)

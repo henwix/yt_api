@@ -282,9 +282,20 @@ LOGGING = {
     'formatters': {
         'verbose': {
             'format': (
-                '%(levelname)s %(asctime)s %(module)s %(process)d '
-                '%(thread)d %(message)s'  # TODO: дофиксить error_meta:\n%(error_meta)s|None - мб убрать
+                '[%(levelname)s] [%(asctime)s] [%(module)s] [%(process)d] '
+                '[%(thread)d] %(message)s'
             ),
+        },
+        'logger': {
+            'format': (
+                '[%(levelname)s] [%(asctime)s] [%(module)s] [%(process)d] '
+                '[%(thread)d] %(message)s \n[log_meta:%(log_meta)s]'
+            ),
+        },
+    },
+    'filters': {
+        'log_meta_filter': {
+            "()": "core.apps.common.loggers.LogMetaFilter",
         },
     },
     'handlers': {
@@ -293,11 +304,22 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
+        'logger_console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'logger',
+            'filters': ['log_meta_filter'],
+        },
     },
     'loggers': {
         'django.request': {
             'level': 'INFO',
             'handlers': ['console'],
+            'propagate': False,
+        },
+        'django.logger': {
+            'level': 'INFO',
+            'handlers': ['logger_console'],
             'propagate': False,
         },
     },

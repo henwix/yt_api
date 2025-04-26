@@ -12,6 +12,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+import orjson
 import punq
 from drf_spectacular.utils import (
     extend_schema,
@@ -59,6 +60,7 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         container: punq.Container = get_container()
         self.channel_service: BaseChannelService = container.resolve(BaseChannelService)
         self.cache_service: BaseCacheService = container.resolve(BaseCacheService)
+        self.logger: Logger = container.resolve(Logger)
 
     def get_object(self):
         return self.channel_service.repository.get_channel_by_user(self.request.user)
@@ -72,7 +74,12 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         if cached_data:
             return Response(cached_data, status.HTTP_200_OK)
 
-        channel = self.channel_service.get_channel_by_user(user)
+        try:
+            channel = self.channel_service.get_channel_by_user(user)
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
         serializer = self.get_serializer(channel)
         self.cache_service.cache_data(cache_key, serializer.data, 60 * 15)
 
@@ -146,7 +153,7 @@ class ChannelAvatarDestroy(APIView):
         try:
             result = self.service.delete_avatar(request.user)
         except ServiceException as error:
-            self.logger.error(error.message, extra={'error_meta': error})
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
         return Response(result, status.HTTP_204_NO_CONTENT)
 
@@ -208,6 +215,7 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
         super().__init__(**kwargs)
         container: punq.Container = get_container()
         self.service: BaseSubscriptionService = container.resolve(BaseSubscriptionService)
+        self.logger: Logger = container.resolve(Logger)
 
     @extend_schema(
         request={
@@ -240,9 +248,13 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
         Example: api/v1/subscription/subscribe/
 
         """
-
-        result = self.service.subscribe(user=request.user, channel_slug=request.data.get('to'))
-        return Response(result, status.HTTP_201_CREATED)
+        try:
+            result = self.service.subscribe(user=request.user, channel_slug=request.data.get('to'))
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+        else:
+            return Response(result, status.HTTP_201_CREATED)
 
     @extend_schema(
         request={
@@ -273,5 +285,10 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
 
         """
 
-        result = self.service.unsubscribe(user=request.user, channel_slug=request.data.get('to'))
-        return Response(result, status.HTTP_204_NO_CONTENT)
+        try:
+            result = self.service.unsubscribe(user=request.user, channel_slug=request.data.get('to'))
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+        else:
+            return Response(result, status.HTTP_204_NO_CONTENT)

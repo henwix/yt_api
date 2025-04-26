@@ -28,6 +28,6 @@ def _initialize_container() -> punq.Container:
     init_users(container)
 
     #  Logger
-    container.register(Logger, factory=getLogger, name='django.request')
+    container.register(Logger, factory=getLogger, name='django.logger')
 
     return container

@@ -14,7 +14,7 @@ class CodeNotFoundException(ServiceException):
 
     @property
     def message(self):
-        return f'Code not found for email {self.email}'
+        return 'Code not found'
 
 
 @dataclass
@@ -27,4 +27,4 @@ class CodeNotEqualException(ServiceException):
 
     @property
     def message(self):
-        return f'Code {self.cached_code} not equal {self.user_code}'
+        return 'Code not equal'

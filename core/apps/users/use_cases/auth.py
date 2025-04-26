@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from logging import Logger
 
 from core.apps.users.providers.senders import BaseSenderProvider
 from core.apps.users.services.codes import BaseCodeService
@@ -28,6 +29,7 @@ class AuthorizeUserUseCase:
 class VerifyCodeUseCase:
     code_service: BaseCodeService
     user_service: BaseUserService
+    logger: Logger
 
     def execute(self, email: str, code: str) -> dict:
         self.code_service.validate_code(email=email, code=code)

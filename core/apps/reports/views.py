@@ -1,3 +1,5 @@
+from logging import Logger
+
 from rest_framework import (
     generics,
     status,
@@ -5,8 +7,10 @@ from rest_framework import (
 )
 from rest_framework.response import Response
 
+import orjson
 import punq
 
+from core.apps.common.exceptions import ServiceException
 from core.apps.common.pagination import CustomCursorPagination
 from core.project.containers import get_container
 
@@ -24,6 +28,7 @@ class VideoReportsView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIVi
         super().__init__(**kwargs)
         container: punq.Container = get_container()
         self.service: BaseVideoReportsService = container.resolve(BaseVideoReportsService)
+        self.logger: Logger = container.resolve(Logger)
 
     def get_queryset(self):
         if self.action == ['list', 'retrieve']:
@@ -33,12 +38,15 @@ class VideoReportsView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIVi
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        result = self.service.create_report(
-            video_id=serializer.validated_data.get('video'),
-            user=request.user,
-            reason=serializer.validated_data.get('reason'),
-            description=serializer.validated_data.get('description'),
-        )
-
-        return Response(result, status.HTTP_201_CREATED)
+        try:
+            result = self.service.create_report(
+                video_id=request.data.get('video'),
+                user=request.user,
+                reason=serializer.validated_data.get('reason'),
+                description=serializer.validated_data.get('description'),
+            )
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+        else:
+            return Response(result, status.HTTP_201_CREATED)

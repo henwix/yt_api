@@ -23,7 +23,7 @@ class PlaylistNotFoundError(ServiceException):
 
     @property
     def message(self):
-        return f'Playlist with id {self.playlist_id} not found'
+        return 'Playlist not found'
 
 
 @dataclass
@@ -36,4 +36,4 @@ class VideoNotInPlaylistError(ServiceException):
 
     @property
     def message(self):
-        return f'Video {self.video_id} not found in playlist {self.playlist_id}'
+        return 'Video does not exists in playlist'

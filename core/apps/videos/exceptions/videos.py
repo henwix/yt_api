@@ -14,7 +14,7 @@ class VideoNotFoundError(ServiceException):
 
     @property
     def message(self):
-        return f'Video {self.video_id} not found'
+        return 'Video not found'
 
 
 @dataclass
@@ -27,7 +27,7 @@ class VideoNotFoundInHistoryError(ServiceException):
 
     @property
     def message(self):
-        return f"Video {self.video_id} not found in {self.channel_slug} channel's history"
+        return 'Video does not exists or never been in history'
 
 
 @dataclass
@@ -40,7 +40,7 @@ class VideoLikeNotFoundError(ServiceException):
 
     @property
     def message(self):
-        return f'Like/dislike by {self.channel_slug} for video {self.video_id} not found'
+        return 'Video like/dislike not found'
 
 
 @dataclass
@@ -53,7 +53,7 @@ class ViewExistsError(ServiceException):
 
     @property
     def message(self):
-        return f'View by {self.channel_slug} for video {self.video_id} already exists'
+        return 'View already exists. You can add 1 view per 24h.'
 
 
 @dataclass
@@ -65,7 +65,7 @@ class UnsupportedFileFormatError(ServiceException):
 
     @property
     def message(self):
-        return f'Unsupported file format: {self.filename}'
+        return 'Unsupported file format'
 
 
 class VideoIdNotProvidedError(ServiceException):

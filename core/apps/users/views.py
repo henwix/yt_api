@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+import orjson
 import punq
 from djoser import signals
 from djoser.compat import get_user_email
@@ -15,6 +16,7 @@ from djoser.conf import settings
 from djoser.views import UserViewSet
 from rest_framework_simplejwt.tokens import RefreshToken  # noqa
 
+from core.apps.common.exceptions import ServiceException
 from core.apps.common.pagination import CustomPageNumberPagination
 from core.project.containers import get_container  # noqa
 
@@ -52,10 +54,14 @@ class CodeVerifyView(APIView):
         container: punq.Container = get_container()
         use_case: VerifyCodeUseCase = container.resolve(VerifyCodeUseCase)
 
-        result = use_case.execute(
-            email=request.data.get('email'),
-            code=request.data.get('code'),
-        )
+        try:
+            result = use_case.execute(
+                email=request.data.get('email'),
+                code=request.data.get('code'),
+            )
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
 
         return Response(result, status=status.HTTP_201_CREATED)
 

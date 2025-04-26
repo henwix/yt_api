@@ -1,3 +1,5 @@
+from logging import Logger
+
 from rest_framework import (
     filters,
     generics,
@@ -12,6 +14,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 import django_filters
+import orjson
 import punq
 from drf_spectacular.utils import (
     extend_schema,
@@ -21,6 +24,7 @@ from drf_spectacular.utils import (
     OpenApiResponse,
 )
 
+from core.apps.common.exceptions import ServiceException
 from core.apps.common.mixins import PaginationMixin
 from core.apps.common.pagination import (
     CustomCursorPagination,
@@ -80,6 +84,7 @@ class VideoViewSet(viewsets.ModelViewSet):
         super().__init__(**kwargs)
         container: punq.Container = get_container()
         self.service: BaseVideoService = container.resolve(BaseVideoService)
+        self.logger: Logger = container.resolve(Logger)
 
     @extend_schema(
         request=inline_serializer(
@@ -129,7 +134,11 @@ class VideoViewSet(viewsets.ModelViewSet):
         Example: http://127.0.0.1:8001/api/v1/video/JDcWD0w9aJD/like/
 
         """
-        result = self.service.like_create(request.user, video_id, request.data.get('is_like', True))
+        try:
+            result = self.service.like_create(request.user, video_id, request.data.get('is_like', True))
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
 
         return Response(result, status.HTTP_201_CREATED)
 
@@ -143,7 +152,11 @@ class VideoViewSet(viewsets.ModelViewSet):
         Example: http://127.0.0.1:8001/api/v1/video/JDcWD0w9aJD/unlike/
 
         """
-        result = self.service.like_delete(request.user, video_id)
+        try:
+            result = self.service.like_delete(request.user, video_id)
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
 
         return Response(result, status.HTTP_204_NO_CONTENT)
 
@@ -158,11 +171,16 @@ class VideoViewSet(viewsets.ModelViewSet):
         Example: http://127.0.0.1:8001/api/v1/video/JDcWD0w9aJD/view/
 
         """
-        result = self.service.view_create(
-            user=request.user,
-            video_id=video_id,
-            ip_address=request.META.get('REMOTE_ADDR'),
-        )
+        try:
+            result = self.service.view_create(
+                user=request.user,
+                video_id=video_id,
+                ip_address=request.META.get('REMOTE_ADDR'),
+            )
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
         return Response(result, status.HTTP_201_CREATED)
 
     def get_serializer_class(self):
@@ -226,6 +244,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
         super().__init__(**kwargs)
         self.container = get_container()
         self.service: BaseCommentService = self.container.resolve(BaseCommentService)
+        self.logger: Logger = self.container.resolve(Logger)
 
     def get_queryset(self):
         if self.action in ['destroy', 'update', 'partial_update']:
@@ -243,9 +262,14 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
         ],
     )
     def list(self, request, *args, **kwargs):
-        qs = self.service.get_comments_by_video_id(
-            video_id=request.query_params.get('v'),
-        )
+        try:
+            qs = self.service.get_comments_by_video_id(
+                video_id=request.query_params.get('v'),
+            )
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
         result = self.mixin_filter_and_pagination(qs)
         return result
 
@@ -256,9 +280,13 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
 
     @action(url_path='replies', url_name='replies', detail=True)
     def get_replies_list(self, request, pk):
-        qs = self.service.get_replies_by_comment_id(comment_id=pk)
-        result = self.mixin_filter_and_pagination(qs)
+        try:
+            qs = self.service.get_replies_by_comment_id(comment_id=pk)
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
 
+        result = self.mixin_filter_and_pagination(qs)
         return result
 
     @extend_schema(
@@ -302,21 +330,32 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
     @action(methods=['post'], url_path='like', detail=True)
     def like_create(self, request, pk):
         use_case: LikeCreateUseCase = self.container.resolve(LikeCreateUseCase)
-        result = use_case.execute(
-            user=request.user,
-            comment_id=pk,
-            is_like=request.data.get('is_like', True),
-        )
+
+        try:
+            result = use_case.execute(
+                user=request.user,
+                comment_id=pk,
+                is_like=request.data.get('is_like', True),
+            )
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
 
         return Response(result, status.HTTP_201_CREATED)
 
     @action(methods=['delete'], url_path='unlike', detail=True)
     def like_delete(self, request, pk):
         use_case: LikeDeleteUseCase = self.container.resolve(LikeDeleteUseCase)
-        result = use_case.execute(
-            user=request.user,
-            comment_id=pk,
-        )
+
+        try:
+            result = use_case.execute(
+                user=request.user,
+                comment_id=pk,
+            )
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
         return Response(result, status.HTTP_204_NO_CONTENT)
 
 
@@ -335,6 +374,7 @@ class GeneratePresignedUrlView(APIView):
         self.service: BaseVideoPresignedURLService = container.resolve(BaseVideoPresignedURLService)
 
     def get(self, request, filename):
+        #  TODO: add try except to s3 errors
         result = self.service.generate_url(filename=filename)
         return Response(result, status=status.HTTP_200_OK)
 
@@ -356,6 +396,7 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
         super().__init__(**kwargs)
         container: punq.Container = get_container()
         self.service: BaseVideoHistoryService = container.resolve(BaseVideoHistoryService)
+        self.logger: Logger = container.resolve(Logger)
 
     def get_queryset(self):
         if self.action == 'delete':
@@ -382,7 +423,12 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
         """
         video_id = request.query_params.get('v')
 
-        result = self.service.add_video_in_history(user=request.user, video_id=video_id)
+        try:
+            result = self.service.add_video_in_history(user=request.user, video_id=video_id)
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
         return Response(result, status.HTTP_201_CREATED)
 
     @extend_schema(
@@ -405,7 +451,12 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
 
         """
         video_id = request.query_params.get('v')
-        result = self.service.delete_video_from_history(user=request.user, video_id=video_id)
+
+        try:
+            result = self.service.delete_video_from_history(user=request.user, video_id=video_id)
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
 
         return Response(result, status.HTTP_204_NO_CONTENT)
 
@@ -449,6 +500,7 @@ class PlaylistAPIView(viewsets.ModelViewSet):
         super().__init__(**kwargs)
         container: punq.Container = get_container()
         self.service: BaseVideoPlaylistService = container.resolve(BaseVideoPlaylistService)
+        self.logger: Logger = container.resolve(Logger)
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -487,7 +539,12 @@ class PlaylistAPIView(viewsets.ModelViewSet):
 
         """
         video_id = request.query_params.get('v')
-        result = self.service.add_video_in_playlist(playlist_id=id, video_id=video_id)
+
+        try:
+            result = self.service.add_video_in_playlist(playlist_id=id, video_id=video_id)
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
 
         return Response(result, status.HTTP_201_CREATED)
 
@@ -516,6 +573,11 @@ class PlaylistAPIView(viewsets.ModelViewSet):
 
         """
         video_id = request.query_params.get('v')
-        result = self.service.delete_video_from_playlist(playlist_id=id, video_id=video_id)
+
+        try:
+            result = self.service.delete_video_from_playlist(playlist_id=id, video_id=video_id)
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
 
         return Response(result, status.HTTP_204_NO_CONTENT)

@@ -9,7 +9,6 @@ from typing import (
 )
 
 from django.contrib.auth import get_user_model
-from django.db import transaction
 from django.db.models import (
     Count,
     OuterRef,
@@ -67,9 +66,7 @@ class BaseChannelAvatarRepository(ABC):
 
 class ORMChannelAvatarRepository(BaseChannelAvatarRepository):
     def delete_avatar(self, channel: Channel) -> None:
-        with transaction.atomic():
-            channel.channel_avatar.delete()
-            channel.save()
+        channel.channel_avatar.delete()
 
 
 class BaseChannelMainRepository(ABC):

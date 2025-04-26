@@ -1,6 +1,6 @@
 services:
   web:
-    container_name: yt-web-middle
+    # container_name: yt-web-middle
     build:
       context: ..
       dockerfile: Dockerfile.middle

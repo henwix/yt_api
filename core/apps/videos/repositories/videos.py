@@ -28,6 +28,10 @@ User = get_user_model()
 
 class BaseVideoRepository(ABC):
     @abstractmethod
+    def video_create_s3(self, author: Channel, name: str, description: str, status: str, upload_id: str) -> None:
+        ...
+
+    @abstractmethod
     def get_channel(self, user: User) -> Channel | None:
         ...
 
@@ -57,13 +61,34 @@ class BaseVideoRepository(ABC):
 
 
 class ORMVideoRepository(BaseVideoRepository):
+    def video_create_s3(
+            self,
+            author: Channel,
+            name: str,
+            description: str,
+            status: str,
+            upload_id: str,
+    ) -> None:
+        return Video.objects.create(
+            author=author,
+            name=name,
+            description=description,
+            status=status,
+            upload_id=upload_id,
+        )
+
     def get_channel(self, user: User) -> Channel | None:
         return Channel.objects.filter(user=user).first()
 
     def get_video_by_id(self, video_id: str) -> Video | None:
         return Video.objects.filter(video_id=video_id).first()
 
-    def like_get_or_create(self, channel: Channel, video: Video, is_like: bool) -> Tuple[VideoLike, bool]:
+    def like_get_or_create(
+        self,
+        channel: Channel,
+        video: Video,
+        is_like: bool,
+    ) -> Tuple[VideoLike, bool]:
         like, created = VideoLike.objects.get_or_create(
             channel=channel,
             video=video,

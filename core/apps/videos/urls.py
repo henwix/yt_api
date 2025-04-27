@@ -20,4 +20,6 @@ urlpatterns = [
     path('', include(router.urls)),
     path('get-upload-link/<str:filename>/', views.GeneratePresignedUrlView.as_view(), name='upload-link'),
     path('my-videos/', views.MyVideoView.as_view(), name='my-videos'),
+    path('video-upload-init/', views.InitiateMultipartUploadView.as_view(), name='init-video-upload'),
+    path('video-upload-abort/', views.AbortMultipartUploadView.as_view(), name='abort-video-upload'),
 ]

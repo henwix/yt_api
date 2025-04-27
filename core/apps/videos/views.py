@@ -34,9 +34,11 @@ from core.apps.common.permissions import (
     IsAuthenticatedOrAdminOrReadOnly,
     IsAuthenticatedOrAuthorOrReadOnly,
 )
+from core.apps.common.services.boto_client import BotoClientService
 from core.apps.videos.services.comments import BaseCommentService
 from core.apps.videos.use_cases.comments.like_create import LikeCreateUseCase
 from core.apps.videos.use_cases.comments.like_delete import LikeDeleteUseCase
+from core.apps.videos.use_cases.multipart_upload.initiate_upload import InitiateMultipartUploadUseCase
 from core.project.containers import get_container
 
 from . import serializers
@@ -55,7 +57,13 @@ from .services.videos import (
 )
 
 
-class VideoViewSet(viewsets.ModelViewSet):
+class VideoViewSet(
+        mixins.RetrieveModelMixin,
+        mixins.UpdateModelMixin,
+        mixins.DestroyModelMixin,
+        mixins.ListModelMixin,
+        viewsets.GenericViewSet,
+):
     """API endpoint for listing, retrieving, creating, editing and deleting
     'Video' instances.
 
@@ -242,7 +250,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.container = get_container()
+        self.container: punq.Container = get_container()
         self.service: BaseCommentService = self.container.resolve(BaseCommentService)
         self.logger: Logger = self.container.resolve(Logger)
 
@@ -377,6 +385,71 @@ class GeneratePresignedUrlView(APIView):
         #  TODO: add try except to s3 errors
         result = self.service.generate_url(filename=filename)
         return Response(result, status=status.HTTP_200_OK)
+
+
+@extend_schema(
+    request={
+        'application/json': {
+            'type': 'object',
+            'properties': {
+                'name': {'type': 'string'},
+                'description': {'type': 'string'},
+                'status': {'type': 'string'},
+                'filename': {'type': 'string'},
+            },
+            'required': ['name', 'filename'],
+        },
+    },
+)
+class InitiateMultipartUploadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        container: punq.Container = get_container()
+        use_case: InitiateMultipartUploadUseCase = container.resolve(InitiateMultipartUploadUseCase)
+
+        serializer = serializers.VideoSerializer(data=request.data)
+        serializer.is_valid()
+        # TODO: почему-то не подставляются значения по умолчанию при создании видоса через сервисы
+        upload_id, key = use_case.execute(
+            user=request.user,
+            name=serializer.validated_data.get('name'),
+            description=serializer.validated_data.get('description'),
+            status=serializer.validated_data.get('status'),
+            filename=request.data.get('filename'),
+        )
+
+        return Response({'upload_id': upload_id, 'key': key}, status=status.HTTP_201_CREATED)
+
+
+@extend_schema(
+    request={
+        'application/json': {
+            'type': 'object',
+            'properties': {
+                'key': {'type': 'string'},
+                'upload_id': {'type': 'string'},
+            },
+            'required': ['key', 'upload_id'],
+        },
+    },
+)
+class AbortMultipartUploadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        container: punq.Container = get_container()
+        boto_service: BotoClientService = container.resolve(BotoClientService)
+
+        s3_client = boto_service.get_s3_client()
+
+        s3_client.abort_multipart_upload(
+            Bucket=boto_service.get_bucket_name(),
+            Key=request.data.get('key'),
+            UploadId=request.data.get('upload_id'),
+        )
+
+        return Response({'status': 'success'}, status=status.HTTP_200_CREATED)
 
 
 class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):

@@ -17,10 +17,12 @@ from core.apps.videos.services.comments import (
     ORMCommentService,
 )
 from core.apps.videos.services.videos import (
+    BaseMultipartUploadVideoService,
     BaseVideoHistoryService,
     BaseVideoPlaylistService,
     BaseVideoPresignedURLService,
     BaseVideoService,
+    MultipartUploadVideoService,
     ORMVideoHistoryService,
     ORMVideoPlaylistService,
     ORMVideoPresignedURLService,
@@ -28,6 +30,7 @@ from core.apps.videos.services.videos import (
 )
 from core.apps.videos.use_cases.comments.like_create import LikeCreateUseCase
 from core.apps.videos.use_cases.comments.like_delete import LikeDeleteUseCase
+from core.apps.videos.use_cases.multipart_upload.initiate_upload import InitiateMultipartUploadUseCase
 
 
 def init_videos(container: punq.Container) -> None:
@@ -43,7 +46,9 @@ def init_videos(container: punq.Container) -> None:
     container.register(BaseVideoPresignedURLService, ORMVideoPresignedURLService)
     container.register(BaseVideoPlaylistService, ORMVideoPlaylistService)
     container.register(BaseCommentService, ORMCommentService)
+    container.register(BaseMultipartUploadVideoService, MultipartUploadVideoService)
 
     # use cases
     container.register(LikeCreateUseCase)
     container.register(LikeDeleteUseCase)
+    container.register(InitiateMultipartUploadUseCase)

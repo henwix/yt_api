@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
+import punq
 import pytest
 
 from core.apps.users.exceptions.users import UserNotFoundError
@@ -36,7 +37,7 @@ def test_user_authentication(user_service: BaseUserService):
 
 
 def test_user_not_found():
-    container = get_container()
+    container: punq.Container = get_container()
     validator_service: BaseUserValidatorService = container.resolve(BaseUserValidatorService)
 
     with pytest.raises(UserNotFoundError):

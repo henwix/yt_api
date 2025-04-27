@@ -1,10 +1,10 @@
-import os
 from abc import (
     ABC,
     abstractmethod,
 )
 from dataclasses import dataclass
 from typing import (
+    Any,
     Iterable,
     Tuple,
 )
@@ -51,13 +51,20 @@ class BaseVideoService(ABC):
     repository: BaseVideoRepository
 
     @abstractmethod
-    def like_create(self, user: User, video_id: str, is_like: bool) -> dict: ...
+    def video_create_s3(self, name: str, description: str, status: str) -> None:
+        ...
 
     @abstractmethod
-    def like_delete(self, user: User, video_id: str) -> dict: ...
+    def like_create(self, user: User, video_id: str, is_like: bool) -> dict:
+        ...
 
     @abstractmethod
-    def view_create(self, user: User, video_id: str, ip_address: str) -> dict: ...
+    def like_delete(self, user: User, video_id: str) -> dict:
+        ...
+
+    @abstractmethod
+    def view_create(self, user: User, video_id: str, ip_address: str) -> dict:
+        ...
 
 
 class ORMVideoService(BaseVideoService):
@@ -74,6 +81,15 @@ class ORMVideoService(BaseVideoService):
             raise VideoNotFoundError(video_id=video_id)
 
         return channel, video
+
+    def video_create_s3(self, author: Channel, name: str, description: str, status: str, upload_id: str) -> None:
+        self.repository.video_create_s3(
+            author=author,
+            name=name,
+            description=description,
+            status=status,
+            upload_id=upload_id,
+        )
 
     def like_create(self, user: User, video_id: str, is_like: bool) -> dict:
         channel, video = self._user_and_video_validate(user, video_id)
@@ -149,7 +165,7 @@ class ORMVideoPresignedURLService(BaseVideoPresignedURLService):
         url = s3_client.generate_presigned_url(
             'put_object',
             Params={
-                'Bucket': os.environ.get('AWS_STORAGE_BUCKET_NAME'),
+                'Bucket': self.boto_service.get_bucket_name(),
                 'Key': f'channel_avatars/{filename}',
             },
             # ExpiresIn=120,
@@ -158,6 +174,25 @@ class ORMVideoPresignedURLService(BaseVideoPresignedURLService):
         )
 
         return {'put_url': url}
+
+
+@dataclass
+class BaseMultipartUploadVideoService(ABC):
+    @abstractmethod
+    def init_multipart_upload(self, s3_client: Any, bucket: str, filename: str) -> tuple:
+        ...
+
+
+class MultipartUploadVideoService(BaseMultipartUploadVideoService):
+    def init_multipart_upload(self, s3_client: Any, bucket: str, filename: str) -> tuple:
+        key = f'videos/{filename}'
+
+        response = s3_client.create_multipart_upload(
+            Bucket=bucket,
+            Key=key,
+        )
+
+        return response.get('UploadId'), response.get('Key')
 
 
 @dataclass
@@ -216,10 +251,12 @@ class BaseVideoPlaylistService(ABC):
     playlist_repository: BasePlaylistRepository
 
     @abstractmethod
-    def add_video_in_playlist(self, playlist_id: str, video_id: str) -> dict: ...
+    def add_video_in_playlist(self, playlist_id: str, video_id: str) -> dict:
+        ...
 
     @abstractmethod
-    def delete_video_from_playlist(self, playlist_id: str, video_id: str) -> dict: ...
+    def delete_video_from_playlist(self, playlist_id: str, video_id: str) -> dict:
+        ...
 
 
 @dataclass

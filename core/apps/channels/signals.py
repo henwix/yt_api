@@ -7,6 +7,8 @@ from django.db.models.signals import (
 )
 from django.dispatch import receiver
 
+import punq
+
 from core.project.containers import get_container
 
 from .models import Channel
@@ -15,7 +17,7 @@ from .tasks import delete_channel_files_task
 
 def _delete_channel_cache(instance):
     """Mixin to delete channel's cache."""
-    container = get_container()
+    container: punq.Container = get_container()
     logger: Logger = container.resolve(Logger)
 
     cache.delete(f'retrieve_channel_{instance.user.pk}')
@@ -38,11 +40,8 @@ def delete_channel_files_signal(instance, **kwargs):
     """This signal will collect channel's related videos and avatar into list
     and call celery task to delete them via boto3."""
 
-    container = get_container()
+    container: punq.Container = get_container()
     logger: Logger = container.resolve(Logger)
-
-    # # Delete channel's cache
-    # _delete_channel_cache(instance)
 
     # Define empty 'files' list
     files = []

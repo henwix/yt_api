@@ -11,7 +11,11 @@ from boto3 import client
 class BaseBotoClientService(ABC):
     @abstractmethod
     def get_s3_client(self) -> Any:
-        pass
+        ...
+
+    @abstractmethod
+    def get_bucket_name(self) -> str:
+        ...
 
 
 class BotoClientService(BaseBotoClientService):
@@ -22,3 +26,6 @@ class BotoClientService(BaseBotoClientService):
             aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
             region_name=os.environ.get('AWS_S3_REGION_NAME'),
         )
+
+    def get_bucket_name(self) -> str:
+        return os.environ.get('AWS_STORAGE_BUCKET_NAME')

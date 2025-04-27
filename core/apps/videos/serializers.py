@@ -79,29 +79,31 @@ class VideoSerializer(serializers.ModelSerializer):
         model = Video
         fields = [
             'name',
-            'is_reported',
             'description',
-            'status',
-            'file',
             'video_link',
-            'yt_link',
-            'author_name',
-            'subs_count',
-            'author_link',
-            'created_at',
-            'status',
             'likes_count',
             'views_count',
             'comments_count',
+            'subs_count',
+            'author_name',
+            'author_link',
+            'is_reported',
+            'created_at',
+            'status',
             'upload_status',
+            'upload_id',
+            's3_key',
+            's3_bucket',
         ]
-        read_only_fields = ['created_at', 'yt-link', 'upload_status', 'is_reported']
-
-    def create(self, validated_data):
-        request = self.context.get('request')
-        validated_data['author'] = request.user.channel
-
-        return super().create(validated_data)
+        read_only_fields = [
+            'created_at',
+            'yt-link',
+            'upload_status',
+            'is_reported',
+            'upload_id',
+            's3_key',
+            's3_bucket',
+        ]
 
 
 class VideoPreviewSerializer(serializers.ModelSerializer):
@@ -125,7 +127,14 @@ class VideoPreviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Video
-        fields = ['name', 'created_at', 'yt_link', 'video_link', 'author_name', 'author_link', 'views_count']
+        fields = [
+            'name',
+            'created_at',
+            'video_link',
+            'author_name',
+            'author_link',
+            'views_count',
+        ]
 
 
 class VideoHistorySerializer(serializers.ModelSerializer):

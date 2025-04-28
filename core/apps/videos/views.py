@@ -16,6 +16,7 @@ from rest_framework.views import APIView
 import django_filters
 import orjson
 import punq
+from botocore.exceptions import ClientError
 from drf_spectacular.utils import (
     extend_schema,
     inline_serializer,
@@ -34,10 +35,10 @@ from core.apps.common.permissions import (
     IsAuthenticatedOrAdminOrReadOnly,
     IsAuthenticatedOrAuthorOrReadOnly,
 )
-from core.apps.common.services.boto_client import BotoClientService
 from core.apps.videos.services.comments import BaseCommentService
 from core.apps.videos.use_cases.comments.like_create import LikeCreateUseCase
 from core.apps.videos.use_cases.comments.like_delete import LikeDeleteUseCase
+from core.apps.videos.use_cases.multipart_upload.abort_upload import AbortMultipartUploadUseCase
 from core.apps.videos.use_cases.multipart_upload.initiate_upload import InitiateMultipartUploadUseCase
 from core.project.containers import get_container
 
@@ -407,19 +408,58 @@ class InitiateMultipartUploadView(APIView):
     def post(self, request):
         container: punq.Container = get_container()
         use_case: InitiateMultipartUploadUseCase = container.resolve(InitiateMultipartUploadUseCase)
+        logger: Logger = container.resolve(Logger)
 
         serializer = serializers.VideoSerializer(data=request.data)
         serializer.is_valid()
-        # TODO: почему-то не подставляются значения по умолчанию при создании видоса через сервисы
-        upload_id, key = use_case.execute(
-            user=request.user,
-            name=serializer.validated_data.get('name'),
-            description=serializer.validated_data.get('description'),
-            status=serializer.validated_data.get('status'),
-            filename=request.data.get('filename'),
-        )
 
-        return Response({'upload_id': upload_id, 'key': key}, status=status.HTTP_201_CREATED)
+        try:
+            result = use_case.execute(
+                user=request.user,
+                filename=request.data.get('filename'),
+                validated_data=serializer.validated_data,
+            )
+        except ClientError as error:
+            logger.error(
+                "S3 client can't create multipart upload",
+                extra={'log_meta': orjson.dumps(str(error)).decode()},
+            )
+            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        except ServiceException as error:
+            logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        return Response(result, status=status.HTTP_201_CREATED)
+
+
+class GenerateUploadPartUrlView(APIView):
+    def post(self, request):
+        container: punq.Container = get_container()
+        use_case: AbortMultipartUploadUseCase = container.resolve(AbortMultipartUploadUseCase)
+        logger: Logger = container.resolve(Logger)
+
+        try:
+            result = use_case.execute(
+                key=request.data.get('key'),
+                upload_id=request.data.get('upload_id'),
+                part_number=request.data.get('part_number'),
+            )
+        except ClientError as error:
+            logger.error(
+                "S3 client can't generate presigned url for video upload",
+                extra={'log_meta': orjson.dumps(str(error)).decode()},
+            )
+            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        except ServiceException as error:
+            logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        return Response(result, status=status.HTTP_201_CREATED)
+        #  retrieve Key, UploadId and PartNumber from request body
+        #  validate that video with upload_id exists, key, upload_id
+        #  generate url with expires parameter
 
 
 @extend_schema(
@@ -439,17 +479,33 @@ class AbortMultipartUploadView(APIView):
 
     def post(self, request):
         container: punq.Container = get_container()
-        boto_service: BotoClientService = container.resolve(BotoClientService)
+        use_case: AbortMultipartUploadUseCase = container.resolve(AbortMultipartUploadUseCase)
+        logger: Logger = container.resolve(Logger)
 
-        s3_client = boto_service.get_s3_client()
+        try:
+            # list_s3 = s3_client.list_multipart_uploads(
+            #     Bucket=boto_service.get_bucket_name()
+            # )
 
-        s3_client.abort_multipart_upload(
-            Bucket=boto_service.get_bucket_name(),
-            Key=request.data.get('key'),
-            UploadId=request.data.get('upload_id'),
-        )
+            # logger.info(list_s3)
+            # logger.info(len(list_s3))
+            result = use_case.execute(
+                user=request.user,
+                key=request.data.get('key'),
+                upload_id=request.data.get('upload_id'),
+            )
+        except ClientError as error:
+            logger.error(
+                "S3 client can't abort multipart upload",
+                extra={'log_meta': orjson.dumps(str(error)).decode()},
+            )
+            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        return Response({'status': 'success'}, status=status.HTTP_200_CREATED)
+        except ServiceException as error:
+            logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        return Response(result, status=status.HTTP_200_OK)
 
 
 class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):

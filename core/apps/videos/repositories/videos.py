@@ -28,7 +28,15 @@ User = get_user_model()
 
 class BaseVideoRepository(ABC):
     @abstractmethod
-    def video_create_s3(self, author: Channel, name: str, description: str, status: str, upload_id: str) -> None:
+    def video_create_s3(self, validated_data: dict) -> None:
+        ...
+
+    @abstractmethod
+    def delete_video_by_id(self, video_id: str) -> None:
+        ...
+
+    @abstractmethod
+    def get_video_by_upload_id_and_author(self, author: Channel, upload_id: str) -> Video:
         ...
 
     @abstractmethod
@@ -61,21 +69,14 @@ class BaseVideoRepository(ABC):
 
 
 class ORMVideoRepository(BaseVideoRepository):
-    def video_create_s3(
-            self,
-            author: Channel,
-            name: str,
-            description: str,
-            status: str,
-            upload_id: str,
-    ) -> None:
-        return Video.objects.create(
-            author=author,
-            name=name,
-            description=description,
-            status=status,
-            upload_id=upload_id,
-        )
+    def video_create_s3(self, validated_data: dict) -> None:
+        return Video.objects.create(**validated_data)
+
+    def delete_video_by_id(self, video_id: str) -> None:
+        return Video.objects.filter(video_id=video_id).delete()
+
+    def get_video_by_upload_id_and_author(self, author: Channel, upload_id: str) -> Video:
+        return Video.objects.filter(author=author, upload_id=upload_id).first()
 
     def get_channel(self, user: User) -> Channel | None:
         return Channel.objects.filter(user=user).first()

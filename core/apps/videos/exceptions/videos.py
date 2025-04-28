@@ -10,7 +10,7 @@ class VideoNotFoundError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
     default_detail = {'error': 'Video not found'}
 
-    video_id: str
+    video_id: str = None
 
     @property
     def message(self):
@@ -57,17 +57,6 @@ class ViewExistsError(ServiceException):
 
 
 @dataclass
-class UnsupportedFileFormatError(ServiceException):
-    status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = {'error': 'Unsupported file format'}
-
-    filename: str
-
-    @property
-    def message(self):
-        return 'Unsupported file format'
-
-
 class VideoIdNotProvidedError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = {'error': 'To add or delete video from history you need to provide "video_id"'}

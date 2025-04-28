@@ -313,7 +313,7 @@ LOGGING = {
     },
     'loggers': {
         'django.request': {
-            'level': 'INFO',
+            'level': 'DEBUG',  # TODO: change to info
             'handlers': ['console'],
             'propagate': False,
         },

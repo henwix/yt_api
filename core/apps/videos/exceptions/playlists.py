@@ -5,6 +5,7 @@ from rest_framework import status
 from core.apps.common.exceptions import ServiceException
 
 
+@dataclass
 class PlaylistIdNotProvidedError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = {'error': 'To do something with playlist you need to provide "playlist_id"'}

@@ -4,7 +4,6 @@ from abc import (
 )
 from dataclasses import dataclass
 from typing import (
-    Any,
     Iterable,
     Tuple,
 )
@@ -23,9 +22,9 @@ from core.apps.videos.exceptions.playlists import (
     PlaylistNotFoundError,
     VideoNotInPlaylistError,
 )
+from core.apps.videos.exceptions.upload import UnsupportedFileFormatError
 
 from ..exceptions.videos import (
-    UnsupportedFileFormatError,
     VideoIdNotProvidedError,
     VideoLikeNotFoundError,
     VideoNotFoundError,
@@ -46,12 +45,34 @@ from ..repositories.videos import (
 User = get_user_model()
 
 
+class BaseVideoValidatorService(ABC):
+    @abstractmethod
+    def validate(self, video: Video | None, video_id: str) -> None:
+        ...
+
+
+class VideoValidatorService(BaseVideoValidatorService):
+    def validate(self, video: Video | None, video_id: str) -> None:
+        if not video:
+            raise VideoNotFoundError(video_id=video_id)
+
+
 @dataclass(eq=False)
 class BaseVideoService(ABC):
-    repository: BaseVideoRepository
+    video_repository: BaseVideoRepository
+    channel_repository: BaseChannelRepository
+    validator_service: BaseVideoValidatorService
 
     @abstractmethod
-    def video_create_s3(self, name: str, description: str, status: str) -> None:
+    def video_create_s3(self, validated_data: dict) -> None:
+        ...
+
+    @abstractmethod
+    def delete_video_by_id(self, video_id: str) -> None:
+        ...
+
+    @abstractmethod
+    def get_video_by_upload_id_and_author(self, author: Channel, upload_id: str) -> Video:
         ...
 
     @abstractmethod
@@ -68,33 +89,27 @@ class BaseVideoService(ABC):
 
 
 class ORMVideoService(BaseVideoService):
-    def _get_channel(self, user: User) -> Channel | None:
-        return self.repository.get_channel(user)
-
-    def _get_video(self, video_id) -> Video | None:
-        return self.repository.get_video_by_id(video_id)
-
     def _user_and_video_validate(self, user, video_id) -> Tuple[Channel | None, Video | None]:
-        channel, video = self._get_channel(user), self._get_video(video_id)
+        channel = self.channel_repository.get_channel_by_user(user=user)
+        video = self.video_repository.get_video_by_id(video_id)
 
-        if not video:
-            raise VideoNotFoundError(video_id=video_id)
+        self.validator_service.validate(video=video, video_id=video_id)
 
         return channel, video
 
-    def video_create_s3(self, author: Channel, name: str, description: str, status: str, upload_id: str) -> None:
-        self.repository.video_create_s3(
-            author=author,
-            name=name,
-            description=description,
-            status=status,
-            upload_id=upload_id,
-        )
+    def video_create_s3(self, validated_data: dict) -> None:
+        self.video_repository.video_create_s3(validated_data=validated_data)
+
+    def delete_video_by_id(self, video_id: str) -> None:
+        self.video_repository.delete_video_by_id(video_id=video_id)
+
+    def get_video_by_upload_id_and_author(self, author: Channel, upload_id: str) -> Video:
+        return self.video_repository.get_video_by_upload_id_and_author(author=author, upload_id=upload_id)
 
     def like_create(self, user: User, video_id: str, is_like: bool) -> dict:
         channel, video = self._user_and_video_validate(user, video_id)
 
-        like, created = self.repository.like_get_or_create(channel, video, is_like)
+        like, created = self.video_repository.like_get_or_create(channel, video, is_like)
 
         if not created and like.is_like != is_like:
             like.is_like = is_like
@@ -105,7 +120,7 @@ class ORMVideoService(BaseVideoService):
     def like_delete(self, user: User, video_id: str) -> dict:
         channel, video = self._user_and_video_validate(user, video_id)
 
-        deleted, _ = self.repository.like_delete(channel, video)
+        deleted, _ = self.video_repository.like_delete(channel, video)
 
         if not deleted:
             raise VideoLikeNotFoundError(channel_slug=channel.slug, video_id=video.video_id)
@@ -115,17 +130,17 @@ class ORMVideoService(BaseVideoService):
     def view_create(self, user: User, video_id: str, ip_address: str) -> dict:
         channel, video = self._user_and_video_validate(user, video_id)
 
-        last_view_exists = self.repository.last_view_exists(channel, video, ip_address)
+        last_view_exists = self.video_repository.last_view_exists(channel, video, ip_address)
 
         if last_view_exists:
             raise ViewExistsError(channel_slug=channel.slug, video_id=video.video_id)
 
-        self.repository.create_view(channel, video, ip_address)
+        self.video_repository.create_view(channel, video, ip_address)
         return {'status': 'Success'}
 
     def get_videos_for_listing(self) -> Iterable[Video]:
         return (
-            self.repository.get_videos_list()
+            self.video_repository.get_videos_list()
             .select_related('author')
             .filter(status=Video.VideoStatus.PUBLIC)
             .annotate(views_count=Count('views', distinct=True))
@@ -133,7 +148,7 @@ class ORMVideoService(BaseVideoService):
 
     def get_videos_for_retrieve(self) -> Iterable[Video]:
         return (
-            self.repository.get_videos_list()
+            self.video_repository.get_videos_list()
             .select_related('author')
             .annotate(
                 views_count=Count('views', distinct=True),
@@ -144,7 +159,7 @@ class ORMVideoService(BaseVideoService):
         )
 
     def get_all_videos(self) -> Iterable[Video]:
-        return self.repository.get_videos_list()
+        return self.video_repository.get_videos_list()
 
 
 @dataclass(eq=False)
@@ -178,13 +193,31 @@ class ORMVideoPresignedURLService(BaseVideoPresignedURLService):
 
 @dataclass
 class BaseMultipartUploadVideoService(ABC):
+    boto_service: BaseBotoClientService
+
     @abstractmethod
-    def init_multipart_upload(self, s3_client: Any, bucket: str, filename: str) -> tuple:
+    def init_multipart_upload(self, filename: str) -> tuple:
+        ...
+
+    @abstractmethod
+    def abort_multipart_upload(self, key: str, upload_id: str) -> None:
+        ...
+
+    @abstractmethod
+    def generate_upload_part_url(self, key: str, upload_id: str, part_number: int):
         ...
 
 
+@dataclass
 class MultipartUploadVideoService(BaseMultipartUploadVideoService):
-    def init_multipart_upload(self, s3_client: Any, bucket: str, filename: str) -> tuple:
+    def _get_client_and_bucket(self) -> tuple:
+        s3_client = self.boto_service.get_s3_client()
+        bucket = self.boto_service.get_bucket_name()
+
+        return s3_client, bucket
+
+    def init_multipart_upload(self, filename: str) -> tuple:
+        s3_client, bucket = self._get_client_and_bucket()
         key = f'videos/{filename}'
 
         response = s3_client.create_multipart_upload(
@@ -193,6 +226,35 @@ class MultipartUploadVideoService(BaseMultipartUploadVideoService):
         )
 
         return response.get('UploadId'), response.get('Key')
+
+    def abort_multipart_upload(self, key: str, upload_id: str) -> None:
+        s3_client, bucket = self._get_client_and_bucket()
+
+        s3_client.abort_multipart_upload(
+            Bucket=bucket,
+            Key=key,
+            UploadId=upload_id,
+        )
+
+    def generate_upload_part_url(
+        self,
+        key: str,
+        upload_id: str,
+        part_number: int,
+    ) -> str:
+        s3_client, bucket = self._get_client_and_bucket()
+
+        url = s3_client.generate_presigned_url(
+            ClientMethod='upload_part',
+            Params={
+                'Bucket': bucket,
+                'Key': key,
+                'UploadId': upload_id,
+                'PartNumber': part_number,
+            },
+            ExpiresIn=600,
+        )
+        return url
 
 
 @dataclass

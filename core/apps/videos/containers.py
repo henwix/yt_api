@@ -18,38 +18,36 @@ from core.apps.videos.services.comments import (
 )
 from core.apps.videos.services.upload import (
     BaseFilenameValidatorService,
-    BaseUploadIdValidatorService,
-    BaseUploadKeyValidatorService,
     BaseVideoS3UploadValidatorService,
     ComposedFilenameValidatorService,
     FilenameExistsValidatorService,
     FilenameFormatValidatorService,
-    UploadIdExistsValidatorService,
-    UploadKeyExistsValidatorService,
-    VideoS3UploadValidatorService,
+    VideoS3UploadExistsValidatorService,
 )
 from core.apps.videos.services.videos import (
-    BaseMultipartUploadVideoService,
+    BaseS3VideoService,
     BaseVideoHistoryService,
     BaseVideoPlaylistService,
     BaseVideoPresignedURLService,
     BaseVideoService,
     BaseVideoValidatorService,
-    MultipartUploadVideoService,
     ORMVideoHistoryService,
     ORMVideoPlaylistService,
     ORMVideoPresignedURLService,
     ORMVideoService,
-    VideoValidatorService,
+    S3VideoService,
+    VideoExistsValidatorService,
 )
 from core.apps.videos.use_cases.comments.like_create import LikeCreateUseCase
 from core.apps.videos.use_cases.comments.like_delete import LikeDeleteUseCase
 from core.apps.videos.use_cases.multipart_upload.abort_upload import AbortMultipartUploadUseCase
+from core.apps.videos.use_cases.multipart_upload.complete_upload import CompleteUploadUseCase
 from core.apps.videos.use_cases.multipart_upload.initiate_upload import InitiateMultipartUploadUseCase
+from core.apps.videos.use_cases.multipart_upload.presigned_url_upload import GenerateUrlForUploadUseCase
 
 
 def init_videos(container: punq.Container) -> None:
-    def build_validators() -> BaseFilenameValidatorService:
+    def build_filename_validators() -> BaseFilenameValidatorService:
         return ComposedFilenameValidatorService(
             validators=[
                 container.resolve(FilenameExistsValidatorService),
@@ -68,19 +66,19 @@ def init_videos(container: punq.Container) -> None:
     container.register(BaseVideoPlaylistService, ORMVideoPlaylistService)
     container.register(BaseVideoHistoryService, ORMVideoHistoryService)
     container.register(BaseCommentService, ORMCommentService)
-    container.register(BaseMultipartUploadVideoService, MultipartUploadVideoService)
+    container.register(BaseS3VideoService, S3VideoService)
     container.register(BaseVideoPresignedURLService, ORMVideoPresignedURLService)
 
-    container.register(BaseVideoS3UploadValidatorService, VideoS3UploadValidatorService)
-    container.register(BaseVideoValidatorService, VideoValidatorService)
-    container.register(BaseUploadKeyValidatorService, UploadKeyExistsValidatorService)
-    container.register(BaseUploadIdValidatorService, UploadIdExistsValidatorService)
+    container.register(BaseVideoS3UploadValidatorService, VideoS3UploadExistsValidatorService)
+    container.register(BaseVideoValidatorService, VideoExistsValidatorService)
     container.register(FilenameExistsValidatorService)
     container.register(FilenameFormatValidatorService)
-    container.register(BaseFilenameValidatorService, factory=build_validators)
+    container.register(BaseFilenameValidatorService, factory=build_filename_validators)
 
     # init use cases
     container.register(LikeCreateUseCase)
     container.register(LikeDeleteUseCase)
     container.register(AbortMultipartUploadUseCase)
     container.register(InitiateMultipartUploadUseCase)
+    container.register(GenerateUrlForUploadUseCase)
+    container.register(CompleteUploadUseCase)

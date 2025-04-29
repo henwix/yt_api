@@ -10,7 +10,7 @@ class VideoNotFoundError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
     default_detail = {'error': 'Video not found'}
 
-    video_id: str = None
+    video_id: str
 
     @property
     def message(self):

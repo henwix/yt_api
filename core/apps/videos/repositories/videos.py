@@ -28,15 +28,25 @@ User = get_user_model()
 
 class BaseVideoRepository(ABC):
     @abstractmethod
-    def video_create_s3(self, validated_data: dict) -> None:
-        ...
-
-    @abstractmethod
-    def delete_video_by_id(self, video_id: str) -> None:
+    def video_create_for_s3(self, validated_data: dict) -> None:
         ...
 
     @abstractmethod
     def get_video_by_upload_id_and_author(self, author: Channel, upload_id: str) -> Video:
+        ...
+
+    @abstractmethod
+    def update_video_after_upload(
+        self,
+        video_id: str,
+        upload_id: str,
+        s3_key: str,
+        s3_bucket: str,
+    ) -> None:
+        ...
+
+    @abstractmethod
+    def delete_video_by_id(self, video_id: str) -> None:
         ...
 
     @abstractmethod
@@ -69,14 +79,25 @@ class BaseVideoRepository(ABC):
 
 
 class ORMVideoRepository(BaseVideoRepository):
-    def video_create_s3(self, validated_data: dict) -> None:
+    def video_create_for_s3(self, validated_data: dict) -> None:
         return Video.objects.create(**validated_data)
-
-    def delete_video_by_id(self, video_id: str) -> None:
-        return Video.objects.filter(video_id=video_id).delete()
 
     def get_video_by_upload_id_and_author(self, author: Channel, upload_id: str) -> Video:
         return Video.objects.filter(author=author, upload_id=upload_id).first()
+
+    def update_video_after_upload(self, video_id: str, upload_id: str, s3_key: str, s3_bucket: str) -> None:
+        return Video.objects.filter(
+            video_id=video_id,
+            upload_id=upload_id,
+        ).update(
+            s3_key=s3_key,
+            s3_bucket=s3_bucket,
+            upload_id=None,
+            upload_status=Video.UploadStatus.FINISHED,
+        )
+
+    def delete_video_by_id(self, video_id: str) -> None:
+        return Video.objects.filter(video_id=video_id).delete()
 
     def get_channel(self, user: User) -> Channel | None:
         return Channel.objects.filter(user=user).first()

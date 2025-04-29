@@ -11,12 +11,10 @@ from rest_framework import (
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 import django_filters
 import orjson
 import punq
-from botocore.exceptions import ClientError
 from drf_spectacular.utils import (
     extend_schema,
     inline_serializer,
@@ -35,27 +33,23 @@ from core.apps.common.permissions import (
     IsAuthenticatedOrAdminOrReadOnly,
     IsAuthenticatedOrAuthorOrReadOnly,
 )
-from core.apps.videos.services.comments import BaseCommentService
-from core.apps.videos.use_cases.comments.like_create import LikeCreateUseCase
-from core.apps.videos.use_cases.comments.like_delete import LikeDeleteUseCase
-from core.apps.videos.use_cases.multipart_upload.abort_upload import AbortMultipartUploadUseCase
-from core.apps.videos.use_cases.multipart_upload.initiate_upload import InitiateMultipartUploadUseCase
-from core.project.containers import get_container
-
-from . import serializers
-from .filters import VideoFilter
-from .models import (
+from core.apps.videos.filters import VideoFilter
+from core.apps.videos.models import (
     Video,
     VideoHistory,
 )
-from .pagination import HistoryCursorPagination
-from .permissions import IsAuthorOrReadOnlyPlaylist
-from .services.videos import (
+from core.apps.videos.pagination import HistoryCursorPagination
+from core.apps.videos.permissions import IsAuthorOrReadOnlyPlaylist
+from core.apps.videos.serializers import video_serializers
+from core.apps.videos.services.comments import BaseCommentService
+from core.apps.videos.services.videos import (
     BaseVideoHistoryService,
     BaseVideoPlaylistService,
-    BaseVideoPresignedURLService,
     BaseVideoService,
 )
+from core.apps.videos.use_cases.comments.like_create import LikeCreateUseCase
+from core.apps.videos.use_cases.comments.like_delete import LikeDeleteUseCase
+from core.project.containers import get_container
 
 
 class VideoViewSet(
@@ -199,8 +193,8 @@ class VideoViewSet(
 
         """
         if action == 'list':
-            return serializers.VideoPreviewSerializer
-        return serializers.VideoSerializer
+            return video_serializers.VideoPreviewSerializer
+        return video_serializers.VideoSerializer
 
     def get_queryset(self):
         """Custom get_queryset method.
@@ -242,7 +236,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
 
     """
 
-    serializer_class = serializers.VideoCommentSerializer
+    serializer_class = video_serializers.VideoCommentSerializer
     pagination_class = CustomCursorPagination
     permission_classes = [IsAuthenticatedOrAuthorOrReadOnly]
     filter_backends = [filters.OrderingFilter]
@@ -368,146 +362,6 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
         return Response(result, status.HTTP_204_NO_CONTENT)
 
 
-class GeneratePresignedUrlView(APIView):
-    """API endpoint to generate presigned URL for channel_avatar uploading to
-    S3.
-
-    Takes one required parameter: 'filename' to generate URL based on that name.
-    Example: /api/v1/get-upload-link/17388dff.jpg/
-
-    """
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        container: punq.Container = get_container()
-        self.service: BaseVideoPresignedURLService = container.resolve(BaseVideoPresignedURLService)
-
-    def get(self, request, filename):
-        #  TODO: add try except to s3 errors
-        result = self.service.generate_url(filename=filename)
-        return Response(result, status=status.HTTP_200_OK)
-
-
-@extend_schema(
-    request={
-        'application/json': {
-            'type': 'object',
-            'properties': {
-                'name': {'type': 'string'},
-                'description': {'type': 'string'},
-                'status': {'type': 'string'},
-                'filename': {'type': 'string'},
-            },
-            'required': ['name', 'filename'],
-        },
-    },
-)
-class InitiateMultipartUploadView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        container: punq.Container = get_container()
-        use_case: InitiateMultipartUploadUseCase = container.resolve(InitiateMultipartUploadUseCase)
-        logger: Logger = container.resolve(Logger)
-
-        serializer = serializers.VideoSerializer(data=request.data)
-        serializer.is_valid()
-
-        try:
-            result = use_case.execute(
-                user=request.user,
-                filename=request.data.get('filename'),
-                validated_data=serializer.validated_data,
-            )
-        except ClientError as error:
-            logger.error(
-                "S3 client can't create multipart upload",
-                extra={'log_meta': orjson.dumps(str(error)).decode()},
-            )
-            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        except ServiceException as error:
-            logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
-            raise
-
-        return Response(result, status=status.HTTP_201_CREATED)
-
-
-class GenerateUploadPartUrlView(APIView):
-    def post(self, request):
-        container: punq.Container = get_container()
-        use_case: AbortMultipartUploadUseCase = container.resolve(AbortMultipartUploadUseCase)
-        logger: Logger = container.resolve(Logger)
-
-        try:
-            result = use_case.execute(
-                key=request.data.get('key'),
-                upload_id=request.data.get('upload_id'),
-                part_number=request.data.get('part_number'),
-            )
-        except ClientError as error:
-            logger.error(
-                "S3 client can't generate presigned url for video upload",
-                extra={'log_meta': orjson.dumps(str(error)).decode()},
-            )
-            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        except ServiceException as error:
-            logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
-            raise
-
-        return Response(result, status=status.HTTP_201_CREATED)
-        #  retrieve Key, UploadId and PartNumber from request body
-        #  validate that video with upload_id exists, key, upload_id
-        #  generate url with expires parameter
-
-
-@extend_schema(
-    request={
-        'application/json': {
-            'type': 'object',
-            'properties': {
-                'key': {'type': 'string'},
-                'upload_id': {'type': 'string'},
-            },
-            'required': ['key', 'upload_id'],
-        },
-    },
-)
-class AbortMultipartUploadView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        container: punq.Container = get_container()
-        use_case: AbortMultipartUploadUseCase = container.resolve(AbortMultipartUploadUseCase)
-        logger: Logger = container.resolve(Logger)
-
-        try:
-            # list_s3 = s3_client.list_multipart_uploads(
-            #     Bucket=boto_service.get_bucket_name()
-            # )
-
-            # logger.info(list_s3)
-            # logger.info(len(list_s3))
-            result = use_case.execute(
-                user=request.user,
-                key=request.data.get('key'),
-                upload_id=request.data.get('upload_id'),
-            )
-        except ClientError as error:
-            logger.error(
-                "S3 client can't abort multipart upload",
-                extra={'log_meta': orjson.dumps(str(error)).decode()},
-            )
-            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        except ServiceException as error:
-            logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
-            raise
-
-        return Response(result, status=status.HTTP_200_OK)
-
-
 class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
     """API endpoint to get list of watched videos.
 
@@ -519,7 +373,7 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
     lookup_field = 'video_id'
     permission_classes = [IsAuthenticated]
     pagination_class = HistoryCursorPagination
-    serializer_class = serializers.VideoHistorySerializer
+    serializer_class = video_serializers.VideoHistorySerializer
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -599,7 +453,7 @@ class MyVideoView(generics.ListAPIView):
 
     """
 
-    serializer_class = serializers.VideoPreviewSerializer
+    serializer_class = video_serializers.VideoPreviewSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = CustomCursorPagination
 
@@ -633,8 +487,8 @@ class PlaylistAPIView(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'list':
-            return serializers.PlaylistPreviewSerializer
-        return serializers.PlaylistSerializer
+            return video_serializers.PlaylistPreviewSerializer
+        return video_serializers.PlaylistSerializer
 
     def get_queryset(self):
         if self.action == 'list':

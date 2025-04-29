@@ -39,7 +39,6 @@ class Video(models.Model):
 
     class UploadStatus(models.TextChoices):
         PENDING = 'PENDING', 'Pending'
-        IN_PROGRESS = 'IN_PROGRESS', 'In progress'
         FINISHED = 'FINISHED', 'Finished'
 
     video_id = models.CharField(

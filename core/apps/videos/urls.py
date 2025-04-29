@@ -4,22 +4,29 @@ from django.urls import (
 )
 from rest_framework.routers import DefaultRouter
 
-from . import views
+from core.apps.videos.views import (
+    upload_views,
+    video_views,
+)
 
 
 app_name = 'videos'
 
 
 router = DefaultRouter()
-router.register('video', views.VideoViewSet, basename='video')
-router.register('video-comment', views.CommentVideoAPIView, basename='video-comment')
-router.register('history', views.VideoHistoryView, basename='history')
-router.register('playlist', views.PlaylistAPIView, basename='playlist')
+router.register('video', video_views.VideoViewSet, basename='video')
+router.register('video-comment', video_views.CommentVideoAPIView, basename='video-comment')
+router.register('history', video_views.VideoHistoryView, basename='history')
+router.register('playlist', video_views.PlaylistAPIView, basename='playlist')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('get-upload-link/<str:filename>/', views.GeneratePresignedUrlView.as_view(), name='upload-link'),
-    path('my-videos/', views.MyVideoView.as_view(), name='my-videos'),
-    path('video-upload-init/', views.InitiateMultipartUploadView.as_view(), name='init-video-upload'),
-    path('video-upload-abort/', views.AbortMultipartUploadView.as_view(), name='abort-video-upload'),
+    path('my-videos/', video_views.MyVideoView.as_view(), name='my-videos'),
+    path('get-upload-link/<str:filename>/', upload_views.GeneratePresignedUrlView.as_view(), name='upload-link'),
+
+    # endpoints for video multipart upload
+    path('video-upload-init/', upload_views.InitiateMultipartUploadView.as_view(), name='upload-video-init'),
+    path('video-upload-link/', upload_views.GenerateUploadPartUrlView.as_view(), name='upload-video-url'),
+    path('video-upload-complete/', upload_views.CompleteMultipartUploadView.as_view(), name='upload-video-complete'),
+    path('video-upload-abort/', upload_views.AbortMultipartUploadView.as_view(), name='upload-video-abort'),
 ]

@@ -12,7 +12,7 @@ from django.db.models import (
 
 from core.apps.channels.models import Channel
 from core.apps.videos.exceptions.comments import CommentNotFoundError
-from core.apps.videos.exceptions.videos import VideoNotFoundError
+from core.apps.videos.exceptions.videos import VideoNotFoundByVideoIdError
 from core.apps.videos.models import VideoComment
 from core.apps.videos.repositories.comments import BaseVideoCommentRepository
 
@@ -64,7 +64,7 @@ class ORMCommentService(BaseCommentService):
 
     def get_comments_by_video_id(self, video_id: str) -> Iterable[VideoComment]:
         if not video_id:
-            raise VideoNotFoundError(video_id=video_id)
+            raise VideoNotFoundByVideoIdError(video_id=video_id)
 
         qs = self._build_query(queryset=self.repository.get_all_comments())
         return qs.filter(

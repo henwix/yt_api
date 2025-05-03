@@ -82,7 +82,6 @@ class VideoViewSet(
     ordering_fields = ['created_at', 'views_count']
     throttle_scope = 'video'
 
-    # TODO: multipart video upload
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         container: punq.Container = get_container()

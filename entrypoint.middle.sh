@@ -1,7 +1,8 @@
 python manage.py collectstatic --noinput
 python manage.py makemigrations --noinput
 python manage.py migrate --noinput
-gunicorn core.project.wsgi:application --access-logfile - --error-logfile - --bind 0.0.0.0:8000 --workers=3
+python manage.py runserver 0.0.0.0:8000
+# gunicorn core.project.wsgi:application --access-logfile - --error-logfile - --bind 0.0.0.0:8000 --workers=3
 
 
 # gunicorn core.project.wsgi:application --timeout 300 --bind 0.0.0.0:8000

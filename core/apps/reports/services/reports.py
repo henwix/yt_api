@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 from core.apps.channels.models import Channel
 from core.apps.channels.repositories.channels import BaseChannelRepository
 from core.apps.reports.exceptions.reports import ReportLimitError
-from core.apps.videos.exceptions.videos import VideoNotFoundError
+from core.apps.videos.exceptions.videos import VideoNotFoundByVideoIdError
 from core.apps.videos.models import Video
 from core.apps.videos.repositories.videos import BaseVideoRepository
 
@@ -37,7 +37,7 @@ class BaseVideoReportsService(ABC):
 class ORMVideoReportsService(BaseVideoReportsService):
     def _report_validation(self, video: Video, video_id: str, channel: Channel) -> None:
         if not video:
-            raise VideoNotFoundError(video_id=video_id)
+            raise VideoNotFoundByVideoIdError(video_id=video_id)
 
         if VideoReport.objects.filter(video=video, author=channel).count() >= 3:
             raise ReportLimitError(video_id=video_id, channel_slug=channel.slug)

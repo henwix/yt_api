@@ -3,11 +3,11 @@ from dataclasses import dataclass
 from django.contrib.auth import get_user_model
 
 from core.apps.channels.services.channels import BaseChannelService
-from core.apps.videos.services.upload import BaseVideoS3UploadValidatorService
-from core.apps.videos.services.videos import (
-    BaseS3VideoService,
-    BaseVideoService,
+from core.apps.videos.services.s3_videos import (
+    BaseS3FileService,
+    BaseVideoS3UploadValidatorService,
 )
+from core.apps.videos.services.videos import BaseVideoService
 
 
 User = get_user_model()
@@ -15,9 +15,9 @@ User = get_user_model()
 
 @dataclass
 class AbortMultipartUploadUseCase:
-    s3_video_service: BaseVideoService
+    video_service: BaseVideoService
     channel_service: BaseChannelService
-    upload_service: BaseS3VideoService
+    s3_video_service: BaseS3FileService
     video_upload_validator_service: BaseVideoS3UploadValidatorService
 
     def execute(self, user: User, key: str, upload_id: str):
@@ -25,19 +25,19 @@ class AbortMultipartUploadUseCase:
         author = self.channel_service.get_channel_by_user(user=user)
 
         # retrieve video and validate
-        video = self.s3_video_service.get_video_by_upload_id_and_author(
+        video = self.video_service.get_video_by_upload_id_and_author(
             author=author,
             upload_id=upload_id,
         )
         self.video_upload_validator_service.validate(video=video, upload_id=upload_id)
 
         # abort multipart upload
-        self.upload_service.abort_multipart_upload(
+        self.s3_video_service.abort_multipart_upload(
             key=key,
             upload_id=upload_id,
         )
 
         # delete video associated with 'upload_id'
-        self.s3_video_service.delete_video_by_id(video_id=video.video_id)
+        self.video_service.delete_video_by_id(video_id=video.video_id)
 
         return {'status': 'success'}

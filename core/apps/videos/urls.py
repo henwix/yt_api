@@ -22,11 +22,13 @@ router.register('playlist', video_views.PlaylistAPIView, basename='playlist')
 urlpatterns = [
     path('', include(router.urls)),
     path('my-videos/', video_views.MyVideoView.as_view(), name='my-videos'),
-    path('get-upload-link/<str:filename>/', upload_views.GeneratePresignedUrlView.as_view(), name='upload-link'),
 
     # endpoints for video multipart upload
     path('video-upload-init/', upload_views.InitiateMultipartUploadView.as_view(), name='upload-video-init'),
     path('video-upload-link/', upload_views.GenerateUploadPartUrlView.as_view(), name='upload-video-url'),
     path('video-upload-complete/', upload_views.CompleteMultipartUploadView.as_view(), name='upload-video-complete'),
     path('video-upload-abort/', upload_views.AbortMultipartUploadView.as_view(), name='upload-video-abort'),
+
+    # endpoints for video download
+    path('video-download-url/', upload_views.GenerateDownloadVideoUrlView.as_view(), name='download-video-url'),
 ]

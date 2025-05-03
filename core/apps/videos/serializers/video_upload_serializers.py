@@ -1,8 +1,11 @@
 from rest_framework import serializers
 
 
-class AbortUploadSerializer(serializers.Serializer):
+class KeySerializer(serializers.Serializer):
     key = serializers.CharField(max_length=256)
+
+
+class AbortUploadSerializer(KeySerializer):
     upload_id = serializers.CharField(max_length=256)
 
 

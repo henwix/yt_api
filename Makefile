@@ -122,6 +122,7 @@ test:
 .PHONY: build-middle
 build-middle:
 	${DC} -f ${APP_MIDDLE_FILE} build
+
 .PHONY: app-middle
 app-middle:
 	${DC} -f ${APP_MIDDLE_FILE} up -d

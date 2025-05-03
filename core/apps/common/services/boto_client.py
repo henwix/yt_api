@@ -17,6 +17,10 @@ class BaseBotoClientService(ABC):
     def get_bucket_name(self) -> str:
         ...
 
+    @abstractmethod
+    def get_videos_bucket_key(self, filename: str) -> str:
+        ...
+
 
 class BotoClientService(BaseBotoClientService):
     def get_s3_client(self) -> Any:
@@ -29,3 +33,6 @@ class BotoClientService(BaseBotoClientService):
 
     def get_bucket_name(self) -> str:
         return os.environ.get('AWS_STORAGE_BUCKET_NAME')
+
+    def get_videos_bucket_key(self, filename: str) -> str:
+        return os.environ.get('AWS_S3_VIDEO_BUCKET_PREFIX') + filename

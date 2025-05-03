@@ -1,9 +1,6 @@
 from django.contrib.auth import get_user_model  # noqa
 from django.db import transaction
-from rest_framework import (  # noqa
-    generics,
-    status,
-)
+from rest_framework import status  # noqa
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -32,10 +29,6 @@ from .use_cases.auth import (  # noqa
 )
 
 
-# TODO: уведомления о входе через бота Telegram
-
-
-#  TODO: doc schema
 class UserLoginView(APIView):
     def post(self, request):
         container: punq.Container = get_container()

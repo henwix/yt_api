@@ -6,15 +6,27 @@ from core.apps.common.exceptions import ServiceException
 
 
 @dataclass
-class VideoWithUploadIdNotFoundError(ServiceException):
+class VideoNotFoundByUploadIdError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
-    default_detail = {'error': 'Video with this upload_id not found'}
+    default_detail = {'error': 'Video not found by upload_id'}
 
     upload_id: str = None
 
     @property
     def message(self):
-        return 'Video with this upload_id not found'
+        return 'Video not found by upload_id'
+
+
+@dataclass
+class VideoNotFoundByKeyError(ServiceException):
+    status_code = status.HTTP_404_NOT_FOUND
+    default_detail = {'error': 'Video not found by key'}
+
+    key: str
+
+    @property
+    def message(self):
+        return 'Video not found by key'
 
 
 @dataclass

@@ -3,11 +3,11 @@ from dataclasses import dataclass
 from django.contrib.auth import get_user_model
 
 from core.apps.channels.services.channels import BaseChannelService
-from core.apps.videos.services.upload import BaseFilenameValidatorService
-from core.apps.videos.services.videos import (
-    BaseS3VideoService,
-    BaseVideoService,
+from core.apps.videos.services.s3_videos import (
+    BaseFilenameValidatorService,
+    BaseS3FileService,
 )
+from core.apps.videos.services.videos import BaseVideoService
 
 
 User = get_user_model()
@@ -18,7 +18,7 @@ User = get_user_model()
 class InitiateMultipartUploadUseCase:
     video_service: BaseVideoService
     channel_service: BaseChannelService
-    s3_video_service: BaseS3VideoService
+    s3_video_service: BaseS3FileService
     validator_service: BaseFilenameValidatorService
 
     def execute(self, user: User, filename: str, validated_data: dict):
@@ -37,6 +37,6 @@ class InitiateMultipartUploadUseCase:
         validated_data.update({'author': channel, 'upload_id': upload_id})
 
         #  Create video with 'validated_data' fields
-        self.video_service.video_create_for_s3(validated_data=validated_data)
+        self.video_service.video_create(validated_data=validated_data)
 
-        return upload_id, key
+        return {'upload_id': upload_id, 'key': key}

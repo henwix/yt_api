@@ -9,12 +9,14 @@ class Channel(models.Model):
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, related_name='channel', db_index=True)
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=40, unique=True, blank=True)
+    description = models.TextField(blank=True)
     country = models.CharField(max_length=40)
     subscriptions = models.ManyToManyField(
         to='self', symmetrical=False, through='SubscriptionItem', related_name='subscribers', blank=True,
     )
-    description = models.TextField(blank=True)
-    channel_avatar = models.ImageField(upload_to='channel_avatars', null=True, blank=True)
+
+    avatar_s3_key = models.CharField(max_length=255, null=True, blank=True)
+    avatar_s3_bucket = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return f'{self.name} | {self.slug}'

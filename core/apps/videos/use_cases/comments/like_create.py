@@ -10,7 +10,7 @@ User = get_user_model()
 
 
 @dataclass
-class LikeCreateUseCase:
+class CommentLikeCreateUseCase:
     comment_service: BaseCommentService
     channel_service: BaseChannelService
 

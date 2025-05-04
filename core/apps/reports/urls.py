@@ -10,7 +10,7 @@ from .views import VideoReportsView
 app_name = 'reports'
 
 router = DefaultRouter()
-router.register('video-reports', VideoReportsView, basename='video-reports')
+router.register('videos-reports', VideoReportsView, basename='videos-reports')
 
 urlpatterns = [
     path('', include(router.urls)),

@@ -3,7 +3,6 @@ from abc import (
     abstractmethod,
 )
 from dataclasses import dataclass
-from logging import Logger
 from typing import (
     Iterable,
     Tuple,
@@ -18,8 +17,6 @@ from core.apps.channels.exceptions.subscriptions import (
 )
 
 from ..exceptions.channels import (
-    AvatarDoesNotExistsError,
-    AvatarExceptionError,
     ChannelNotFoundError,
     SlugChannelNotFoundError,
 )
@@ -27,10 +24,8 @@ from ..models import (
     Channel,
     SubscriptionItem,
 )
-from ..providers.channels import BaseChannelAvatarProvider
 from ..repositories.channels import (
     BaseChannelAboutRepository,
-    BaseChannelAvatarRepository,
     BaseChannelMainRepository,
     BaseChannelRepository,
     BaseChannelSubsRepository,
@@ -46,10 +41,16 @@ class BaseChannelService(ABC):
     repository: BaseChannelRepository
 
     @abstractmethod
-    def get_channel_by_user(self, user: User) -> Channel: ...
+    def get_channel_by_user(self, user: User) -> Channel:
+        ...
 
     @abstractmethod
-    def delete_channel(self, user: User) -> None: ...
+    def delete_channel(self, user: User) -> None:
+        ...
+
+    @abstractmethod
+    def update_avatar_fields_to_none(self, channel: Channel) -> None:
+        ...
 
 
 class ORMChannelService(BaseChannelService):
@@ -63,6 +64,9 @@ class ORMChannelService(BaseChannelService):
     def delete_channel(self, user: User) -> None:
         self.repository.delete_channel(user)
 
+    def update_avatar_fields_to_none(self, channel: Channel) -> None:
+        self.repository.update_avatar_fields_to_none(channel)
+
 
 @dataclass(eq=False)
 class BaseChannelSubsService(ABC):
@@ -75,59 +79,6 @@ class BaseChannelSubsService(ABC):
 class ORMChannelSubsService(BaseChannelSubsService):
     def get_subscriber_list(self, channel: Channel) -> Iterable[SubscriptionItem]:
         return self.repository.get_subscriber_list(channel=channel).select_related('subscriber', 'subscribed_to')
-
-
-@dataclass(eq=False)
-class BaseAvatarValidatorService(ABC):
-    @abstractmethod
-    def validate_avatar(self, channel: Channel) -> None: ...
-
-
-class AvatarValidatorService(BaseAvatarValidatorService):
-    def validate_avatar(self, channel: Channel) -> None:
-        if not bool(channel.channel_avatar):
-            raise AvatarDoesNotExistsError(channel_slug=channel.slug)
-
-
-@dataclass(eq=False)
-class BaseChannelAvatarService(ABC):
-    @abstractmethod
-    def delete_avatar(self, user: User) -> dict: ...
-
-
-@dataclass
-class ChannelAvatarService(BaseChannelAvatarService):
-    avatar_repository: BaseChannelAvatarRepository
-    channel_repository: BaseChannelRepository
-    validator_service: BaseAvatarValidatorService
-    logger: Logger
-
-    def delete_avatar(self, user: User) -> dict:
-        channel = self.channel_repository.get_channel_by_user(user)
-
-        self.validator_service.validate_avatar(channel)
-
-        try:
-            self.avatar_repository.delete_avatar(channel)
-        except Exception as e:
-            self.logger.info('Channel avatar deletion error: %s', e)
-            raise AvatarExceptionError(channel_slug=channel.slug)
-        else:
-            return {'status': 'Success'}
-
-
-@dataclass
-class CeleryChannelAvatarService(BaseChannelAvatarService):
-    provider: BaseChannelAvatarProvider
-    channel_repository: BaseChannelRepository
-    validator_service: BaseAvatarValidatorService
-
-    def delete_avatar(self, user: User) -> dict:
-        channel = self.channel_repository.get_channel_by_id(user.pk)
-        self.validator_service.validate_avatar(channel)
-
-        self.provider.delete_avatar(user.pk)
-        return {'status': 'Your avatar will be deleted soon, it can take a few minutes'}
 
 
 @dataclass(eq=False)

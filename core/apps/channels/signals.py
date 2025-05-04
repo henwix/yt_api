@@ -9,7 +9,8 @@ from django.dispatch import receiver
 
 import punq
 
-from core.apps.videos.providers.videos import BaseCeleryFileProvider
+from core.apps.common.providers.files import BaseCeleryFileProvider
+from core.apps.videos.models import Video
 from core.project.containers import get_container
 
 from .models import Channel
@@ -42,12 +43,14 @@ def delete_channel_files_signal(instance, **kwargs):
 
     # Collect all related videos to list and if it's not empty extend to 'files'
     if instance.videos.exists():
-        videos = [{'Key': video.file.name} for video in instance.videos.all() if video.file]
+        videos = [
+            {'Key': v.s3_key} for v in instance.videos.all() if v.upload_status == Video.UploadStatus.FINISHED
+        ]
         files.extend(videos)
 
-    # If channel_avatar exists it'll append to 'files' list
-    if instance.channel_avatar and instance.channel_avatar.name:
-        files.append({'Key': instance.channel_avatar.name})
+    # If avatar_s3_key exists it'll append to 'files' list
+    if instance.avatar_s3_key is not None:
+        files.append({'Key': instance.avatar_s3_key})
 
     if files:
-        celery_provider.delete_files(files=files)
+        celery_provider.delete_objects(objects=files)

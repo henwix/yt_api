@@ -30,12 +30,20 @@ User = get_user_model()
 
 class BaseChannelRepository(ABC):
     @abstractmethod
-    def get_channel_by_user(self, user: User) -> Channel | None: ...
-
-    def get_channel_by_id(self, user_id: int) -> Channel | None: ...
+    def get_channel_by_user(self, user: User) -> Channel | None:
+        ...
 
     @abstractmethod
-    def delete_channel(self, user: User) -> None: ...
+    def get_channel_by_id(self, user_id: int) -> Channel | None:
+        ...
+
+    @abstractmethod
+    def delete_channel(self, user: User) -> None:
+        ...
+
+    @abstractmethod
+    def update_avatar_fields_to_none(self, channel: Channel) -> None:
+        ...
 
 
 class ORMChannelRepository(BaseChannelRepository):
@@ -48,6 +56,9 @@ class ORMChannelRepository(BaseChannelRepository):
     def delete_channel(self, user: User) -> None:
         user.delete()
 
+    def update_avatar_fields_to_none(self, channel: Channel) -> None:
+        Channel.objects.filter(pk=channel.pk).update(avatar_s3_key=None, avatar_s3_bucket=None)
+
 
 class BaseChannelSubsRepository(ABC):
     @abstractmethod
@@ -57,16 +68,6 @@ class BaseChannelSubsRepository(ABC):
 class ORMChannelSubsRepository(BaseChannelSubsRepository):
     def get_subscriber_list(self, channel: Channel) -> Iterable[SubscriptionItem]:
         return SubscriptionItem.objects.filter(subscribed_to=channel)
-
-
-class BaseChannelAvatarRepository(ABC):
-    @abstractmethod
-    def delete_avatar(self, channel: Channel) -> None: ...
-
-
-class ORMChannelAvatarRepository(BaseChannelAvatarRepository):
-    def delete_avatar(self, channel: Channel) -> None:
-        channel.channel_avatar.delete()
 
 
 class BaseChannelMainRepository(ABC):

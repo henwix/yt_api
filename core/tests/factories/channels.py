@@ -12,9 +12,9 @@ from core.apps.channels.models import (
 from .common import factory_lazy_function
 
 
-fake = Faker()
-
 User = get_user_model()
+
+fake = Faker()
 
 
 class UserModelFactory(DjangoModelFactory):

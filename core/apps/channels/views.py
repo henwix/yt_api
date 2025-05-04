@@ -14,12 +14,15 @@ from rest_framework.views import APIView
 
 import orjson
 import punq
+from botocore.exceptions import ClientError
 from drf_spectacular.utils import (
     extend_schema,
     OpenApiExample,
     OpenApiTypes,
 )
 
+from core.apps.channels.use_cases.avatar_upload.delete_avatar import DeleteChannelAvatarUseCase
+from core.apps.channels.use_cases.avatar_upload.upload_avatar_url import GenerateUploadAvatarUrlUseCase
 from core.apps.common.exceptions import ServiceException
 from core.apps.common.mixins import PaginationMixin
 from core.apps.common.pagination import CustomCursorPagination
@@ -33,7 +36,6 @@ from .models import (
 )
 from .services.channels import (
     BaseChannelAboutService,
-    BaseChannelAvatarService,
     BaseChannelMainService,
     BaseChannelService,
     BaseChannelSubsService,
@@ -89,13 +91,6 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         self.channel_service.delete_channel(request.user)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def put(self, request, *args, **kwargs):
-        # file = request.FILES.get('channel_avatar')
-        # logger.info(file.__dict__)
-        # storage = storages['local']
-        # storage.save(file.name, file.file)
-        return super().put(request, *args, **kwargs)
-
 
 class ChannelSubscribersView(generics.ListAPIView, PaginationMixin):
     """API endpoint to channel's subscribers listing.
@@ -138,24 +133,6 @@ class ChannelSubscribersView(generics.ListAPIView, PaginationMixin):
 
         response = Response(serializer.data, status.HTTP_200_OK)
         return response
-
-
-class ChannelAvatarDestroy(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        container: punq.Container = get_container()
-        self.service: BaseChannelAvatarService = container.resolve(BaseChannelAvatarService)
-        self.logger: Logger = container.resolve(Logger)
-
-    def delete(self, request):
-        try:
-            result = self.service.delete_avatar(request.user)
-        except ServiceException as error:
-            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
-            raise
-        return Response(result, status.HTTP_204_NO_CONTENT)
 
 
 class ChannelMainView(generics.RetrieveAPIView):
@@ -292,3 +269,76 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
             raise
         else:
             return Response(result, status.HTTP_204_NO_CONTENT)
+
+
+@extend_schema(
+    request={
+        'application/json': {
+            'type': 'object',
+            'properties': {
+                'filename': {'type': 'string'},
+            },
+            'required': ['filename'],
+        },
+    },
+    responses={
+        201: {
+            'type': 'object',
+            'properties': {
+                'upload_url': {
+                    'type': 'string',
+                    'description': 'Presigned URL for avatar upload',
+                },
+            },
+        },
+    },
+    summary='Generate presigned url for avatar upload',
+)
+class GenerateUploadAvatarUrlView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        container: punq.Container = get_container()
+        use_case: GenerateUploadAvatarUrlUseCase = container.resolve(GenerateUploadAvatarUrlUseCase)
+        logger: Logger = container.resolve(Logger)
+
+        try:
+            result = use_case.execute(filename=request.data.get('filename'))
+
+        except ClientError as error:
+            logger.error(
+                "S3 client can't generate upload avatar url",
+                extra={'log_meta': orjson.dumps(str(error)).decode()},
+            )
+            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        except ServiceException as error:
+            logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        return Response(result, status=status.HTTP_201_CREATED)
+
+
+class DeleteChannelAvatarView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request):
+        container: punq.Container = get_container()
+        use_case: DeleteChannelAvatarUseCase = container.resolve(DeleteChannelAvatarUseCase)
+        logger: Logger = container.resolve(Logger)
+
+        try:
+            result = use_case.execute(user=request.user)
+
+        except ClientError as error:
+            logger.error(
+                "S3 client can't delete channel avatar",
+                extra={'log_meta': orjson.dumps(str(error)).decode()},
+            )
+            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        except ServiceException as error:
+            logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        return Response(result, status=status.HTTP_200_OK)

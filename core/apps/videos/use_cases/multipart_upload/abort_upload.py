@@ -3,10 +3,8 @@ from dataclasses import dataclass
 from django.contrib.auth import get_user_model
 
 from core.apps.channels.services.channels import BaseChannelService
-from core.apps.videos.services.s3_videos import (
-    BaseS3FileService,
-    BaseVideoS3UploadValidatorService,
-)
+from core.apps.common.services.files import BaseS3FileService
+from core.apps.videos.services.s3_videos import BaseUploadVideoValidatorService
 from core.apps.videos.services.videos import BaseVideoService
 
 
@@ -14,11 +12,11 @@ User = get_user_model()
 
 
 @dataclass
-class AbortMultipartUploadUseCase:
+class AbortVideoMultipartUploadUseCase:
     video_service: BaseVideoService
     channel_service: BaseChannelService
-    s3_video_service: BaseS3FileService
-    video_upload_validator_service: BaseVideoS3UploadValidatorService
+    video_upload_validator_service: BaseUploadVideoValidatorService
+    files_service: BaseS3FileService
 
     def execute(self, user: User, key: str, upload_id: str):
         # retrieve channel by user
@@ -32,7 +30,7 @@ class AbortMultipartUploadUseCase:
         self.video_upload_validator_service.validate(video=video, upload_id=upload_id)
 
         # abort multipart upload
-        self.s3_video_service.abort_multipart_upload(
+        self.files_service.abort_multipart_upload(
             key=key,
             upload_id=upload_id,
         )

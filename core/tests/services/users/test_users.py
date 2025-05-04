@@ -46,7 +46,6 @@ def test_user_not_found():
 
 @pytest.mark.django_db
 def test_get_user_by_email(user_service: BaseUserService, user=User):
-    user = UserModelFactory()
     received_user = user_service.get_by_email(user.email)
 
     assert user == received_user

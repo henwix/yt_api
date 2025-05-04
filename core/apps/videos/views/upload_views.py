@@ -20,11 +20,11 @@ from core.apps.videos.serializers.video_upload_serializers import (
     GenerateUploadPartUrlSerializer,
     KeySerializer,
 )
-from core.apps.videos.use_cases.multipart_upload.abort_upload import AbortMultipartUploadUseCase
-from core.apps.videos.use_cases.multipart_upload.complete_upload import CompleteUploadUseCase
-from core.apps.videos.use_cases.multipart_upload.initiate_upload import InitiateMultipartUploadUseCase
-from core.apps.videos.use_cases.multipart_upload.presigned_url_get_video import GenerateUrlForVideoRetrieveUseCase
-from core.apps.videos.use_cases.multipart_upload.presigned_url_upload import GenerateUrlForUploadUseCase
+from core.apps.videos.use_cases.multipart_upload.abort_upload import AbortVideoMultipartUploadUseCase
+from core.apps.videos.use_cases.multipart_upload.complete_upload import CompleteVideoMultipartUploadUseCase
+from core.apps.videos.use_cases.multipart_upload.create_upload import CreateVideoMultipartUploadUseCase
+from core.apps.videos.use_cases.multipart_upload.download_video_url import GenerateUrlForVideoDownloadUseCase
+from core.apps.videos.use_cases.multipart_upload.upload_video_url import GenerateUrlForVideoUploadUseCase
 from core.project.containers import get_container
 
 
@@ -48,7 +48,7 @@ class InitiateMultipartUploadView(generics.GenericAPIView):
 
     def post(self, request):
         container: punq.Container = get_container()
-        use_case: InitiateMultipartUploadUseCase = container.resolve(InitiateMultipartUploadUseCase)
+        use_case: CreateVideoMultipartUploadUseCase = container.resolve(CreateVideoMultipartUploadUseCase)
         logger: Logger = container.resolve(Logger)
 
         serializer = self.get_serializer(data=request.data)
@@ -60,6 +60,7 @@ class InitiateMultipartUploadView(generics.GenericAPIView):
                 filename=request.data.get('filename'),
                 validated_data=serializer.validated_data,
             )
+
         except ClientError as error:
             logger.error(
                 "S3 client can't create multipart upload",
@@ -80,7 +81,7 @@ class GenerateUploadPartUrlView(generics.GenericAPIView):
 
     def post(self, request):
         container: punq.Container = get_container()
-        use_case: GenerateUrlForUploadUseCase = container.resolve(GenerateUrlForUploadUseCase)
+        use_case: GenerateUrlForVideoUploadUseCase = container.resolve(GenerateUrlForVideoUploadUseCase)
         logger: Logger = container.resolve(Logger)
 
         serializer = self.get_serializer(data=request.data)
@@ -93,6 +94,7 @@ class GenerateUploadPartUrlView(generics.GenericAPIView):
                 upload_id=serializer.validated_data.get('upload_id'),
                 part_number=serializer.validated_data.get('part_number'),
             )
+
         except ClientError as error:
             logger.error(
                 "S3 client can't generate presigned url for video upload",
@@ -119,13 +121,14 @@ class GenerateUploadPartUrlView(generics.GenericAPIView):
             },
         },
     },
+    summary='Generate presigned url for video download',
 )
 class GenerateDownloadVideoUrlView(generics.GenericAPIView):
     serializer_class = KeySerializer
 
     def post(self, request):
         container: punq.Container = get_container()
-        use_case: GenerateUrlForVideoRetrieveUseCase = container.resolve(GenerateUrlForVideoRetrieveUseCase)
+        use_case: GenerateUrlForVideoDownloadUseCase = container.resolve(GenerateUrlForVideoDownloadUseCase)
         logger: Logger = container.resolve(Logger)
 
         serializer = self.get_serializer(data=request.data)
@@ -135,6 +138,7 @@ class GenerateDownloadVideoUrlView(generics.GenericAPIView):
             result = use_case.execute(
                 key=serializer.validated_data.get('key'),
             )
+
         except ClientError as error:
             logger.error(
                 "S3 client can't generate presigned url for video download",
@@ -155,7 +159,7 @@ class AbortMultipartUploadView(generics.GenericAPIView):
 
     def post(self, request):
         container: punq.Container = get_container()
-        use_case: AbortMultipartUploadUseCase = container.resolve(AbortMultipartUploadUseCase)
+        use_case: AbortVideoMultipartUploadUseCase = container.resolve(AbortVideoMultipartUploadUseCase)
         logger: Logger = container.resolve(Logger)
 
         serializer = self.get_serializer(data=request.data)
@@ -167,6 +171,7 @@ class AbortMultipartUploadView(generics.GenericAPIView):
                 key=serializer.validated_data.get('key'),
                 upload_id=serializer.validated_data.get('upload_id'),
             )
+
         except ClientError as error:
             logger.error(
                 "S3 client can't abort multipart upload",
@@ -187,7 +192,7 @@ class CompleteMultipartUploadView(generics.GenericAPIView):
 
     def post(self, request):
         container: punq.Container = get_container()
-        use_case: CompleteUploadUseCase = container.resolve(CompleteUploadUseCase)
+        use_case: CompleteVideoMultipartUploadUseCase = container.resolve(CompleteVideoMultipartUploadUseCase)
         logger: Logger = container.resolve(Logger)
 
         serializer = self.get_serializer(data=request.data)
@@ -200,6 +205,7 @@ class CompleteMultipartUploadView(generics.GenericAPIView):
                 upload_id=serializer.validated_data.get('upload_id'),
                 parts=serializer.validated_data.get('parts'),
             )
+
         except ClientError as error:
             logger.error(
                 "S3 client can't complete multipart upload",

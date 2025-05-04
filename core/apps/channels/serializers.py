@@ -16,30 +16,13 @@ class ChannelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Channel
-        fields = ['name', 'slug', 'description', 'country', 'channel_avatar']
-        read_only_fields = ['user']
+        fields = ['name', 'slug', 'description', 'country', 'avatar_s3_key']
+        read_only_fields = ['user', 'avatar_s3_key']
         extra_kwargs = {
             'name': {
                 'required': False,
             },
         }
-
-    def validate_channel_avatar(self, value):
-        if value and value.size > 1 * 1024 * 1024:
-            raise serializers.ValidationError('File size must be less than 1MB.')
-
-        return value
-
-    def update(self, instance, validated_data):
-        uploaded_avatar = validated_data.get('channel_avatar')
-
-        if uploaded_avatar and instance.channel_avatar:
-            instance.channel_avatar.delete(save=False)
-
-        if uploaded_avatar is None and 'channel_avatar' in validated_data.keys():
-            validated_data.pop('channel_avatar')
-
-        return super().update(instance, validated_data)
 
 
 class ChannelAndVideosSerializer(ChannelSerializer):
@@ -65,7 +48,7 @@ class ChannelAboutSerializer(serializers.ModelSerializer):
     total_subs = serializers.IntegerField(read_only=True)
     date_joined = serializers.DateTimeField(source='user.date_joined', read_only=True)
     channel_link = serializers.HyperlinkedIdentityField(
-        view_name='v1:channels:channel-show',
+        view_name='v1:channels:channels-show',
         lookup_field='slug',
         lookup_url_kwarg='slug',
     )
@@ -78,7 +61,7 @@ class ChannelAboutSerializer(serializers.ModelSerializer):
 class SubscriptionSerializer(serializers.ModelSerializer):
     sub_slug = serializers.CharField(source='subscriber.slug', read_only=True)
     sub_link = serializers.HyperlinkedRelatedField(
-        view_name='v1:channels:channel-show',
+        view_name='v1:channels:channels-show',
         lookup_field='slug',
         lookup_url_kwarg='slug',
         source='subscriber',

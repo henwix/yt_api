@@ -12,12 +12,12 @@ from .models import VideoReport
 
 class VideoReportSerializer(serializers.ModelSerializer):
     report_link = serializers.HyperlinkedIdentityField(
-        view_name='v1:reports:video-reports-detail',
+        view_name='v1:reports:videos-reports-detail',
         many=False,
     )
     video = serializers.SlugRelatedField(queryset=Video.objects.all(), slug_field='video_id', write_only=True)
     video_link = serializers.HyperlinkedRelatedField(
-        view_name='v1:videos:video-detail',
+        view_name='v1:videos:videos-detail',
         read_only=True,
         many=False,
         lookup_field='video_id',
@@ -25,7 +25,7 @@ class VideoReportSerializer(serializers.ModelSerializer):
         source='video',
     )
     author_link = serializers.HyperlinkedRelatedField(
-        view_name='v1:channels:channel-show',
+        view_name='v1:channels:channels-show',
         read_only=True,
         many=False,
         lookup_field='slug',

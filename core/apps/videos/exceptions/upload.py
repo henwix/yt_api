@@ -30,22 +30,22 @@ class VideoNotFoundByKeyError(ServiceException):
 
 
 @dataclass
-class FilenameNotProvidedError(ServiceException):
+class VideoFilenameNotProvidedError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = {'error': 'Filename not provided'}
+    default_detail = {'error': 'Video filename not provided'}
 
     @property
     def message(self):
-        return 'Filename not provided'
+        return 'Video filename not provided'
 
 
 @dataclass
-class UnsupportedFileFormatError(ServiceException):
+class VideoFilenameFormatError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = {'error': 'Unsupported file format'}
+    default_detail = {'error': 'Unsupported video file format'}
 
     filename: str
 
     @property
     def message(self):
-        return 'Unsupported file format'
+        return 'Unsupported video file format'

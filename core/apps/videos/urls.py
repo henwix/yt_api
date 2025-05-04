@@ -14,21 +14,23 @@ app_name = 'videos'
 
 
 router = DefaultRouter()
-router.register('video', video_views.VideoViewSet, basename='video')
-router.register('video-comment', video_views.CommentVideoAPIView, basename='video-comment')
+router.register('videos', video_views.VideoViewSet, basename='videos')
+router.register('videos-comments', video_views.CommentVideoAPIView, basename='videos-comments')
 router.register('history', video_views.VideoHistoryView, basename='history')
-router.register('playlist', video_views.PlaylistAPIView, basename='playlist')
+router.register('playlists', video_views.PlaylistAPIView, basename='playlists')
 
 urlpatterns = [
-    path('', include(router.urls)),
-    path('my-videos/', video_views.MyVideoView.as_view(), name='my-videos'),
+    path('videos/personal/', video_views.MyVideoView.as_view(), name='videos-personal'),
 
     # endpoints for video multipart upload
-    path('video-upload-init/', upload_views.InitiateMultipartUploadView.as_view(), name='upload-video-init'),
-    path('video-upload-link/', upload_views.GenerateUploadPartUrlView.as_view(), name='upload-video-url'),
-    path('video-upload-complete/', upload_views.CompleteMultipartUploadView.as_view(), name='upload-video-complete'),
-    path('video-upload-abort/', upload_views.AbortMultipartUploadView.as_view(), name='upload-video-abort'),
+    path('videos/upload/complete/', upload_views.CompleteMultipartUploadView.as_view(), name='videos-upload-complete'),
+    path('videos/upload/create/', upload_views.InitiateMultipartUploadView.as_view(), name='videos-upload-create'),
+    path('videos/upload/abort/', upload_views.AbortMultipartUploadView.as_view(), name='videos-upload-abort'),
+    path('videos/upload/url/', upload_views.GenerateUploadPartUrlView.as_view(), name='videos-upload-url'),
 
     # endpoints for video download
-    path('video-download-url/', upload_views.GenerateDownloadVideoUrlView.as_view(), name='download-video-url'),
+    path('videos/download/url/', upload_views.GenerateDownloadVideoUrlView.as_view(), name='videos-download-url'),
+
+    # router urls
+    path('', include(router.urls)),
 ]

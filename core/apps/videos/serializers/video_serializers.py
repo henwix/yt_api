@@ -12,7 +12,7 @@ class VideoCommentSerializer(serializers.ModelSerializer):
     video = serializers.SlugRelatedField(queryset=Video.objects.all(), slug_field='video_id', write_only=True)
     author = serializers.HiddenField(default=None)
     author_link = serializers.HyperlinkedRelatedField(
-        view_name='v1:channels:channel-show',
+        view_name='v1:channels:channels-show',
         lookup_field='slug',
         lookup_url_kwarg='slug',
         source='author',
@@ -21,7 +21,7 @@ class VideoCommentSerializer(serializers.ModelSerializer):
     )
     author_slug = serializers.CharField(source='author.slug', read_only=True)
     update_link = serializers.HyperlinkedIdentityField(
-        view_name='v1:videos:video-comment-detail',
+        view_name='v1:videos:videos-comment-detail',
         many=False,
         read_only=True,
     )
@@ -59,14 +59,14 @@ class VideoSerializer(serializers.ModelSerializer):
 
     author_name = serializers.StringRelatedField(source='author')
     author_link = serializers.HyperlinkedRelatedField(
-        view_name='v1:channels:channel-show',
+        view_name='v1:channels:channels-show',
         lookup_field='slug',
         lookup_url_kwarg='slug',
         source='author',
         read_only=True,
     )
     video_link = serializers.HyperlinkedIdentityField(
-        view_name='v1:videos:video-detail',
+        view_name='v1:videos:videos-detail',
         lookup_field='video_id',
         lookup_url_kwarg='video_id',
     )
@@ -110,14 +110,14 @@ class VideoPreviewSerializer(serializers.ModelSerializer):
     """Video serializer for preview."""
 
     video_link = serializers.HyperlinkedIdentityField(
-        view_name='v1:videos:video-detail',
+        view_name='v1:videos:videos-detail',
         lookup_field='video_id',
         lookup_url_kwarg='video_id',
     )
     views_count = serializers.IntegerField(read_only=True)
     author_name = serializers.CharField(source='author.slug')
     author_link = serializers.HyperlinkedRelatedField(
-        view_name='v1:channels:channel-show',
+        view_name='v1:channels:channels-show',
         source='author',
         many=False,
         read_only=True,
@@ -154,7 +154,7 @@ class VideoHistorySerializer(serializers.ModelSerializer):
 class PlaylistPreviewSerializer(serializers.ModelSerializer):
     channel_name = serializers.CharField(source='channel.name', read_only=True)
     channel_link = serializers.HyperlinkedRelatedField(
-        view_name='v1:channels:channel-show',
+        view_name='v1:channels:channels-show',
         many=False,
         read_only=True,
         lookup_field='slug',
@@ -162,7 +162,7 @@ class PlaylistPreviewSerializer(serializers.ModelSerializer):
         source='channel',
     )
     playlist_link = serializers.HyperlinkedIdentityField(
-        view_name='v1:videos:playlist-detail',
+        view_name='v1:videos:playlists-detail',
         lookup_field='id',
         lookup_url_kwarg='id',
         read_only=True,

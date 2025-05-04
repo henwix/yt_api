@@ -47,8 +47,8 @@ from core.apps.videos.services.videos import (
     BaseVideoPlaylistService,
     BaseVideoService,
 )
-from core.apps.videos.use_cases.comments.like_create import LikeCreateUseCase
-from core.apps.videos.use_cases.comments.like_delete import LikeDeleteUseCase
+from core.apps.videos.use_cases.comments.like_create import CommentLikeCreateUseCase
+from core.apps.videos.use_cases.comments.like_delete import CommentLikeDeleteUseCase
 from core.project.containers import get_container
 
 
@@ -231,7 +231,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
 
     Supports pagination by cursor.
 
-    Example: /api/v1/video-comment/?v=uN9qVyjTrO6
+    Example: /api/v1/videos-comment/?v=uN9qVyjTrO6
 
     """
 
@@ -331,7 +331,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
     )
     @action(methods=['post'], url_path='like', detail=True)
     def like_create(self, request, pk):
-        use_case: LikeCreateUseCase = self.container.resolve(LikeCreateUseCase)
+        use_case: CommentLikeCreateUseCase = self.container.resolve(CommentLikeCreateUseCase)
 
         try:
             result = use_case.execute(
@@ -347,7 +347,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
 
     @action(methods=['delete'], url_path='unlike', detail=True)
     def like_delete(self, request, pk):
-        use_case: LikeDeleteUseCase = self.container.resolve(LikeDeleteUseCase)
+        use_case: CommentLikeDeleteUseCase = self.container.resolve(CommentLikeDeleteUseCase)
 
         try:
             result = use_case.execute(
@@ -448,7 +448,7 @@ class MyVideoView(generics.ListAPIView):
 
     Supports cursor pagination.
 
-    Example: api/v1/my-videos/
+    Example: api/v1/videos-personal/
 
     """
 

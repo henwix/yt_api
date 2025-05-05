@@ -25,7 +25,7 @@ class BaseAvatarValidatorService(ABC):
 
 class AvatarExistsValidatorService(BaseAvatarValidatorService):
     def validate(self, channel: Channel) -> None:
-        if channel.avatar_s3_key is None:
+        if not channel.avatar_s3_key or channel.avatar_s3_key is None:
             raise AvatarDoesNotExistsError(channel_slug=channel.slug)
 
 
@@ -37,7 +37,7 @@ class BaseAvatarFilenameValidatorService(ABC):
 
 
 class AvatarFilenameExistsValidatorService(BaseAvatarFilenameValidatorService):
-    def validate(self, filename: str) -> None:
+    def validate(self, filename: str | None) -> None:
         if filename is None:
             raise AvatarFilenameNotProvidedError()
 
@@ -48,7 +48,6 @@ class AvatarFilenameFormatValidatorService(BaseAvatarFilenameValidatorService):
             raise AvatarFilenameFormatError(filename=filename)
 
 
-# TODO: add validator for avatar size
 @dataclass
 class ComposedAvatarFilenameValidatorService(BaseAvatarFilenameValidatorService):
     validators: list[BaseAvatarFilenameValidatorService]

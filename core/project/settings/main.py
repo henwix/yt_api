@@ -331,6 +331,11 @@ MEDIA_URL = '/media/'
 
 # Files Storages
 
+CACHE_KEYS = {
+    's3_video_url': 's3_video_url_',
+    's3_avatar_url': 's3_avatar_url_',
+}
+
 
 STORAGES = {
     'default': {
@@ -346,6 +351,9 @@ AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
 AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME')
 AWS_S3_FILE_OVERWRITE = False
 AWS_QUERYSTRING_AUTH = False
+
+AWS_S3_VIDEO_BUCKET_PREFIX = os.environ.get('AWS_S3_VIDEO_BUCKET_PREFIX')
+AWS_S3_AVATAR_BUCKET_PREFIX = os.environ.get('AWS_S3_AVATAR_BUCKET_PREFIX')
 
 
 # Celery

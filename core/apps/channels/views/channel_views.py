@@ -10,40 +10,39 @@ from rest_framework import (
 )
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 import orjson
 import punq
-from botocore.exceptions import ClientError
 from drf_spectacular.utils import (
     extend_schema,
     OpenApiExample,
     OpenApiTypes,
 )
 
-from core.apps.channels.use_cases.avatar_upload.delete_avatar import DeleteChannelAvatarUseCase
-from core.apps.channels.use_cases.avatar_upload.upload_avatar_url import GenerateUploadAvatarUrlUseCase
-from core.apps.common.exceptions import ServiceException
-from core.apps.common.mixins import PaginationMixin
-from core.apps.common.pagination import CustomCursorPagination
-from core.apps.common.services.cache import BaseCacheService
-from core.project.containers import get_container
-
-from . import serializers
-from .models import (
+from core.apps.channels.models import (
     Channel,
     SubscriptionItem,
 )
-from .services.channels import (
+from core.apps.channels.serializers import (
+    ChannelAboutSerializer,
+    ChannelAndVideosSerializer,
+    ChannelSerializer,
+    SubscriptionSerializer,
+)
+from core.apps.channels.services.channels import (
     BaseChannelAboutService,
     BaseChannelMainService,
     BaseChannelService,
     BaseChannelSubsService,
     BaseSubscriptionService,
 )
+from core.apps.common.exceptions import ServiceException
+from core.apps.common.mixins import PaginationMixin
+from core.apps.common.pagination import CustomCursorPagination
+from core.apps.common.services.cache import BaseCacheService
+from core.project.containers import get_container
 
 
-# TODO: Add endpoint to create/delete channels
 class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     """API endpoint for detail, update and delete 'Channel' instances.
 
@@ -54,7 +53,7 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     """
 
     queryset = Channel.objects.all()
-    serializer_class = serializers.ChannelSerializer
+    serializer_class = ChannelSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def __init__(self, **kwargs):
@@ -100,7 +99,7 @@ class ChannelSubscribersView(generics.ListAPIView, PaginationMixin):
 
     """
 
-    serializer_class = serializers.SubscriptionSerializer
+    serializer_class = SubscriptionSerializer
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = CustomCursorPagination
     queryset = SubscriptionItem.objects.all()
@@ -143,7 +142,7 @@ class ChannelMainView(generics.RetrieveAPIView):
 
     """
 
-    serializer_class = serializers.ChannelAndVideosSerializer
+    serializer_class = ChannelAndVideosSerializer
     lookup_url_kwarg = 'slug'
     lookup_field = 'slug'
     throttle_scope = 'channel'
@@ -166,7 +165,7 @@ class ChannelAboutView(generics.RetrieveAPIView):
 
     """
 
-    serializer_class = serializers.ChannelAboutSerializer
+    serializer_class = ChannelAboutSerializer
     lookup_url_kwarg = 'slug'
     lookup_field = 'slug'
 
@@ -185,7 +184,7 @@ class ChannelAboutView(generics.RetrieveAPIView):
 
 class SubscriptionAPIView(viewsets.GenericViewSet):
     queryset = SubscriptionItem.objects.all()
-    serializer_class = serializers.SubscriptionSerializer
+    serializer_class = SubscriptionSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def __init__(self, **kwargs):
@@ -269,76 +268,3 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
             raise
         else:
             return Response(result, status.HTTP_204_NO_CONTENT)
-
-
-@extend_schema(
-    request={
-        'application/json': {
-            'type': 'object',
-            'properties': {
-                'filename': {'type': 'string'},
-            },
-            'required': ['filename'],
-        },
-    },
-    responses={
-        201: {
-            'type': 'object',
-            'properties': {
-                'upload_url': {
-                    'type': 'string',
-                    'description': 'Presigned URL for avatar upload',
-                },
-            },
-        },
-    },
-    summary='Generate presigned url for avatar upload',
-)
-class GenerateUploadAvatarUrlView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request):
-        container: punq.Container = get_container()
-        use_case: GenerateUploadAvatarUrlUseCase = container.resolve(GenerateUploadAvatarUrlUseCase)
-        logger: Logger = container.resolve(Logger)
-
-        try:
-            result = use_case.execute(filename=request.data.get('filename'))
-
-        except ClientError as error:
-            logger.error(
-                "S3 client can't generate upload avatar url",
-                extra={'log_meta': orjson.dumps(str(error)).decode()},
-            )
-            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        except ServiceException as error:
-            logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
-            raise
-
-        return Response(result, status=status.HTTP_201_CREATED)
-
-
-class DeleteChannelAvatarView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def delete(self, request):
-        container: punq.Container = get_container()
-        use_case: DeleteChannelAvatarUseCase = container.resolve(DeleteChannelAvatarUseCase)
-        logger: Logger = container.resolve(Logger)
-
-        try:
-            result = use_case.execute(user=request.user)
-
-        except ClientError as error:
-            logger.error(
-                "S3 client can't delete channel avatar",
-                extra={'log_meta': orjson.dumps(str(error)).decode()},
-            )
-            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        except ServiceException as error:
-            logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
-            raise
-
-        return Response(result, status=status.HTTP_200_OK)

@@ -93,7 +93,6 @@ class VideoSerializer(serializers.ModelSerializer):
             'upload_status',
             'upload_id',
             's3_key',
-            's3_bucket',
         ]
         read_only_fields = [
             'created_at',
@@ -102,7 +101,6 @@ class VideoSerializer(serializers.ModelSerializer):
             'is_reported',
             'upload_id',
             's3_key',
-            's3_bucket',
         ]
 
 

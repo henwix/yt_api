@@ -1,6 +1,5 @@
 from logging import Logger
 
-from django.core.cache import cache
 from django.db.models.signals import (
     post_save,
     pre_delete,
@@ -9,6 +8,7 @@ from django.dispatch import receiver
 
 import punq
 
+from core.apps.common.providers.cache import BaseCacheProvider
 from core.apps.common.providers.files import BaseCeleryFileProvider
 from core.apps.videos.models import Video
 from core.project.containers import get_container
@@ -23,9 +23,10 @@ def invalidate_channel_cache(instance, created, **kwargs):
 
     container: punq.Container = get_container()
     logger: Logger = container.resolve(Logger)
+    cache_provider: BaseCacheProvider = container.resolve(BaseCacheProvider)
 
     if not created:
-        cache.delete(f'retrieve_channel_{instance.user.pk}')
+        cache_provider.delete(f'retrieve_channel_{instance.user.pk}')
         logger.info('Cache for %s deleted', instance.name)
 
 

@@ -126,7 +126,7 @@ class BotoFileProvider(BaseBotoFileProvider):
         filename: str,
         expires_in: int,
         data_type: str,
-    ) -> str:
+    ) -> tuple:
         client, bucket = self._get_client_and_bucket()
         key = self.boto_client.get_bucket_key(data_type=data_type, filename=filename)
 
@@ -139,4 +139,18 @@ class BotoFileProvider(BaseBotoFileProvider):
             ExpiresIn=expires_in,
         )
 
-        return url
+        return url, key
+
+    def head_object(self, key: str) -> None:
+        """Check if object exists in S3 bucket.
+
+        Args:
+            key: The key of the object to check
+
+        Raises:
+            ClientError: If object does not exist or other S3 error occurs
+
+        """
+        client, bucket = self._get_client_and_bucket()
+
+        client.head_object(Bucket=bucket, Key=key)

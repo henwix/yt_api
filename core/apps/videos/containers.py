@@ -23,14 +23,14 @@ from core.apps.videos.services.comments import (
     ORMCommentService,
 )
 from core.apps.videos.services.s3_videos import (
-    BaseUploadVideoValidatorService,
     BaseVideoFilenameValidatorService,
     ComposedVideoFilenameValidatorService,
-    UploadVideoExistsValidatorService,
     VideoFilenameExistsValidatorService,
     VideoFilenameFormatValidatorService,
 )
 from core.apps.videos.services.videos import (
+    BasePrivateVideoPermissionValidatorService,
+    BaseVideoAuthorValidatorService,
     BaseVideoHistoryService,
     BaseVideoPlaylistService,
     BaseVideoService,
@@ -38,15 +38,17 @@ from core.apps.videos.services.videos import (
     ORMVideoHistoryService,
     ORMVideoPlaylistService,
     ORMVideoService,
+    PrivateVideoPermissionValidatorService,
     VideoExistsValidatorService,
+    VideoMatchAuthorValidatorService,
 )
 from core.apps.videos.use_cases.comments.like_create import CommentLikeCreateUseCase
 from core.apps.videos.use_cases.comments.like_delete import CommentLikeDeleteUseCase
-from core.apps.videos.use_cases.multipart_upload.abort_upload import AbortVideoMultipartUploadUseCase
-from core.apps.videos.use_cases.multipart_upload.complete_upload import CompleteVideoMultipartUploadUseCase
-from core.apps.videos.use_cases.multipart_upload.create_upload import CreateVideoMultipartUploadUseCase
-from core.apps.videos.use_cases.multipart_upload.download_video_url import GenerateUrlForVideoDownloadUseCase
-from core.apps.videos.use_cases.multipart_upload.upload_video_url import GenerateUrlForVideoUploadUseCase
+from core.apps.videos.use_cases.videos_upload.abort_upload_video import AbortVideoMultipartUploadUseCase
+from core.apps.videos.use_cases.videos_upload.complete_upload_video import CompleteVideoMultipartUploadUseCase
+from core.apps.videos.use_cases.videos_upload.create_upload_video import CreateVideoMultipartUploadUseCase
+from core.apps.videos.use_cases.videos_upload.download_video_url import GenerateUrlForVideoDownloadUseCase
+from core.apps.videos.use_cases.videos_upload.upload_video_url import GenerateUrlForVideoUploadUseCase
 
 
 def init_videos(container: punq.Container) -> None:
@@ -75,10 +77,11 @@ def init_videos(container: punq.Container) -> None:
     container.register(BaseCommentService, ORMCommentService)
 
     container.register(BaseVideoValidatorService, VideoExistsValidatorService)
-    container.register(BaseUploadVideoValidatorService, UploadVideoExistsValidatorService)
     container.register(VideoFilenameExistsValidatorService)
     container.register(VideoFilenameFormatValidatorService)
     container.register(BaseVideoFilenameValidatorService, factory=build_video_filename_validators)
+    container.register(BaseVideoAuthorValidatorService, VideoMatchAuthorValidatorService)
+    container.register(BasePrivateVideoPermissionValidatorService, PrivateVideoPermissionValidatorService)
 
     # init use cases
     container.register(CommentLikeCreateUseCase)

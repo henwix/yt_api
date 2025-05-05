@@ -2,11 +2,11 @@ from core.apps.common.providers.files import BaseCeleryFileProvider
 
 
 class CeleryFileProvider(BaseCeleryFileProvider):
-    def delete_object_by_key(self, key: str) -> None:
+    def delete_object_by_key(self, key: str, cache_key: str | None = None) -> None:
         from core.apps.common.tasks import delete_s3_object_task
 
         delete_s3_object_task.apply_async(
-            args=(key,),
+            args=(key, cache_key),
             queue='media-queue',
         )
 

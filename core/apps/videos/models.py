@@ -54,7 +54,6 @@ class Video(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     upload_id = models.CharField(null=True, blank=True)
     s3_key = models.CharField(null=True, blank=True)
-    s3_bucket = models.CharField(null=True, blank=True)
     status = models.CharField(max_length=10, choices=VideoStatus.choices, default=VideoStatus.PUBLIC)
     upload_status = models.CharField(choices=UploadStatus.choices, default=UploadStatus.PENDING)
     is_reported = models.BooleanField(default=False)

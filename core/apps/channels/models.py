@@ -16,7 +16,6 @@ class Channel(models.Model):
     )
 
     avatar_s3_key = models.CharField(max_length=255, null=True, blank=True)
-    avatar_s3_bucket = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return f'{self.name} | {self.slug}'

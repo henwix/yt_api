@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from core.apps.channels.services.channels import BaseChannelService
@@ -18,10 +19,16 @@ class DeleteChannelAvatarUseCase:
 
     def execute(self, user: User) -> dict:
         channel = self.channel_service.get_channel_by_user(user=user)
-        self.validator_service.validate(channel)
+        self.validator_service.validate(channel=channel)
 
-        self.channel_service.update_avatar_fields_to_none(channel=channel)
+        self.channel_service.set_avatar_s3_key(
+            channel_pk=channel.pk,
+            avatar_s3_key=None,
+        )
 
-        self.files_service.delete_object_by_key(key=channel.avatar_s3_key)
+        self.files_service.delete_object_by_key(
+            key=channel.avatar_s3_key,
+            cache_key=settings.CACHE_KEYS['s3_avatar_url'] + channel.avatar_s3_key,
+        )
 
         return {'status': 'success'}

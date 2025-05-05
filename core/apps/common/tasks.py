@@ -5,6 +5,7 @@ import punq
 from botocore.exceptions import ClientError
 from celery import shared_task
 
+from core.apps.common.providers.cache import BaseCacheProvider
 from core.apps.common.providers.files import BaseBotoFileProvider
 from core.project.containers import get_container
 
@@ -47,9 +48,10 @@ def delete_s3_objects_task(self, objects: list[dict]) -> str:
 
 
 @shared_task(bind=True, max_retries=10)
-def delete_s3_object_task(self, key: str) -> str:
+def delete_s3_object_task(self, key: str, cache_key: str | None = None) -> str:
     container: punq.Container = get_container()
     boto_provider: BaseBotoFileProvider = container.resolve(BaseBotoFileProvider)
+    cache_provider: BaseCacheProvider = container.resolve(BaseCacheProvider)
     logger: Logger = container.resolve(Logger)
 
     try:
@@ -57,6 +59,13 @@ def delete_s3_object_task(self, key: str) -> str:
         boto_provider.delete_object_by_key(
             key=key,
         )
+
+        if cache_key:
+            cache_provider.delete(key=cache_key)
+            logger.info(
+                'Cache key deleted',
+                extra={'log_meta': orjson.dumps({'cache_key': cache_key}).decode()},
+            )
 
     except ClientError as error:
         logger.error(

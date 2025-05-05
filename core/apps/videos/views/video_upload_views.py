@@ -13,18 +13,18 @@ from botocore.exceptions import ClientError
 from drf_spectacular.utils import extend_schema
 
 from core.apps.common.exceptions import ServiceException
-from core.apps.videos.serializers import video_serializers
-from core.apps.videos.serializers.video_upload_serializers import (
+from core.apps.common.serializers.upload_serializers import (
     AbortUploadSerializer,
     CompleteUploadSerializer,
     GenerateUploadPartUrlSerializer,
     KeySerializer,
 )
-from core.apps.videos.use_cases.multipart_upload.abort_upload import AbortVideoMultipartUploadUseCase
-from core.apps.videos.use_cases.multipart_upload.complete_upload import CompleteVideoMultipartUploadUseCase
-from core.apps.videos.use_cases.multipart_upload.create_upload import CreateVideoMultipartUploadUseCase
-from core.apps.videos.use_cases.multipart_upload.download_video_url import GenerateUrlForVideoDownloadUseCase
-from core.apps.videos.use_cases.multipart_upload.upload_video_url import GenerateUrlForVideoUploadUseCase
+from core.apps.videos.serializers import video_serializers
+from core.apps.videos.use_cases.videos_upload.abort_upload_video import AbortVideoMultipartUploadUseCase
+from core.apps.videos.use_cases.videos_upload.complete_upload_video import CompleteVideoMultipartUploadUseCase
+from core.apps.videos.use_cases.videos_upload.create_upload_video import CreateVideoMultipartUploadUseCase
+from core.apps.videos.use_cases.videos_upload.download_video_url import GenerateUrlForVideoDownloadUseCase
+from core.apps.videos.use_cases.videos_upload.upload_video_url import GenerateUrlForVideoUploadUseCase
 from core.project.containers import get_container
 
 
@@ -66,7 +66,10 @@ class InitiateMultipartUploadView(generics.GenericAPIView):
                 "S3 client can't create multipart upload",
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
-            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {'error': error.response.get('Error', {}).get('Message')},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -100,7 +103,10 @@ class GenerateUploadPartUrlView(generics.GenericAPIView):
                 "S3 client can't generate presigned url for video upload",
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
-            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {'error': error.response.get('Error', {}).get('Message')},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -136,6 +142,7 @@ class GenerateDownloadVideoUrlView(generics.GenericAPIView):
 
         try:
             result = use_case.execute(
+                user=request.user,
                 key=serializer.validated_data.get('key'),
             )
 
@@ -144,7 +151,10 @@ class GenerateDownloadVideoUrlView(generics.GenericAPIView):
                 "S3 client can't generate presigned url for video download",
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
-            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {'error': error.response.get('Error', {}).get('Message')},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -177,7 +187,10 @@ class AbortMultipartUploadView(generics.GenericAPIView):
                 "S3 client can't abort multipart upload",
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
-            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {'error': error.response.get('Error', {}).get('Message')},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -211,7 +224,10 @@ class CompleteMultipartUploadView(generics.GenericAPIView):
                 "S3 client can't complete multipart upload",
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
-            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {'error': error.response.get('Error', {}).get('Message')},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})

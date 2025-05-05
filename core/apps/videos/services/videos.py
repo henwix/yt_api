@@ -21,9 +21,14 @@ from core.apps.videos.exceptions.playlists import (
     PlaylistNotFoundError,
     VideoNotInPlaylistError,
 )
-from core.apps.videos.exceptions.upload import VideoNotFoundByKeyError
+from core.apps.videos.exceptions.upload import (
+    VideoNotFoundByKeyError,
+    VideoNotFoundByUploadIdError,
+)
 
 from ..exceptions.videos import (
+    PrivateVideoPermissionError,
+    VideoAuthorNotMatchError,
     VideoIdNotProvidedError,
     VideoLikeNotFoundError,
     VideoNotFoundByVideoIdError,
@@ -56,6 +61,30 @@ class VideoExistsValidatorService(BaseVideoValidatorService):
             raise VideoNotFoundByVideoIdError(video_id=video_id)
 
 
+class BaseVideoAuthorValidatorService(ABC):
+    @abstractmethod
+    def validate(self, video: Video, author: Channel) -> None:
+        ...
+
+
+class VideoMatchAuthorValidatorService(BaseVideoAuthorValidatorService):
+    def validate(self, video: Video, author: Channel) -> None:
+        if not video.author_id == author.pk:
+            raise VideoAuthorNotMatchError(video_id=video.pk, author_id=author.pk)
+
+
+class BasePrivateVideoPermissionValidatorService(ABC):
+    @abstractmethod
+    def validate(self, video: Video, channel: Channel) -> None:
+        ...
+
+
+class PrivateVideoPermissionValidatorService(BasePrivateVideoPermissionValidatorService):
+    def validate(self, video: Video, channel: Channel) -> None:
+        if video.status == Video.VideoStatus.PRIVATE and video.author_id != channel.pk:
+            raise PrivateVideoPermissionError(video_id=video.pk, channel_id=channel.pk)
+
+
 @dataclass(eq=False)
 class BaseVideoService(ABC):
     video_repository: BaseVideoRepository
@@ -67,11 +96,11 @@ class BaseVideoService(ABC):
         ...
 
     @abstractmethod
-    def get_video_by_upload_id_and_author(self, author: Channel, upload_id: str) -> Video:
+    def get_video_by_upload_id(self, upload_id: str) -> Video:
         ...
 
     @abstractmethod
-    def get_public_video_by_key(self, key: str, author: Channel) -> Video:
+    def get_video_by_key(self, key: str) -> Video:
         ...
 
     @abstractmethod
@@ -80,7 +109,6 @@ class BaseVideoService(ABC):
         video_id: str,
         upload_id: str,
         s3_key: str,
-        s3_bucket: str,
     ) -> None:
         ...
 
@@ -113,23 +141,28 @@ class ORMVideoService(BaseVideoService):
     def video_create(self, validated_data: dict) -> None:
         self.video_repository.video_create(validated_data=validated_data)
 
-    def get_video_by_upload_id_and_author(self, author: Channel, upload_id: str) -> Video:
-        return self.video_repository.get_video_by_upload_id_and_author(author=author, upload_id=upload_id)
+    def get_video_by_upload_id(self, upload_id: str) -> Video:
+        video = self.video_repository.get_video_by_upload_id(upload_id=upload_id)
+        if not video:
+            raise VideoNotFoundByUploadIdError(upload_id=upload_id)
+        return video
 
-    def get_public_video_by_key(self, key: str) -> Video:
-        video = self.video_repository.get_public_video_by_key(key=key)
+    def get_video_by_key(self, key: str) -> Video:
+        video = self.video_repository.get_video_by_key(key=key)
         if not video:
             raise VideoNotFoundByKeyError(key=key)
         return video
 
     def update_video_after_upload(
-        self, video_id: str, upload_id: str, s3_key: str, s3_bucket: str,
+        self,
+        video_id: str,
+        upload_id: str,
+        s3_key: str,
     ) -> None:
         self.video_repository.update_video_after_upload(
             video_id=video_id,
             upload_id=upload_id,
             s3_key=s3_key,
-            s3_bucket=s3_bucket,
         )
 
     def delete_video_by_id(self, video_id: str) -> None:

@@ -32,11 +32,11 @@ class BaseVideoRepository(ABC):
         ...
 
     @abstractmethod
-    def get_video_by_upload_id_and_author(self, author: Channel, upload_id: str) -> Video:
+    def get_video_by_upload_id(self, upload_id: str) -> Video:
         ...
 
     @abstractmethod
-    def get_public_video_by_key(self, key: str) -> Video | None:
+    def get_video_by_key(self, key: str) -> Video | None:
         ...
 
     @abstractmethod
@@ -45,7 +45,6 @@ class BaseVideoRepository(ABC):
         video_id: str,
         upload_id: str,
         s3_key: str,
-        s3_bucket: str,
     ) -> None:
         ...
 
@@ -87,19 +86,18 @@ class ORMVideoRepository(BaseVideoRepository):
     def video_create(self, validated_data: dict) -> None:
         return Video.objects.create(**validated_data)
 
-    def get_video_by_upload_id_and_author(self, author: Channel, upload_id: str) -> Video | None:
-        return Video.objects.filter(author=author, upload_id=upload_id).first()
+    def get_video_by_upload_id(self, upload_id: str) -> Video | None:
+        return Video.objects.filter(upload_id=upload_id).first()
 
-    def get_public_video_by_key(self, key: str) -> Video | None:
-        return Video.public_unlisted_videos.filter(s3_key=key).first()
+    def get_video_by_key(self, key: str) -> Video | None:
+        return Video.objects.filter(s3_key=key).first()
 
-    def update_video_after_upload(self, video_id: str, upload_id: str, s3_key: str, s3_bucket: str) -> None:
+    def update_video_after_upload(self, video_id: str, upload_id: str, s3_key: str) -> None:
         Video.objects.filter(
             video_id=video_id,
             upload_id=upload_id,
         ).update(
             s3_key=s3_key,
-            s3_bucket=s3_bucket,
             upload_id=None,
             upload_status=Video.UploadStatus.FINISHED,
         )

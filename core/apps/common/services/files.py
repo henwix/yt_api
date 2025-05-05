@@ -4,11 +4,31 @@ from abc import (
 )
 from dataclasses import dataclass
 
+from botocore.exceptions import ClientError
+
+from core.apps.common.exceptions import S3FileWithKeyNotExistsError
 from core.apps.common.providers.files import (
     BaseBotoFileProvider,
     BaseCeleryFileProvider,
 )
 from core.apps.common.services.cache import BaseCacheService
+
+
+class BaseFileExistsInS3ValidatorService(ABC):
+    @abstractmethod
+    def validate(self, key: str) -> None:
+        ...
+
+
+@dataclass
+class FileExistsInS3ValidatorService(BaseFileExistsInS3ValidatorService):
+    boto_provider: BaseBotoFileProvider
+
+    def validate(self, key: str) -> None:
+        try:
+            self.boto_provider.head_object(key=key)
+        except ClientError:
+            raise S3FileWithKeyNotExistsError(key=key)
 
 
 @dataclass
@@ -61,6 +81,7 @@ class BaseS3FileService(ABC):
     def delete_object_by_key(
         self,
         key: str,
+        cache_key: str | None = None,
     ) -> None:
         ...
 
@@ -70,7 +91,7 @@ class BaseS3FileService(ABC):
         filename: str,
         expires_in: int,
         data_type: str,
-    ) -> str:
+    ) -> tuple:
         ...
 
 
@@ -79,6 +100,7 @@ class S3FileService(BaseS3FileService):
     boto_provider: BaseBotoFileProvider
     celery_provider: BaseCeleryFileProvider
     cache_service: BaseCacheService
+    file_exists_validator: BaseFileExistsInS3ValidatorService
 
     def init_multipart_upload(
         self,
@@ -123,16 +145,21 @@ class S3FileService(BaseS3FileService):
         expires_in: int,
         cache_key: str,
     ) -> str:
+        # return cached url if it exists
         cached_url = self.cache_service.get_cached_data(key=cache_key)
-
         if cached_url:
             return cached_url
 
+        # validate that file exists in s3
+        self.file_exists_validator.validate(key=key)
+
+        # generate download url
         url = self.boto_provider.generate_download_url(
             key=key,
             expires_in=expires_in,
         )
 
+        # save url to cache
         self.cache_service.cache_data(key=cache_key, data=url, timeout=expires_in)
 
         return url
@@ -150,19 +177,19 @@ class S3FileService(BaseS3FileService):
         )
         return response
 
-    def delete_object_by_key(self, key: str) -> None:
-        self.celery_provider.delete_object_by_key(key=key)
+    def delete_object_by_key(self, key: str, cache_key: str | None = None) -> None:
+        self.celery_provider.delete_object_by_key(key=key, cache_key=cache_key)
 
     def generate_upload_url(
         self,
         filename: str,
         expires_in: int,
         data_type: str,
-    ) -> str:
-        url = self.boto_provider.generate_upload_url(
+    ) -> tuple:
+        url, key = self.boto_provider.generate_upload_url(
             filename=filename,
             expires_in=expires_in,
             data_type=data_type,
         )
 
-        return url
+        return url, key

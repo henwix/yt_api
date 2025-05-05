@@ -2,6 +2,7 @@ import logging
 
 from django.contrib.auth import get_user_model
 
+import orjson
 from celery import shared_task
 from djoser.conf import settings
 
@@ -54,14 +55,23 @@ def send_otp_code_email(self, email: str, code: str):
     email_client: EmailClient = EmailClient()
 
     try:
-        logger.info('Trying to set SMTP connection and send email to %s', email)
+        logger.info(
+            'Trying to set SMTP connection and send email',
+            extra={'log_meta': orjson.dumps({'email': email}).decode()},
+        )
         msg = email_client.build_smtp_email(
             to=[email],
             context={'email': email, 'code': code},
         )
         email_client.send_email(msg)
-    except Exception as e:
-        logger.info('Error raise while SMTP connect: %s', e)
+    except Exception as error:
+        logger.info(
+            'Error raised while trying to set SMTP connection',
+            extra={'log_meta': orjson.dumps({'error': str(error)}).decode()},
+        )
         raise self.retry(countdown=5)
     else:
-        logger.info('OTP email successfully sent to email: %s, code: %s', email, code)
+        logger.info(
+            'OTP email successfully sent to email',
+            extra={'log_meta': orjson.dumps({'email': email, 'code': code}).decode()},
+        )

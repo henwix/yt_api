@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 
@@ -13,4 +14,7 @@ def delete_s3_video_signal(instance, **kwargs):
     container: punq.Container = get_container()
     celery_provider: BaseCeleryFileProvider = container.resolve(BaseCeleryFileProvider)
 
-    celery_provider.delete_object_by_key(key=instance.s3_key)
+    celery_provider.delete_object_by_key(
+        key=instance.s3_key,
+        cache_key=settings.CACHE_KEYS['s3_video_url'] + instance.s3_key,
+    )

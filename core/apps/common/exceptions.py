@@ -18,3 +18,15 @@ class ServiceException(APIException):
     @property
     def message(self):
         return 'Application exception occurred'
+
+
+@dataclass
+class S3FileWithKeyNotExistsError(ServiceException):
+    status_code = status.HTTP_404_NOT_FOUND
+    default_detail = {'error': 'File with this key does not exist in S3'}
+
+    key: str
+
+    @property
+    def message(self):
+        return 'File with this key does not exist in S3'

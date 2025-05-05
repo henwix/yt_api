@@ -4,27 +4,57 @@ from django.urls import (
 )
 from rest_framework.routers import DefaultRouter
 
-from . import views
+from core.apps.channels.views.channel_upload_views import (
+    CompleteUploadAvatarView,
+    DeleteChannelAvatarView,
+    GenerateDownloadAvatarUrlView,
+    GenerateUploadAvatarUrlView,
+)
+from core.apps.channels.views.channel_views import (
+    ChannelAboutView,
+    ChannelMainView,
+    ChannelRetrieveUpdateDeleteView,
+    ChannelSubscribersView,
+    SubscriptionAPIView,
+)
 
 
 app_name = 'channels'
 
 router = DefaultRouter()
-router.register('subscription', views.SubscriptionAPIView, basename='subscription')
+router.register('subscription', SubscriptionAPIView, basename='subscription')
 
 
 urlpatterns = [
     # channel avatar urls
-    path('channel/avatar/delete/', views.DeleteChannelAvatarView.as_view(), name='channel-avatar-delete'),
-    path('channel/avatar/upload/url/', views.GenerateUploadAvatarUrlView.as_view(), name='channel-avatar-upload-url'),
+    path(
+        'channel/avatar_upload_url/',
+        GenerateUploadAvatarUrlView.as_view(),
+        name='channel-avatar-upload-url',
+    ),
+    path(
+        'channel/avatar_upload_complete/',
+        CompleteUploadAvatarView.as_view(),
+        name='channel-avatar-upload-complete',
+    ),
+    path(
+        'channel/avatar_download_url/',
+        GenerateDownloadAvatarUrlView.as_view(),
+        name='channel-avatar-download-url',
+    ),
+    path(
+        'channel/avatar_delete/',
+        DeleteChannelAvatarView.as_view(),
+        name='channel-avatar-delete',
+    ),
+
+    # personal channel urls
+    path('channel/', ChannelRetrieveUpdateDeleteView.as_view(), name='channel-detail'),
+    path('channel/subscribers/', ChannelSubscribersView.as_view(), name='channel-subscribers'),
 
     # channel urls
-    path('channel/', views.ChannelRetrieveUpdateDeleteView.as_view(), name='channel-detail'),
-    path('channel/<slug:slug>', views.ChannelMainView.as_view(), name='channels-show'),
-    path('channel/<slug:slug>/about', views.ChannelAboutView.as_view(), name='channels-about'),
-
-    # channel subscribers urls
-    path('channel/subscribers/', views.ChannelSubscribersView.as_view(), name='channel-subscribers'),
+    path('channels/<slug:slug>', ChannelMainView.as_view(), name='channels-show'),
+    path('channels/<slug:slug>/about', ChannelAboutView.as_view(), name='channels-about'),
 
     # router urls
     path('', include(router.urls)),

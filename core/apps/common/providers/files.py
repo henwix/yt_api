@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 class BaseCeleryFileProvider(ABC):
     @abstractmethod
-    def delete_object_by_key(self, key: str) -> None:
+    def delete_object_by_key(self, key: str, cache_key: str | None = None) -> None:
         ...
 
     @abstractmethod
@@ -84,5 +84,21 @@ class BaseBotoFileProvider(ABC):
         filename: str,
         expires_in: int,
         data_type: str,
-    ) -> str:
+    ) -> tuple:
+        ...
+
+    @abstractmethod
+    def head_object(
+        self,
+        key: str,
+    ) -> None:
+        """Check if object exists in S3 bucket.
+
+        Args:
+            key: The key of the object to check
+
+        Raises:
+            ClientError: If object does not exist or other S3 error occurs
+
+        """
         ...

@@ -7,31 +7,17 @@ from dataclasses import dataclass
 from core.apps.videos.exceptions.upload import (
     VideoFilenameFormatError,
     VideoFilenameNotProvidedError,
-    VideoNotFoundByUploadIdError,
 )
-from core.apps.videos.models import Video
-
-
-class BaseUploadVideoValidatorService(ABC):
-    @abstractmethod
-    def validate(self, video: Video | None, upload_id: str) -> None:
-        ...
-
-
-class UploadVideoExistsValidatorService(BaseUploadVideoValidatorService):
-    def validate(self, video: Video | None, upload_id: str) -> None:
-        if not video:
-            raise VideoNotFoundByUploadIdError(upload_id=upload_id)
 
 
 class BaseVideoFilenameValidatorService(ABC):
     @abstractmethod
-    def validate(self, filename: str) -> None:
+    def validate(self, filename: str | None) -> None:
         ...
 
 
 class VideoFilenameExistsValidatorService(BaseVideoFilenameValidatorService):
-    def validate(self, filename: str) -> None:
+    def validate(self, filename: str | None) -> None:
         if filename is None:
             raise VideoFilenameNotProvidedError()
 

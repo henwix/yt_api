@@ -3,10 +3,7 @@ from dataclasses import dataclass
 from django.contrib.auth import get_user_model
 
 from core.apps.channels.services.channels import BaseChannelService
-from core.apps.common.services.files import (
-    BaseFileExistsInS3ValidatorService,
-    BaseS3FileService,
-)
+from core.apps.common.services.files import BaseS3FileService
 from core.apps.videos.services.videos import (
     BaseVideoAuthorValidatorService,
     BaseVideoService,
@@ -22,17 +19,14 @@ class CompleteVideoMultipartUploadUseCase:
     channel_service: BaseChannelService
     validator_service: BaseVideoAuthorValidatorService
     files_service: BaseS3FileService
-    file_exists_validator: BaseFileExistsInS3ValidatorService
 
     def execute(self, user: User, key: str, upload_id: str, parts: list) -> None:
-        author = self.channel_service.get_channel_by_user(user=user)
+        author = self.channel_service.get_channel_by_user_or_404(user=user)
         video = self.video_service.get_video_by_upload_id(
             upload_id=upload_id,
         )
 
         self.validator_service.validate(video=video, author=author)
-
-        self.file_exists_validator.validate(key=key)
 
         response = self.files_service.complete_multipart_upload(
             key=key,

@@ -42,7 +42,7 @@ class BaseChannelRepository(ABC):
         ...
 
     @abstractmethod
-    def set_avatar_s3_key(self, channel_pk: int, avatar_s3_key: str | None) -> None:
+    def set_avatar_s3_key(self, channel: Channel, avatar_s3_key: str | None) -> None:
         ...
 
 
@@ -56,8 +56,9 @@ class ORMChannelRepository(BaseChannelRepository):
     def delete_channel(self, user: User) -> None:
         user.delete()
 
-    def set_avatar_s3_key(self, channel_pk: int, avatar_s3_key: str | None) -> None:
-        Channel.objects.filter(pk=channel_pk).update(avatar_s3_key=avatar_s3_key)
+    def set_avatar_s3_key(self, channel: Channel, avatar_s3_key: str | None) -> None:
+        channel.avatar_s3_key = avatar_s3_key
+        channel.save()
 
 
 class BaseChannelSubsRepository(ABC):

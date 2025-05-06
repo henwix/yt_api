@@ -41,7 +41,11 @@ class BaseChannelService(ABC):
     repository: BaseChannelRepository
 
     @abstractmethod
-    def get_channel_by_user(self, user: User) -> Channel:
+    def get_channel_by_user_or_404(self, user: User) -> Channel:
+        ...
+
+    @abstractmethod
+    def get_channel_by_user_or_none(self, user: User) -> Channel | None:
         ...
 
     @abstractmethod
@@ -49,23 +53,26 @@ class BaseChannelService(ABC):
         ...
 
     @abstractmethod
-    def set_avatar_s3_key(self, channel_pk: int, avatar_s3_key: str | None) -> None:
+    def set_avatar_s3_key(self, channel: Channel, avatar_s3_key: str | None) -> None:
         ...
 
 
 class ORMChannelService(BaseChannelService):
-    def get_channel_by_user(self, user: User) -> Channel:
+    def get_channel_by_user_or_404(self, user: User) -> Channel:
         channel = self.repository.get_channel_by_user(user)
         if channel is None:
             raise ChannelNotFoundError(user_id=user.pk)
 
         return channel
 
+    def get_channel_by_user_or_none(self, user: User) -> Channel | None:
+        return self.repository.get_channel_by_user(user)
+
     def delete_channel(self, user: User) -> None:
         self.repository.delete_channel(user)
 
-    def set_avatar_s3_key(self, channel_pk: int, avatar_s3_key: str | None) -> None:
-        self.repository.set_avatar_s3_key(channel_pk=channel_pk, avatar_s3_key=avatar_s3_key)
+    def set_avatar_s3_key(self, channel: Channel, avatar_s3_key: str | None) -> None:
+        self.repository.set_avatar_s3_key(channel=channel, avatar_s3_key=avatar_s3_key)
 
 
 @dataclass(eq=False)

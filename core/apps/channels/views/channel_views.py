@@ -76,7 +76,7 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
             return Response(cached_data, status.HTTP_200_OK)
 
         try:
-            channel = self.channel_service.get_channel_by_user(user)
+            channel = self.channel_service.get_channel_by_user_or_404(user)
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise

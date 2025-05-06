@@ -16,7 +16,7 @@ class CommentLikeDeleteUseCase:
     channel_service: BaseChannelService
 
     def execute(self, user: User, comment_id: str) -> dict:
-        channel = self.channel_service.get_channel_by_user(user=user)
+        channel = self.channel_service.get_channel_by_user_or_404(user=user)
         comment = self.comment_service.get_by_id(id=comment_id)
 
         deleted = self.comment_service.like_delete(

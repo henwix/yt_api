@@ -85,7 +85,7 @@ class PrivateVideoPermissionError(ServiceException):
     default_detail = {'error': 'You do not have permission to access this video'}
 
     video_id: str
-    channel_id: str
+    channel_id: str | None
 
     @property
     def message(self):

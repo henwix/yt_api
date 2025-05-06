@@ -13,7 +13,7 @@ class BotoFileProvider(BaseBotoFileProvider):
         bucket = self.boto_client.get_bucket_name()
         return client, bucket
 
-    def init_multipart_upload(
+    def create_multipart_upload(
         self,
         filename: str,
         data_type: str,

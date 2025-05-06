@@ -34,7 +34,7 @@ class FileExistsInS3ValidatorService(BaseFileExistsInS3ValidatorService):
 @dataclass
 class BaseS3FileService(ABC):
     @abstractmethod
-    def init_multipart_upload(
+    def create_multipart_upload(
         self,
         filename: str,
         data_type: str,
@@ -74,7 +74,7 @@ class BaseS3FileService(ABC):
         key: str,
         upload_id: str,
         parts: list,
-    ) -> str:
+    ) -> dict:
         ...
 
     @abstractmethod
@@ -102,12 +102,12 @@ class S3FileService(BaseS3FileService):
     cache_service: BaseCacheService
     file_exists_validator: BaseFileExistsInS3ValidatorService
 
-    def init_multipart_upload(
+    def create_multipart_upload(
         self,
         filename: str,
         data_type: str,
     ) -> tuple:
-        response = self.boto_provider.init_multipart_upload(
+        response = self.boto_provider.create_multipart_upload(
             filename=filename,
             data_type=data_type,
         )

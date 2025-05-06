@@ -35,7 +35,7 @@ class BaseVideoReportsService(ABC):
 
 
 class ORMVideoReportsService(BaseVideoReportsService):
-    def _report_validation(self, video: Video, video_id: str, channel: Channel) -> None:
+    def _report_validation(self, video: Video | None, video_id: str, channel: Channel) -> None:
         if not video:
             raise VideoNotFoundByVideoIdError(video_id=video_id)
 

@@ -75,14 +75,14 @@ class VideoMatchAuthorValidatorService(BaseVideoAuthorValidatorService):
 
 class BasePrivateVideoPermissionValidatorService(ABC):
     @abstractmethod
-    def validate(self, video: Video, channel: Channel) -> None:
+    def validate(self, video: Video, channel: Channel | None) -> None:
         ...
 
 
-class PrivateVideoPermissionValidatorService(BasePrivateVideoPermissionValidatorService):
-    def validate(self, video: Video, channel: Channel) -> None:
-        if video.status == Video.VideoStatus.PRIVATE and video.author_id != channel.pk:
-            raise PrivateVideoPermissionError(video_id=video.pk, channel_id=channel.pk)
+class VideoPrivatePermissionValidatorService(BasePrivateVideoPermissionValidatorService):
+    def validate(self, video: Video, channel: Channel | None) -> None:
+        if video.status == Video.VideoStatus.PRIVATE and channel is None or video.author_id != channel.pk:
+            raise PrivateVideoPermissionError(video_id=video.pk, channel_id=channel.pk if channel else None)
 
 
 @dataclass(eq=False)

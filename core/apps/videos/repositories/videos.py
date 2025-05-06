@@ -103,7 +103,7 @@ class ORMVideoRepository(BaseVideoRepository):
         )
 
     def delete_video_by_id(self, video_id: str) -> None:
-        return Video.objects.filter(video_id=video_id).delete()
+        Video.objects.filter(video_id=video_id).delete()
 
     def get_channel(self, user: User) -> Channel | None:
         return Channel.objects.filter(user=user).first()

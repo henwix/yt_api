@@ -21,7 +21,7 @@ class GenerateUrlForVideoUploadUseCase:
     files_service: BaseS3FileService
 
     def execute(self, user: User, key: str, upload_id: str, part_number: int) -> str:
-        author = self.channel_service.get_channel_by_user(user=user)
+        author = self.channel_service.get_channel_by_user_or_404(user=user)
         video = self.video_service.get_video_by_upload_id(
             upload_id=upload_id,
         )

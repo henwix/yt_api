@@ -38,7 +38,7 @@ class Video(models.Model):
         PUBLIC = 'PUBLIC', 'Public'
 
     class UploadStatus(models.TextChoices):
-        PENDING = 'PENDING', 'Pending'
+        UPLOADING = 'UPLOADING', 'Uploading'
         FINISHED = 'FINISHED', 'Finished'
 
     video_id = models.CharField(
@@ -55,7 +55,7 @@ class Video(models.Model):
     upload_id = models.CharField(null=True, blank=True)
     s3_key = models.CharField(null=True, blank=True)
     status = models.CharField(max_length=10, choices=VideoStatus.choices, default=VideoStatus.PUBLIC)
-    upload_status = models.CharField(choices=UploadStatus.choices, default=UploadStatus.PENDING)
+    upload_status = models.CharField(choices=UploadStatus.choices, default=UploadStatus.UPLOADING)
     is_reported = models.BooleanField(default=False)
 
     # managers

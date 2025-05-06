@@ -22,7 +22,7 @@ class GenerateUrlForVideoDownloadUseCase:
     permission_validator: BasePrivateVideoPermissionValidatorService
 
     def execute(self, user: User, key: str) -> dict:
-        channel = self.channel_service.get_channel_by_user(user=user)
+        channel = self.channel_service.get_channel_by_user_or_none(user=user)
         video = self.video_service.get_video_by_key(key=key)
 
         self.permission_validator.validate(video=video, channel=channel)

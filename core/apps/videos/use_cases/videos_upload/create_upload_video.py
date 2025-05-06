@@ -12,6 +12,7 @@ User = get_user_model()
 
 
 # TODO: включить версионирование + учитывать при создании файлов версию этого файла(VersionId)
+# TODO: или добавлять uuid4 в конце имени файла?
 @dataclass
 class CreateVideoMultipartUploadUseCase:
     video_service: BaseVideoService
@@ -24,10 +25,10 @@ class CreateVideoMultipartUploadUseCase:
         self.validator_service.validate(filename=filename)
 
         #  Retrieve channel by user
-        channel = self.channel_service.get_channel_by_user(user=user)
+        channel = self.channel_service.get_channel_by_user_or_404(user=user)
 
-        #  Initiate multipart upload
-        upload_id, key = self.files_service.init_multipart_upload(
+        #  Create multipart upload
+        upload_id, key = self.files_service.create_multipart_upload(
             filename=filename,
             data_type='video',
         )

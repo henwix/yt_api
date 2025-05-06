@@ -1,11 +1,5 @@
 import punq
 
-from core.apps.common.adapters.boto_file_provider import BotoFileProvider
-from core.apps.common.adapters.celery_file_provider import CeleryFileProvider
-from core.apps.common.providers.files import (
-    BaseBotoFileProvider,
-    BaseCeleryFileProvider,
-)
 from core.apps.videos.repositories.comments import (
     BaseVideoCommentRepository,
     ORMVideoCommentRepository,
@@ -38,9 +32,9 @@ from core.apps.videos.services.videos import (
     ORMVideoHistoryService,
     ORMVideoPlaylistService,
     ORMVideoService,
-    PrivateVideoPermissionValidatorService,
     VideoExistsValidatorService,
     VideoMatchAuthorValidatorService,
+    VideoPrivatePermissionValidatorService,
 )
 from core.apps.videos.use_cases.comments.like_create import CommentLikeCreateUseCase
 from core.apps.videos.use_cases.comments.like_delete import CommentLikeDeleteUseCase
@@ -60,10 +54,6 @@ def init_videos(container: punq.Container) -> None:
             ],
         )
 
-    # init providers
-    container.register(BaseCeleryFileProvider, CeleryFileProvider)
-    container.register(BaseBotoFileProvider, BotoFileProvider)
-
     # init repositories
     container.register(BaseVideoRepository, ORMVideoRepository)
     container.register(BaseVideoHistoryRepository, ORMVideoHistoryRepository)
@@ -81,7 +71,7 @@ def init_videos(container: punq.Container) -> None:
     container.register(VideoFilenameFormatValidatorService)
     container.register(BaseVideoFilenameValidatorService, factory=build_video_filename_validators)
     container.register(BaseVideoAuthorValidatorService, VideoMatchAuthorValidatorService)
-    container.register(BasePrivateVideoPermissionValidatorService, PrivateVideoPermissionValidatorService)
+    container.register(BasePrivateVideoPermissionValidatorService, VideoPrivatePermissionValidatorService)
 
     # init use cases
     container.register(CommentLikeCreateUseCase)

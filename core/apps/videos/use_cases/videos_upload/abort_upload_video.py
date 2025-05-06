@@ -22,7 +22,7 @@ class AbortVideoMultipartUploadUseCase:
 
     def execute(self, user: User, key: str, upload_id: str):
         # retrieve channel by user
-        author = self.channel_service.get_channel_by_user(user=user)
+        author = self.channel_service.get_channel_by_user_or_404(user=user)
 
         # retrieve video and validate
         video = self.video_service.get_video_by_upload_id(

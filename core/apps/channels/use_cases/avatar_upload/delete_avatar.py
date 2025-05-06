@@ -18,17 +18,17 @@ class DeleteChannelAvatarUseCase:
     validator_service: BaseAvatarValidatorService
 
     def execute(self, user: User) -> dict:
-        channel = self.channel_service.get_channel_by_user(user=user)
+        channel = self.channel_service.get_channel_by_user_or_404(user=user)
         self.validator_service.validate(channel=channel)
-
-        self.channel_service.set_avatar_s3_key(
-            channel_pk=channel.pk,
-            avatar_s3_key=None,
-        )
 
         self.files_service.delete_object_by_key(
             key=channel.avatar_s3_key,
             cache_key=settings.CACHE_KEYS['s3_avatar_url'] + channel.avatar_s3_key,
+        )
+
+        self.channel_service.set_avatar_s3_key(
+            channel=channel,
+            avatar_s3_key=None,
         )
 
         return {'status': 'success'}

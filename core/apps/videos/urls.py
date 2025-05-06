@@ -29,7 +29,7 @@ urlpatterns = [
     # endpoints for video multipart upload
     path(
         'videos/upload_create/',
-        video_upload_views.InitiateMultipartUploadView.as_view(),
+        video_upload_views.CreateMultipartUploadView.as_view(),
         name='videos-upload-create',
     ),
     path(

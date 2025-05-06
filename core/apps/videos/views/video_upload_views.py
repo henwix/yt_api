@@ -42,7 +42,7 @@ from core.project.containers import get_container
         },
     },
 )
-class InitiateMultipartUploadView(generics.GenericAPIView):
+class CreateMultipartUploadView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = video_serializers.VideoSerializer
 

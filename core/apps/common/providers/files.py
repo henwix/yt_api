@@ -22,9 +22,9 @@ class BaseCeleryFileProvider(ABC):
 @dataclass
 class BaseBotoFileProvider(ABC):
     @abstractmethod
-    def init_multipart_upload(
+    def create_multipart_upload(
         self,
-        key: str,
+        filename: str,
         data_type: str,
     ) -> tuple:
         ...

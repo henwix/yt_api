@@ -59,6 +59,7 @@ def init_channels(container: punq.Container) -> None:
     container.register(BaseChannelSubsService, ORMChannelSubsService)
     container.register(BaseChannelMainService, ORMChannelMainService)
     container.register(BaseChannelAboutService, ORMChannelAboutService)
+
     container.register(BaseSubscriptionService, ORMSubscriptionService)
 
     # validator services

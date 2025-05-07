@@ -81,7 +81,7 @@ class BasePrivateVideoPermissionValidatorService(ABC):
 
 class VideoPrivatePermissionValidatorService(BasePrivateVideoPermissionValidatorService):
     def validate(self, video: Video, channel: Channel | None) -> None:
-        if video.status == Video.VideoStatus.PRIVATE and channel is None or video.author_id != channel.pk:
+        if video.status == Video.VideoStatus.PRIVATE and (channel is None or video.author_id != channel.pk):
             raise PrivateVideoPermissionError(video_id=video.pk, channel_id=channel.pk if channel else None)
 
 
@@ -204,7 +204,7 @@ class ORMVideoService(BaseVideoService):
         return (
             self.video_repository.get_videos_list()
             .select_related('author')
-            .filter(status=Video.VideoStatus.PUBLIC)
+            .filter(status=Video.VideoStatus.PUBLIC, upload_status=Video.UploadStatus.FINISHED)
             .annotate(views_count=Count('views', distinct=True))
         )
 
@@ -212,6 +212,7 @@ class ORMVideoService(BaseVideoService):
         return (
             self.video_repository.get_videos_list()
             .select_related('author')
+            .filter(upload_status=Video.UploadStatus.FINISHED)
             .annotate(
                 views_count=Count('views', distinct=True),
                 likes_count=Count('likes', filter=Q(likes__is_like=True), distinct=True),
@@ -221,7 +222,7 @@ class ORMVideoService(BaseVideoService):
         )
 
     def get_all_videos(self) -> Iterable[Video]:
-        return self.video_repository.get_videos_list()
+        return self.video_repository.get_videos_list().filter(upload_status=Video.UploadStatus.FINISHED)
 
 
 @dataclass

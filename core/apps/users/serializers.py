@@ -25,6 +25,7 @@ class CustomUserCreatePasswordRetypeSerializer(UserCreatePasswordRetypeSerialize
         return fields
 
 
+# TODO: почему-то при регистрации юзера поле email пустое всегда и в users не отображается
 class CustomUserCreateSerializer(UserCreateSerializer):
     """Custom serializer for user creation.
 

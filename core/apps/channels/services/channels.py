@@ -9,6 +9,7 @@ from typing import (
 )
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 
 from core.apps.channels.exceptions.subscriptions import (
     SelfSubscriptionError,
@@ -66,6 +67,8 @@ class ORMChannelService(BaseChannelService):
         return channel
 
     def get_channel_by_user_or_none(self, user: User) -> Channel | None:
+        if isinstance(user, AnonymousUser):
+            return None
         return self.repository.get_channel_by_user(user)
 
     def delete_channel(self, user: User) -> None:

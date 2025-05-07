@@ -132,6 +132,10 @@ class VideoPreviewSerializer(serializers.ModelSerializer):
             'author_name',
             'author_link',
             'views_count',
+
+            'upload_status',
+            'status',
+            's3_key',
         ]
 
 

@@ -1,3 +1,4 @@
+import uuid
 from dataclasses import (
     dataclass,
     field,
@@ -29,5 +30,6 @@ class BotoClient:
     def get_bucket_name(self) -> str:
         return settings.AWS_STORAGE_BUCKET_NAME
 
-    def get_bucket_key(self, data_type: str, filename: str) -> str:
-        return self.key_prefixes[data_type] + filename
+    def generate_unique_bucket_key(self, data_type: str, filename: str) -> str:
+        """Add 'data_type' bucket prefix and random uuid to 'filename'."""
+        return self.key_prefixes[data_type] + uuid.uuid4().hex[:10] + '_' + filename

@@ -11,8 +11,6 @@ from core.apps.videos.services.videos import BaseVideoService
 User = get_user_model()
 
 
-# TODO: включить версионирование + учитывать при создании файлов версию этого файла(VersionId)
-# TODO: или добавлять uuid4 в конце имени файла?
 @dataclass
 class CreateVideoMultipartUploadUseCase:
     video_service: BaseVideoService

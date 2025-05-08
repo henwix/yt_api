@@ -19,7 +19,7 @@ class BotoFileProvider(BaseBotoFileProvider):
         data_type: str,
     ) -> tuple:
         client, bucket = self._get_client_and_bucket()
-        key = self.boto_client.get_bucket_key(data_type=data_type, filename=filename)
+        key = self.boto_client.generate_unique_bucket_key(data_type=data_type, filename=filename)
 
         response = client.create_multipart_upload(
             Bucket=bucket,
@@ -128,7 +128,7 @@ class BotoFileProvider(BaseBotoFileProvider):
         data_type: str,
     ) -> tuple:
         client, bucket = self._get_client_and_bucket()
-        key = self.boto_client.get_bucket_key(data_type=data_type, filename=filename)
+        key = self.boto_client.generate_unique_bucket_key(data_type=data_type, filename=filename)
 
         url = client.generate_presigned_url(
             ClientMethod='put_object',

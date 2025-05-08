@@ -25,7 +25,6 @@ class CustomUserCreatePasswordRetypeSerializer(UserCreatePasswordRetypeSerialize
         return fields
 
 
-# TODO: почему-то при регистрации юзера поле email пустое всегда и в users не отображается
 class CustomUserCreateSerializer(UserCreateSerializer):
     """Custom serializer for user creation.
 
@@ -49,14 +48,14 @@ class CustomUserCreateSerializer(UserCreateSerializer):
                 unique_slug = base_slug + '_' + uuid.uuid4().hex[:8]
 
             channel_data['slug'] = unique_slug
-        else:
-            channel_data['slug'] = channel_data.get('slug')
 
         try:
             # create user instance
             user = super().create(validated_data)
+
             # add created user in channel_data to provide 'author' field
             channel_data['user'] = user
+
             # create channel
             Channel.objects.create(**channel_data)
 
@@ -67,6 +66,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
     def validate_email(self, value):
         if get_user_model().objects.filter(email=value).exists():
             raise ValidationError('A user with that email already exists.')
+        return value
 
     def validate(self, attrs):
         """Need to .pop 'channel' attribute to fix error of unexpected

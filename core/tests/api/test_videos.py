@@ -12,26 +12,6 @@ from core.tests.factories.videos import (
 )
 
 
-@pytest.mark.skip(reason='update test with new endpoint')
-def test_video_creation(client: APIClient, jwt: str):
-    """Test video created after POST request to endpoint: /api/v1/video/"""
-
-    client.credentials(HTTP_AUTHORIZATION=jwt)
-
-    payload = {
-        'name': 'Pre-Party Set at a Bali Hideaway',
-        'description': 'Test video description. Yeah, this is description.',
-        'status': 'PUBLIC',
-    }
-
-    response = client.post('/api/v1/video/', payload)
-
-    assert response.status_code == 201
-    assert response.data.get('name') == payload.get('name')
-    assert response.data.get('description') == payload.get('description')
-    assert response.data.get('status') == payload.get('status')
-
-
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     'expected_views, expected_subs, expected_likes, expected_comments', ([7, 4, 11, 6], [2, 7, 1, 3]),
@@ -50,7 +30,7 @@ def test_video_retrieved(
     VideoLikeModelFactory.create_batch(size=expected_likes, video=video)
     VideoCommentModelFactory.create_batch(size=expected_comments, video=video)
 
-    url = f'/api/v1/video/{video.video_id}/'
+    url = f'/api/v1/videos/{video.video_id}/'
     response = client.get(url)
 
     assert response.status_code == 200
@@ -74,7 +54,7 @@ def test_video_deleted(client: APIClient, jwt_and_channel: tuple):
 
     assert Video.objects.filter(video_id=video.video_id).exists()
 
-    response = client.delete(f'/api/v1/video/{video.video_id}/')
+    response = client.delete(f'/api/v1/videos/{video.video_id}/')
 
     assert response.status_code == 204
     assert not Video.objects.filter(video_id=video.video_id).exists()
@@ -93,7 +73,7 @@ def test_video_updated(client: APIClient, jwt_and_channel: tuple):
         'status': 'PRIVATE',
     }
 
-    response = client.patch(f'/api/v1/video/{video.video_id}/', payload)
+    response = client.patch(f'/api/v1/videos/{video.video_id}/', payload)
 
     assert response.status_code == 200
     assert response.data.get('name') == payload.get('name')
@@ -107,7 +87,7 @@ def test_video_search(client: APIClient):
     VideoModelFactory.create(name='test')  # create video with name 'test'
     VideoModelFactory.create(description='test')  # create video with description 'test'
 
-    response = client.get('/api/v1/video/?search=test')
+    response = client.get('/api/v1/videos/?search=test')
 
     assert response.status_code == 200
     assert len(response.data.get('results')) == 2

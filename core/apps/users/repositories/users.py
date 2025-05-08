@@ -14,10 +14,12 @@ User = get_user_model()
 
 class BaseUserRepository(ABC):
     @abstractmethod
-    def authenticate(self, login: str, password: str) -> User: ...
+    def authenticate(self, login: str, password: str) -> User:
+        ...
 
     @abstractmethod
-    def get_by_email(self, email: str) -> User | None: ...
+    def get_by_email(self, email: str) -> User | None:
+        ...
 
 
 class ORMUserRepository(BaseUserRepository):

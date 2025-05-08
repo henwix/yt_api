@@ -68,7 +68,9 @@ def test_channel_about_data_retrieved_correctly(
     VideoViewModelFactory.create_batch(size=expected_views, video=v[0])  # create views
     SubscriptionItemModelFactory.create_batch(size=expected_subs, subscribed_to=channel)  # create subs
 
-    response = client.get(f'/api/v1/c/{channel.slug}/about')
+    response = client.get(f'/api/v1/channels/{channel.slug}/about')
+
+    print(response)
 
     assert response.status_code == 200
     assert response.data.get('description') == channel.description, 'incorrect desc'

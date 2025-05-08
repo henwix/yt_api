@@ -12,10 +12,12 @@ from ..models import VideoReport
 
 class BaseVideoReportsRepository(ABC):
     @abstractmethod
-    def get_reports(self) -> Iterable[VideoReport]: ...
+    def get_reports(self) -> Iterable[VideoReport]:
+        ...
 
     @abstractmethod
-    def create_report(self, video: Video, author: Channel, reason: str, description: str) -> VideoReport: ...
+    def create_report(self, video: Video, author: Channel, reason: str, description: str) -> VideoReport:
+        ...
 
 
 class ORMVideoReportRepository(BaseVideoReportsRepository):

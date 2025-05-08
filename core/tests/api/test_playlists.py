@@ -25,7 +25,7 @@ def test_playlist_created(client: APIClient, jwt_and_channel: str):
         'description': 'Test playlist description',
     }
 
-    client.post('api/v1/playlist/', payload)
+    client.post('api/v1/playlists/', payload)
 
     assert not Playlist.objects.filter(channel=channel).exists()
 
@@ -38,7 +38,7 @@ def test_playlist_deleted(client: APIClient, jwt_and_channel: str):
 
     assert Playlist.objects.filter(channel=channel).exists()
 
-    response = client.delete(f'/api/v1/playlist/{playlist.id}/')
+    response = client.delete(f'/api/v1/playlists/{playlist.id}/')
 
     assert response.status_code == 204
     assert not Playlist.objects.filter(channel=channel).exists()
@@ -51,7 +51,7 @@ def test_playlists_retrieved(client: APIClient, jwt_and_channel: str, expected_p
     client.credentials(HTTP_AUTHORIZATION=jwt)
     PlaylistModelFactory.create_batch(size=expected_playlists, channel=channel)
 
-    response = client.get('/api/v1/playlist/')
+    response = client.get('/api/v1/playlists/')
 
     assert response.status_code == 200
     assert len(response.data.get('results')) == expected_playlists
@@ -68,7 +68,7 @@ def test_playlists_updated(client: APIClient, jwt_and_channel: str):
         'description': 'Test playlist description',
     }
 
-    response = client.patch(f'/api/v1/playlist/{playlist.id}/', payload)
+    response = client.patch(f'/api/v1/playlists/{playlist.id}/', payload)
 
     assert response.status_code == 200
     assert response.data.get('title') == payload.get('title')
@@ -84,7 +84,7 @@ def test_video_added_to_playlist(client: APIClient, jwt_and_channel: str):
 
     assert not PlaylistItem.objects.filter(playlist=playlist, video=video).exists()
 
-    response = client.post(f'/api/v1/playlist/{playlist.id}/add-video/?v={video.video_id}')
+    response = client.post(f'/api/v1/playlists/{playlist.id}/add-video/?v={video.video_id}')
 
     assert response.status_code == 201
     assert PlaylistItem.objects.filter(playlist=playlist, video=video).exists()
@@ -101,7 +101,7 @@ def test_video_deleted_from_playlist(client: APIClient, jwt_and_channel: str):
 
     assert PlaylistItem.objects.filter(playlist=playlist, video=video).exists()
 
-    response = client.delete(f'/api/v1/playlist/{playlist.id}/delete-video/?v={video.video_id}')
+    response = client.delete(f'/api/v1/playlists/{playlist.id}/delete-video/?v={video.video_id}')
 
     assert response.status_code == 204
     assert not PlaylistItem.objects.filter(playlist=playlist, video=video).exists()

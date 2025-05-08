@@ -28,7 +28,7 @@ User = get_user_model()
 
 class BaseVideoRepository(ABC):
     @abstractmethod
-    def video_create(self, validated_data: dict) -> None:
+    def video_create(self, data: dict) -> None:
         ...
 
     @abstractmethod
@@ -83,8 +83,8 @@ class BaseVideoRepository(ABC):
 
 # TODO: раскидать фильтры у всех методов через Q() и передачу их в качестве аргументов
 class ORMVideoRepository(BaseVideoRepository):
-    def video_create(self, validated_data: dict) -> None:
-        return Video.objects.create(**validated_data)
+    def video_create(self, data: dict) -> None:
+        return Video.objects.create(**data)
 
     def get_video_by_upload_id(self, upload_id: str) -> Video | None:
         return Video.objects.filter(upload_id=upload_id).first()
@@ -151,13 +151,16 @@ class ORMVideoRepository(BaseVideoRepository):
 
 class BaseVideoHistoryRepository(ABC):
     @abstractmethod
-    def get_or_create_history_item(self, video: Video, channel: Channel) -> dict: ...
+    def get_or_create_history_item(self, video: Video, channel: Channel) -> dict:
+        ...
 
     @abstractmethod
-    def delete_history_item(self, video: Video, channel: Channel) -> dict: ...
+    def delete_history_item(self, video: Video, channel: Channel) -> dict:
+        ...
 
     @abstractmethod
-    def update_watch_time(self, history_item: VideoHistory) -> None: ...
+    def update_watch_time(self, history_item: VideoHistory) -> None:
+        ...
 
 
 class ORMVideoHistoryRepository(BaseVideoHistoryRepository):

@@ -14,7 +14,7 @@ def test_video_view_created(client: APIClient, jwt: str, video: Video):
 
     assert not VideoView.objects.filter(video=video).exists()
 
-    response = client.post(f'/api/v1/video/{video.video_id}/view/')
+    response = client.post(f'/api/v1/videos/{video.video_id}/view/')
 
     assert response.status_code == 201
     assert VideoView.objects.filter(video=video).exists()

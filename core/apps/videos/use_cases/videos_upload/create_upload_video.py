@@ -35,6 +35,6 @@ class CreateVideoMultipartUploadUseCase:
         validated_data.update({'author': channel, 'upload_id': upload_id})
 
         #  Create video with 'validated_data' fields
-        self.video_service.video_create(validated_data=validated_data)
+        self.video_service.video_create(data=validated_data)
 
         return {'upload_id': upload_id, 'key': key}

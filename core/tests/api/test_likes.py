@@ -15,7 +15,7 @@ def test_video_like_created(client: APIClient, jwt: str, video: Video):
 
     assert not VideoLike.objects.filter(video=video).exists()
 
-    response = client.post(f'/api/v1/video/{video.video_id}/like/')
+    response = client.post(f'/api/v1/videos/{video.video_id}/like/')
 
     assert response.status_code == 201
     assert VideoLike.objects.filter(video=video).exists()
@@ -30,7 +30,7 @@ def test_video_like_deleted(client: APIClient, jwt_and_channel: str, video: Vide
 
     assert VideoLike.objects.filter(video=video).exists()
 
-    response = client.delete(f'/api/v1/video/{video.video_id}/unlike/')
+    response = client.delete(f'/api/v1/videos/{video.video_id}/unlike/')
 
     assert response.status_code == 204
     assert not VideoLike.objects.filter(video=video).exists()

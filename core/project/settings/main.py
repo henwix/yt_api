@@ -189,11 +189,12 @@ REST_FRAMEWORK = {
         'core.apps.common.throttles.UserBurstRateThrottle',
         'core.apps.common.throttles.UserSustainedRateThrottle',
     ],
+    # TODO: set them back to default
     'DEFAULT_THROTTLE_RATES': {
-        'anon_burst': '1000/day',
-        'anon_sustained': '100/hour',
-        'user_burst': '1000/day',
-        'user_sustained': '100/minute',
+        'anon_burst': '1000000/day',
+        'anon_sustained': '100000/hour',
+        'user_burst': '1000000/day',
+        'user_sustained': '100000/minute',
     },
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.URLPathVersioning',
     'DEFAULT_VERSION': 'v1',

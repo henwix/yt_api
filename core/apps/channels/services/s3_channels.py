@@ -44,7 +44,7 @@ class AvatarFilenameExistsValidatorService(BaseAvatarFilenameValidatorService):
 
 class AvatarFilenameFormatValidatorService(BaseAvatarFilenameValidatorService):
     def validate(self, filename: str) -> None:
-        if filename[-4:] not in ['.png', '.jpg', '.jpeg']:
+        if filename[-4:] not in ['.png', '.jpg']:
             raise AvatarFilenameFormatError(filename=filename)
 
 

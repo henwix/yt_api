@@ -63,7 +63,8 @@ class ORMChannelRepository(BaseChannelRepository):
 
 class BaseChannelSubsRepository(ABC):
     @abstractmethod
-    def get_subscriber_list(self, channel: Channel) -> Iterable[SubscriptionItem]: ...
+    def get_subscriber_list(self, channel: Channel) -> Iterable[SubscriptionItem]:
+        ...
 
 
 class ORMChannelSubsRepository(BaseChannelSubsRepository):
@@ -73,7 +74,8 @@ class ORMChannelSubsRepository(BaseChannelSubsRepository):
 
 class BaseChannelMainRepository(ABC):
     @abstractmethod
-    def get_channel_main_page_list(self) -> Iterable[Channel]: ...
+    def get_channel_main_page_list(self) -> Iterable[Channel]:
+        ...
 
 
 class ORMChannelMainRepository(BaseChannelMainRepository):
@@ -101,7 +103,8 @@ class ORMChannelMainRepository(BaseChannelMainRepository):
 
 class BaseChannelAboutRepository(ABC):
     @abstractmethod
-    def get_channel_about_list(self) -> Iterable[Channel]: ...
+    def get_channel_about_list(self) -> Iterable[Channel]:
+        ...
 
 
 class ORMChannelAboutRepository(BaseChannelAboutRepository):
@@ -120,13 +123,16 @@ class ORMChannelAboutRepository(BaseChannelAboutRepository):
 
 class BaseSubscriptionRepository(ABC):
     @abstractmethod
-    def get_channels(self, user: User, slug: str) -> Tuple[Channel, Channel | None]: ...
+    def get_channels(self, user: User, slug: str) -> Tuple[Channel, Channel | None]:
+        ...
 
     @abstractmethod
-    def get_or_create_sub(self, subscriber: Channel, subscribed_to: Channel) -> Tuple[SubscriptionItem, bool]: ...
+    def get_or_create_sub(self, subscriber: Channel, subscribed_to: Channel) -> Tuple[SubscriptionItem, bool]:
+        ...
 
     @abstractmethod
-    def delete_sub(self, subscriber: Channel, subscribed_to: Channel) -> Tuple[int, Dict[str, int]]: ...
+    def delete_sub(self, subscriber: Channel, subscribed_to: Channel) -> Tuple[int, Dict[str, int]]:
+        ...
 
 
 class ORMSubscriptionRepository(BaseSubscriptionRepository):

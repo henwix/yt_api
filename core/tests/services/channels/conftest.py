@@ -9,6 +9,10 @@ from core.apps.channels.services.channels import (
     BaseChannelSubsService,
     BaseSubscriptionService,
 )
+from core.apps.channels.services.s3_channels import (
+    BaseAvatarFilenameValidatorService,
+    BaseAvatarValidatorService,
+)
 from core.tests.factories.channels import ChannelModelFactory
 
 
@@ -39,3 +43,13 @@ def channel_main_service(container: Container) -> BaseChannelMainService:
 def user_with_channel() -> User:
     channel = ChannelModelFactory()
     return channel.user
+
+
+@pytest.fixture
+def avatar_validator_service(container: Container) -> BaseAvatarValidatorService:
+    return container.resolve(BaseAvatarValidatorService)
+
+
+@pytest.fixture
+def avatar_filename_validator_service(container: Container) -> BaseAvatarFilenameValidatorService:
+    return container.resolve(BaseAvatarFilenameValidatorService)

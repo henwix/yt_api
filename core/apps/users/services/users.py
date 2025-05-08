@@ -17,11 +17,12 @@ User = get_user_model()
 
 class BaseUserValidatorService(ABC):
     @abstractmethod
-    def validate(self, user: User) -> None: ...
+    def validate(self, user: User) -> None:
+        ...
 
 
 class UserValidatorService(BaseUserValidatorService):
-    def validate(self, user: User) -> None:
+    def validate(self, user: User | None) -> None:
         if not user or user is None:
             raise UserNotFoundError()
 
@@ -32,13 +33,16 @@ class BaseUserService(ABC):
     validator_service: BaseUserValidatorService
 
     @abstractmethod
-    def authenticate(self, login: str, password: str) -> User: ...
+    def authenticate(self, login: str, password: str) -> User:
+        ...
 
     @abstractmethod
-    def get_by_email(self, email: str) -> User: ...
+    def get_by_email(self, email: str) -> User:
+        ...
 
     @abstractmethod
-    def generate_jwt(self, user: User) -> dict: ...
+    def generate_jwt(self, user: User) -> dict:
+        ...
 
 
 class ORMUserService(BaseUserService):

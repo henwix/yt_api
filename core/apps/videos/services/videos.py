@@ -92,7 +92,7 @@ class BaseVideoService(ABC):
     validator_service: BaseVideoValidatorService
 
     @abstractmethod
-    def video_create(self, validated_data: dict) -> None:
+    def video_create(self, data: dict) -> None:
         ...
 
     @abstractmethod
@@ -138,8 +138,8 @@ class ORMVideoService(BaseVideoService):
 
         return channel, video
 
-    def video_create(self, validated_data: dict) -> None:
-        self.video_repository.video_create(validated_data=validated_data)
+    def video_create(self, data: dict) -> None:
+        self.video_repository.video_create(data=data)
 
     def get_video_by_upload_id(self, upload_id: str) -> Video:
         video = self.video_repository.get_video_by_upload_id(upload_id=upload_id)
@@ -232,10 +232,12 @@ class BaseVideoHistoryService(ABC):
     history_repository: BaseVideoHistoryRepository
 
     @abstractmethod
-    def add_video_in_history(self, user: User, video_id: str) -> dict: ...
+    def add_video_in_history(self, user: User, video_id: str) -> dict:
+        ...
 
     @abstractmethod
-    def delete_video_from_history(self, user: User, video_id: str) -> dict: ...
+    def delete_video_from_history(self, user: User, video_id: str) -> dict:
+        ...
 
 
 class ORMVideoHistoryService(BaseVideoHistoryService):

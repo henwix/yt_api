@@ -32,7 +32,7 @@ User = get_user_model()
 
 
 @pytest.mark.django_db
-def test_channel_not_exists_error(channel_service: BaseChannelService):
+def test_channel_not_found_error(channel_service: BaseChannelService):
     """Test get_channel when user's channel does not exists in database."""
     with pytest.raises(ChannelNotFoundError):
         user = UserModelFactory()
@@ -40,9 +40,21 @@ def test_channel_not_exists_error(channel_service: BaseChannelService):
 
 
 @pytest.mark.django_db
-def test_channel_exists(channel_service: BaseChannelService, user_with_channel: User):
+def test_channel_retrieved_from_channel_or_404(channel_service: BaseChannelService, user_with_channel: User):
     """Test get_channel when a user has an existing channel in database."""
     assert user_with_channel.channel == channel_service.get_channel_by_user_or_404(user_with_channel)
+
+
+@pytest.mark.django_db
+def test_channel_is_none(channel_service: BaseChannelService):
+    """Test get_channel when a user does not have a channel in database."""
+    assert channel_service.get_channel_by_user_or_none(UserModelFactory()) is None
+
+
+@pytest.mark.django_db
+def test_channel_retrieved_from_channel_or_none(channel_service: BaseChannelService, user_with_channel: User):
+    """Test get_channel when a user has an existing channel in database."""
+    assert user_with_channel.channel == channel_service.get_channel_by_user_or_none(user_with_channel)
 
 
 @pytest.mark.django_db

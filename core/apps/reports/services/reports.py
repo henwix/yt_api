@@ -28,10 +28,12 @@ class BaseVideoReportsService(ABC):
     channel_repository: BaseChannelRepository
 
     @abstractmethod
-    def get_report_list(self) -> Iterable[VideoReport]: ...
+    def get_report_list(self) -> Iterable[VideoReport]:
+        ...
 
     @abstractmethod
-    def create_report(self, video_id: str, user: User, reason: str, description: str) -> dict: ...
+    def create_report(self, video_id: str, user: User, reason: str, description: str) -> dict:
+        ...
 
 
 class ORMVideoReportsService(BaseVideoReportsService):

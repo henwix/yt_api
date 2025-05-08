@@ -10,16 +10,18 @@ from core.apps.common.providers.cache import BaseCacheProvider
 
 from ..exceptions.codes import (
     CodeNotEqualException,
-    CodeNotFoundException,
+    CodeNotProvidedException,
 )
 
 
 class BaseCodeService(ABC):
     @abstractmethod
-    def generate_code(self): ...
+    def generate_code(self, email: str) -> str:
+        ...
 
     @abstractmethod
-    def validate_code(self): ...
+    def validate_code(self, email: str, code: str | None) -> None:
+        ...
 
 
 @dataclass
@@ -34,11 +36,11 @@ class EmailCodeService(BaseCodeService):
         self.cache_provider.set(key=self._KEY_PREFIX + email, value=code, timeout=60 * 5)
         return code
 
-    def validate_code(self, email: str, code: str) -> None:
+    def validate_code(self, email: str, code: str | None) -> None:
         cached_code = self.cache_provider.get(key=self._KEY_PREFIX + email)
 
         if cached_code is None:
-            raise CodeNotFoundException(email=email)
+            raise CodeNotProvidedException(email=email)
 
         if cached_code != code:
             raise CodeNotEqualException(cached_code=cached_code, user_code=code)

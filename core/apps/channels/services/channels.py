@@ -83,7 +83,8 @@ class BaseChannelSubsService(ABC):
     repository: BaseChannelSubsRepository
 
     @abstractmethod
-    def get_subscriber_list(self, channel: Channel) -> Iterable[SubscriptionItem]: ...
+    def get_subscriber_list(self, channel: Channel) -> Iterable[SubscriptionItem]:
+        ...
 
 
 class ORMChannelSubsService(BaseChannelSubsService):
@@ -96,7 +97,8 @@ class BaseChannelMainService(ABC):
     repository: BaseChannelMainRepository
 
     @abstractmethod
-    def get_channel_main_page_list(self) -> Iterable[Channel]: ...
+    def get_channel_main_page_list(self) -> Iterable[Channel]:
+        ...
 
 
 class ORMChannelMainService(BaseChannelMainService):
@@ -109,7 +111,8 @@ class BaseChannelAboutService(ABC):
     repository: BaseChannelAboutRepository
 
     @abstractmethod
-    def get_channel_about_list(self) -> Iterable[Channel]: ...
+    def get_channel_about_list(self) -> Iterable[Channel]:
+        ...
 
 
 class ORMChannelAboutService(BaseChannelAboutService):
@@ -122,10 +125,12 @@ class BaseSubscriptionService(ABC):
     repository: BaseSubscriptionRepository
 
     @abstractmethod
-    def subscribe(self, user: User, channel_slug: str) -> dict: ...
+    def subscribe(self, user: User, channel_slug: str) -> dict:
+        ...
 
     @abstractmethod
-    def unsubscribe(self, user: User, channel_slug: str) -> dict: ...
+    def unsubscribe(self, user: User, channel_slug: str) -> dict:
+        ...
 
 
 class ORMSubscriptionService(BaseSubscriptionService):

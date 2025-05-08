@@ -24,6 +24,7 @@ class VideoModelFactory(DjangoModelFactory):
     author = factory.SubFactory(ChannelModelFactory)
     name = factory_lazy_function(fake.text, max_length=40)
     description = factory.Faker('text')
+    upload_status = Video.UploadStatus.FINISHED
 
 
 class VideoViewModelFactory(DjangoModelFactory):

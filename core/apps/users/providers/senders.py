@@ -4,7 +4,8 @@ from core.apps.users.tasks import send_otp_code_email
 
 
 class BaseSenderProvider(ABC):
-    def send_code(self): ...
+    def send_code(self):
+        ...
 
 
 class EmailSenderProvider(BaseSenderProvider):

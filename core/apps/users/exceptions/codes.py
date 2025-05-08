@@ -6,15 +6,15 @@ from core.apps.common.exceptions import ServiceException
 
 
 @dataclass
-class CodeNotFoundException(ServiceException):
+class CodeNotProvidedException(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
-    default_detail = {'error': 'Code not found'}
+    default_detail = {'error': 'Code not provided'}
 
     email: str
 
     @property
     def message(self):
-        return 'Code not found'
+        return 'Code not provided'
 
 
 @dataclass

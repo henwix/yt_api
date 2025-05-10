@@ -1,22 +1,22 @@
 services:
   web:
-    # container_name: yt-web-middle
+    # container_name: yt-web-prod
     build:
       context: ..
-      dockerfile: Dockerfile.middle
-    image: yt-web-middle
+      dockerfile: Dockerfile.prod
+    image: yt-web-prod
     volumes:
       - ../static:/app/static
     env_file:
       - ../.env
-    command: "sh entrypoint.middle.sh"
+    command: "sh entrypoint.prod.sh"
     depends_on:
       - postgres
       - redis
 
   nginx:
     image: nginx:latest
-    container_name: yt-nginx-middle
+    container_name: yt-nginx-prod
     ports:
       - "80:80"
       - "443:443"
@@ -28,7 +28,7 @@ services:
       - web
 
   postgres:
-    container_name: yt-postgres-middle
+    container_name: yt-postgres-prod
     image: postgres:17.2-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data/
@@ -36,14 +36,14 @@ services:
       - ../.env
 
   redis:
-    container_name: yt-redis-middle
+    container_name: yt-redis-prod
     image: redis:7-alpine
     volumes:
       - redis_data:/data/
 
   celery:
-    container_name: yt-celery-middle
-    image: yt-web-middle
+    container_name: yt-celery-prod
+    image: yt-web-prod
     command: celery -A core.project.celery worker -l info -Q media-queue,email-queue
     env_file:
       - ../.env
@@ -52,8 +52,8 @@ services:
       - postgres
 
   celery-beat:
-    container_name: yt-celery-beat-middle
-    image: yt-web-middle
+    container_name: yt-celery-beat-prod
+    image: yt-web-prod
     command: celery -A core.project.celery beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     env_file:
       - ../.env

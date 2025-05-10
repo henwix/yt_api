@@ -1,6 +1,6 @@
 .vscode
 .venv
-.env.middle
+.env.prod
 .env
 __pycache__/
 test.py

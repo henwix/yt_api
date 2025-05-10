@@ -6,17 +6,17 @@ MANAGE_PY = python manage.py
 ENV = --env-file .env
 
 APP_CONTAINER = yt-web-dev
-APP_CONTAINER_MIDDLE = yt-web-middle
+APP_CONTAINER_PROD = yt-web-prod
 DB_CONTAINER = yt-postgres-dev
 DB_SERVICE = postgres
-DB_CONTAINER_MIDDLE = yt-postgres-middle
+DB_CONTAINER_PROD = yt-postgres-prod
 CELERY_CONTAINER = yt-celery-dev
 CELERY_BEAT_CONTAINER = yt-celery-beat-dev
 
-NGINX_CONTAINER = yt-nginx-middle
+NGINX_CONTAINER = yt-nginx-prod
 
 APP_DEV_FILE = docker_compose/docker-compose-dev.yml
-APP_MIDDLE_FILE = docker_compose/docker-compose-middle.yml
+APP_PROD_FILE = docker_compose/docker-compose-prod.yml
 MONITORING_FILE = docker_compose/monitoring.yml
 # --DEV--
 
@@ -116,45 +116,45 @@ test:
 	${EXEC} ${APP_CONTAINER} pytest
 
 
-# --MIDDLE--
+# --PROD--
 
 
-.PHONY: build-middle
-build-middle:
-	${DC} -f ${APP_MIDDLE_FILE} build
+.PHONY: build-prod
+build-prod:
+	${DC} -f ${APP_PROD_FILE} build
 
-.PHONY: app-middle
-app-middle:
-	${DC} -f ${APP_MIDDLE_FILE} up -d
+.PHONY: app-prod
+app-prod:
+	${DC} -f ${APP_PROD_FILE} up -d
 
-.PHONY: app-down-middle
-app-down-middle:
-	${DC} -f ${APP_MIDDLE_FILE} down
+.PHONY: app-down-prod
+app-down-prod:
+	${DC} -f ${APP_PROD_FILE} down
 
-.PHONY: app-restart-middle
-app-restart-middle:
-	${DC} -f ${APP_MIDDLE_FILE} down && ${DC} -f ${APP_MIDDLE_FILE} up -d
+.PHONY: app-restart-prod
+app-restart-prod:
+	${DC} -f ${APP_PROD_FILE} down && ${DC} -f ${APP_PROD_FILE} up -d
 
-.PHONY: app-logs-middle
-app-logs-middle:
-	${LOGS} ${APP_CONTAINER_MIDDLE} -f
+.PHONY: app-logs-prod
+app-logs-prod:
+	${LOGS} ${APP_CONTAINER_PROD} -f
 
-.PHONY: nginx-logs-middle
-nginx-logs-middle:
+.PHONY: nginx-logs-prod
+nginx-logs-prod:
 	${LOGS} ${NGINX_CONTAINER} -f
 
-.PHONY: superuser-middle
-superuser-middle:
-	${EXEC} ${APP_CONTAINER_MIDDLE} ${MANAGE_PY} createsuperuser
+.PHONY: superuser-prod
+superuser-prod:
+	${EXEC} ${APP_CONTAINER_PROD} ${MANAGE_PY} createsuperuser
 
-.PHONY: db-logs-middle
-db-logs-middle:
-	${LOGS} ${DB_CONTAINER_MIDDLE} -f
+.PHONY: db-logs-prod
+db-logs-prod:
+	${LOGS} ${DB_CONTAINER_PROD} -f
 
-.PHONY: db-middle
-db-middle:
-	${DC} -f ${APP_MIDDLE_FILE} ${ENV} up -d ${DB_SERVICE}
+.PHONY: db-prod
+db-prod:
+	${DC} -f ${APP_PROD_FILE} ${ENV} up -d ${DB_SERVICE}
 
-.PHONY: db-down-middle
-db-down-middle:
-	${DC} -f ${APP_MIDDLE_FILE} ${ENV} down ${DB_SERVICE}
+.PHONY: db-down-prod
+db-down-prod:
+	${DC} -f ${APP_PROD_FILE} ${ENV} down ${DB_SERVICE}

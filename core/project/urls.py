@@ -10,7 +10,7 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
-from core.project.settings import local
+from core.project.settings import prod
 
 
 urlpatterns = [
@@ -34,5 +34,5 @@ urlpatterns = [
 
 #  media root
 
-if local.DEBUG:
-    urlpatterns += static(local.MEDIA_URL, document_root=local.MEDIA_ROOT)
+if prod.DEBUG:
+    urlpatterns += static(prod.MEDIA_URL, document_root=prod.MEDIA_ROOT)

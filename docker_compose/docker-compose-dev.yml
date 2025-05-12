@@ -11,7 +11,6 @@ services:
       - ..:/app/
     env_file:
       - ../.env
-    # command: "sh entrypoint.dev.sh"
     command: >
       sh -c "python manage.py runserver 0.0.0.0:8000"
     depends_on:
@@ -19,8 +18,6 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-    # networks:
-      # - dev
   
   postgres:
     container_name: yt-postgres-dev
@@ -36,8 +33,6 @@ services:
       retries: 5
     env_file:
       - ../.env
-    # networks:
-      # - dev
 
   redis:
     container_name: yt-redis-dev
@@ -49,8 +44,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    # networks:
-      # - dev
   
   celery:
     container_name: yt-celery-dev
@@ -63,8 +56,6 @@ services:
     depends_on:
       - redis
       - postgres
-    # networks:
-      # - dev
 
   celery-beat:
     container_name: yt-celery-beat-dev
@@ -77,15 +68,9 @@ services:
     depends_on:
       - redis
       - postgres
-    # networks:
-      # - dev
 
 volumes:
   postgres_data:
     name: yt_api_postgres_data
   redis_data:
     name: yt_api_redis_data
-
-# networks:
-#   dev:
-#     driver: bridge

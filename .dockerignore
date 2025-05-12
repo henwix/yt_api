@@ -23,3 +23,5 @@ certs
 nginx.conf
 test.py
 test.html
+entrypoint.dev.sh
+nginx-cert.conf

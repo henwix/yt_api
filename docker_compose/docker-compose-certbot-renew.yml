@@ -1,0 +1,8 @@
+services:
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - /etc/test/letsencrypt:/etc/letsencrypt
+      - /var/www/certbot:/var/www/certbot
+    command: renew --webroot -w /var/www/certbot --agree-tos

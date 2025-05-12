@@ -177,7 +177,7 @@ class VideoViewSet(
             result = self.service.view_create(
                 user=request.user,
                 video_id=video_id,
-                ip_address=request.META.get('REMOTE_ADDR'),
+                ip_address=request.META.get('HTTP_X_REAL_IP'),
             )
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})

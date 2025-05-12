@@ -67,8 +67,6 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         return self.channel_service.repository.get_channel_by_user(self.request.user)
 
     def retrieve(self, request, *args, **kwargs):
-        self.logger.info(request.META.get('REMOTE_ADDR'))
-
         user = request.user
         cache_key = f'retrieve_channel_{user.pk}'
 

@@ -3,6 +3,6 @@ services:
     image: certbot/certbot
     container_name: certbot
     volumes:
-      - /etc/test/letsencrypt:/etc/letsencrypt
+      - /etc/letsencrypt:/etc/letsencrypt
       - /var/www/certbot:/var/www/certbot
-    command: certonly --webroot -w /var/www/certbot --email ${CERTBOT_EMAIL} --test-cert --agree-tos -d ${CERTBOT_DOMAIN}
+    command: certonly --webroot -w /var/www/certbot --email ${CERTBOT_EMAIL} --agree-tos -d ${CERTBOT_DOMAIN}

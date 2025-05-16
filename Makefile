@@ -2,29 +2,32 @@ DC = docker compose
 EXEC = docker exec -it
 LOGS = docker logs
 MANAGE_PY = python manage.py
-
 ENV = --env-file .env
 
 APP_CONTAINER = yt-web-dev
-APP_CONTAINER_PROD = yt-web-prod
 DB_CONTAINER = yt-postgres-dev
 DB_SERVICE = postgres
-DB_CONTAINER_PROD = yt-postgres-prod
 CELERY_CONTAINER = yt-celery-dev
 CELERY_BEAT_CONTAINER = yt-celery-beat-dev
 
-NGINX_CONTAINER = yt-nginx-prod
-
 APP_DEV_FILE = docker_compose/docker-compose-dev.yml
+
+# -- PRODUCTION VARIABLES --
+
 APP_PROD_FILE = docker_compose/docker-compose-prod.yml
+DB_CONTAINER_PROD = yt-postgres-prod
+NGINX_CONTAINER = yt-nginx-prod
+CERTBOT_CREATE_FILE = docker_compose/docker-compose-certbot-create.yml
+CERTBOT_RENEW_FILE = docker_compose/docker-compose-certbot-renew.yml
 MONITORING_FILE = docker_compose/monitoring.yml
-# --DEV--
+
+
+# -- DEVELOPMENT COMMANDS --
 
 
 .PHONY: build
 build:
 	${DC} -f ${APP_DEV_FILE} ${ENV} build
-
 
 .PHONY: db
 db:
@@ -42,7 +45,6 @@ db-logs:
 db-shell:
 	${EXEC} ${DB_CONTAINER} psql -U yt-user -d yt
 
-
 .PHONY: monitoring
 monitoring:
 	${DC} -f ${MONITORING_FILE} up -d
@@ -58,7 +60,6 @@ monitoring-restart:
 .PHONY: monitoring-logs
 monitoring-logs:
 	${DC} -f ${MONITORING_FILE} ${ENV} logs -f
-
 
 .PHONY: app
 app:
@@ -84,7 +85,6 @@ app-logs:
 app-shell:
 	${EXEC} ${APP_CONTAINER} ${MANAGE_PY} shell_plus
 
-
 .PHONY: celery-logs
 celery-logs:
 	${LOGS} ${CELERY_CONTAINER} -f
@@ -92,7 +92,6 @@ celery-logs:
 .PHONY: beat-logs
 beat-logs:
 	${LOGS} ${CELERY_BEAT_CONTAINER} -f
-
 
 .PHONY: makemigrations
 makemigrations:
@@ -110,14 +109,21 @@ superuser:
 collectstatic:
 	${EXEC} ${APP_CONTAINER} ${MANAGE_PY} collectstatic
 
-
 .PHONY: test
 test:
 	${EXEC} ${APP_CONTAINER} pytest
 
 
-# --PROD--
+# -- PRODUCTION COMMANDS --
 
+
+.PHONY: certbot-create-prod
+certbot-create-prod:
+	${DC} -f ${CERTBOT_CREATE_FILE} ${ENV} up && docker container prune -f
+
+.PHONY: certbot-renew-prod
+certbot-renew-prod:
+	${DC} -f ${CERTBOT_RENEW_FILE} run --rm certbot
 
 .PHONY: build-prod
 build-prod:
@@ -135,10 +141,6 @@ app-down-prod:
 app-restart-prod:
 	${DC} -f ${APP_PROD_FILE} down && ${DC} -f ${APP_PROD_FILE} up -d
 
-.PHONY: app-logs-prod
-app-logs-prod:
-	${LOGS} ${APP_CONTAINER_PROD} -f
-
 .PHONY: nginx-logs-prod
 nginx-logs-prod:
 	${LOGS} ${NGINX_CONTAINER} -f
@@ -146,10 +148,6 @@ nginx-logs-prod:
 .PHONY: superuser-prod
 superuser-prod:
 	${EXEC} ${APP_CONTAINER_PROD} ${MANAGE_PY} createsuperuser
-
-.PHONY: db-logs-prod
-db-logs-prod:
-	${LOGS} ${DB_CONTAINER_PROD} -f
 
 .PHONY: db-prod
 db-prod:

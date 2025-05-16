@@ -14,6 +14,7 @@ APP_DEV_FILE = docker_compose/docker-compose-dev.yml
 
 # -- PRODUCTION VARIABLES --
 
+APP_CONTAINER_PROD = docker_compose-web-1
 APP_PROD_FILE = docker_compose/docker-compose-prod.yml
 DB_CONTAINER_PROD = yt-postgres-prod
 NGINX_CONTAINER = yt-nginx-prod
@@ -139,7 +140,7 @@ app-down-prod:
 
 .PHONY: app-restart-prod
 app-restart-prod:
-	${DC} -f ${APP_PROD_FILE} down && ${DC} -f ${APP_PROD_FILE} up -d
+	${DC} -f ${APP_PROD_FILE} down && ${DC} -f ${APP_PROD_FILE} ${ENV} up --build -d
 
 .PHONY: nginx-logs-prod
 nginx-logs-prod:

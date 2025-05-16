@@ -29,3 +29,7 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 60  # 31536000 - 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+
+    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = [  # noqa
+        'rest_framework.renderers.JSONRenderer',
+    ]

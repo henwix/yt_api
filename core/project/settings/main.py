@@ -175,9 +175,6 @@ if DEBUG:
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
-    # 'DEFAULT_RENDERER_CLASSES': [
-    #     'rest_framework.renderers.JSONRenderer',
-    # ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
@@ -201,9 +198,9 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'YT Pet Project API',
-    'DESCRIPTION': 'API Description',
-    'VERSION': '1.0.0',
+    'TITLE': 'Documentation for pet project YT-like API',
+    'DESCRIPTION': '-',
+    'VERSION': '1.3.6',
     'SERVE_INCLUDE_SCHEMA': False,
     'SCHEMA_PATH_PREFIX': r'/api/v[1-2]/',
     'SWAGGER_UI_SETTINGS': {'deepLinking': True, 'persistAuthorization': True},
@@ -262,20 +259,6 @@ SIMPLE_JWT = {
 
 LOGIN_REDIRECT_URL = 'v1:users:user-me'
 
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'handlers': {
-#         'console': {
-#             'class': 'logging.StreamHandler',
-#         },
-#     },
-#     'root': {
-#         'handlers': ['console'],
-#         'level': 'DEBUG',
-#     },
-# }
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -330,6 +313,7 @@ MEDIA_URL = '/media/'
 
 
 # Files Storages
+
 
 CACHE_KEYS = {
     's3_video_url': 's3_video_url_',

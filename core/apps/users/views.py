@@ -11,6 +11,7 @@ from djoser import signals
 from djoser.compat import get_user_email
 from djoser.conf import settings
 from djoser.views import UserViewSet
+from drf_spectacular.utils import extend_schema
 from rest_framework_simplejwt.tokens import RefreshToken  # noqa
 
 from core.apps.common.exceptions import ServiceException
@@ -29,7 +30,37 @@ from .use_cases.auth import (  # noqa
 )
 
 
+@extend_schema(
+    request={
+        'application/json': {
+            'type': 'object',
+            'properties': {
+                'login': {'type': 'string'},
+                'password': {'type': 'string'},
+            },
+            'required': ['login', 'password'],
+        },
+    },
+    responses={
+        200: {
+            'type': 'object',
+            'properties': {
+                'access': {
+                    'type': 'string',
+                    'example': 'string',
+                },
+                'refresh': {
+                    'type': 'string',
+                    'example': 'string',
+                },
+            },
+        },
+    },
+    summary='Login user and get JWT tokens or send OTP code',
+)
 class UserLoginView(APIView):
+    """Returns access and refresh tokens if user does not have OTP enabled or,
+    sends an email with a code to verify OTP."""
     def post(self, request):
         container: punq.Container = get_container()
         use_case: AuthorizeUserUseCase = container.resolve(AuthorizeUserUseCase)
@@ -42,6 +73,34 @@ class UserLoginView(APIView):
         return Response(result, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    request={
+        'application/json': {
+            'type': 'object',
+            'properties': {
+                'email': {'type': 'string'},
+                'code': {'type': 'string'},
+            },
+            'required': ['email', 'code'],
+        },
+    },
+    responses={
+        200: {
+            'type': 'object',
+            'properties': {
+                'access': {
+                    'type': 'string',
+                    'example': 'string',
+                },
+                'refresh': {
+                    'type': 'string',
+                    'example': 'string',
+                },
+            },
+        },
+    },
+    summary='Verify OTP code and get JWT tokens',
+)
 class CodeVerifyView(APIView):
     def post(self, request):
         container: punq.Container = get_container()
@@ -60,14 +119,6 @@ class CodeVerifyView(APIView):
 
 
 class CustomUserViewSet(UserViewSet):
-    """Custom UserViewSet from Djoser.
-
-    Added:
-    - To queryset added prefetch_related('channel')
-    Mails for account activation, confirmation, reset_password and reset_username will be send via Celery.
-
-    """
-
     pagination_class = CustomPageNumberPagination
     queryset = get_user_model().objects.all().prefetch_related('channel')
 

@@ -37,7 +37,6 @@ from core.project.containers import get_container
             'properties': {
                 'upload_url': {
                     'type': 'string',
-                    'description': 'Presigned URL for avatar upload',
                 },
             },
         },
@@ -79,7 +78,6 @@ class GenerateUploadAvatarUrlView(generics.GenericAPIView):
             'properties': {
                 'url': {
                     'type': 'string',
-                    'description': 'Presigned URL for avatar download',
                 },
             },
         },
@@ -119,6 +117,20 @@ class GenerateDownloadAvatarUrlView(generics.GenericAPIView):
         return Response(result, status=status.HTTP_201_CREATED)
 
 
+@extend_schema(
+    responses={
+        200: {
+            'type': 'object',
+            'properties': {
+                'status': {
+                    'type': 'string',
+                    'example': 'success',
+                },
+            },
+        },
+    },
+    summary='Delete channel avatar',
+)
 class DeleteChannelAvatarView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -130,16 +142,6 @@ class DeleteChannelAvatarView(generics.GenericAPIView):
         try:
             result = use_case.execute(user=request.user)
 
-        except ClientError as error:
-            logger.error(
-                "S3 client can't delete channel avatar",
-                extra={'log_meta': orjson.dumps(str(error)).decode()},
-            )
-            return Response(
-                {'error': error.response.get('Error', {}).get('Message')},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
@@ -147,6 +149,20 @@ class DeleteChannelAvatarView(generics.GenericAPIView):
         return Response(result, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    responses={
+        200: {
+            'type': 'object',
+            'properties': {
+                'status': {
+                    'type': 'string',
+                    'example': 'success',
+                },
+            },
+        },
+    },
+    summary='Complete avatar uploading',
+)
 class CompleteUploadAvatarView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = KeySerializer

@@ -29,6 +29,11 @@ urlpatterns = [
 
 
 if settings.DEBUG:
-    urlpatterns += path('auth/', include('rest_framework.urls'))  # add auth urls if DEBUG = True
-    urlpatterns += path('silk/', include('silk.urls', namespace='silk'))  # add silk urls if DEBUG = True
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+    urlpatterns.extend(
+        [
+            path('auth/', include('rest_framework.urls')),  # add auth urls if DEBUG is True
+            path('silk/', include('silk.urls', namespace='silk')),  # add silk urls if DEBUG is True
+        ],
+    )

@@ -125,6 +125,7 @@ class VideoViewSet(
                 ],
             ),
         },
+        summary='Like or dislike video',
     )
     @action(url_path='like', methods=['post'], detail=True)
     def like_create(self, request, video_id):
@@ -132,8 +133,6 @@ class VideoViewSet(
 
         Only one field can be provided: 'is_like' - true by default and means like, but false - dislike.
         Video determines by 'video_id' URL-parameter.
-
-        Example: http://127.0.0.1:8001/api/v1/video/JDcWD0w9aJD/like/
 
         """
         try:
@@ -144,14 +143,41 @@ class VideoViewSet(
 
         return Response(result, status.HTTP_201_CREATED)
 
+    @extend_schema(
+        request=inline_serializer(
+            name='VideoLikeDelete',
+            fields={
+                'is_like': drf_serializers.BooleanField(required=False),
+            },
+        ),
+        responses={
+            201: OpenApiResponse(
+                response=inline_serializer(
+                    name='VideoLikeDeleted',
+                    fields={
+                        'status': drf_serializers.CharField(),
+                    },
+                ),
+                description="Like created",
+                examples=[
+                    OpenApiExample(
+                        name="Deleted",
+                        value={
+                            "status": "success",
+                        },
+                        response_only=True,
+                    ),
+                ],
+            ),
+        },
+        summary='Delete like or dislike video',
+    )
     @action(url_path='unlike', methods=['delete'], detail=True)
     def like_delete(self, request, video_id):
         """API endpoint to delete like or dislike.
 
-        No parameters required.
-        Video determines by 'video_id' URL-parameter.
-
-        Example: http://127.0.0.1:8001/api/v1/video/JDcWD0w9aJD/unlike/
+        No parameters required. Video determines by 'video_id' URL-
+        parameter.
 
         """
         try:
@@ -162,15 +188,36 @@ class VideoViewSet(
 
         return Response(result, status.HTTP_204_NO_CONTENT)
 
-    @extend_schema(request=None)
+    @extend_schema(
+        request=None,
+        responses={
+            201: OpenApiResponse(
+                response=inline_serializer(
+                    name='View Created',
+                    fields={
+                        'status': drf_serializers.CharField(),
+                    },
+                ),
+                description="View created",
+                examples=[
+                    OpenApiExample(
+                        name="Created",
+                        value={
+                            "status": "success",
+                        },
+                        response_only=True,
+                    ),
+                ],
+            ),
+        },
+        summary='Add view to video',
+    )
     @action(url_path='view', methods=['post'], detail=True)
     def view_create(self, request, video_id):
         """API endpoint for adding views to videos.
 
-        Have no required fields.
-        Allows add a view if the previous one was more than 24 hours ago.
-
-        Example: http://127.0.0.1:8001/api/v1/video/JDcWD0w9aJD/view/
+        Have no required fields. Allows add a view if the previous one
+        was more than 24 hours ago.
 
         """
         try:
@@ -221,20 +268,6 @@ class VideoViewSet(
 
 
 class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
-    """API endpoint for listing, retrieving, updating and deleting Video
-    Comments.
-
-    Permissions:
-        GET - Everyone
-        POST - Authenticated only
-        DELETE/POST/PUT - Comment's author only
-
-    Supports pagination by cursor.
-
-    Example: /api/v1/videos-comment/?v=uN9qVyjTrO6
-
-    """
-
     serializer_class = video_serializers.VideoCommentSerializer
     pagination_class = CustomCursorPagination
     permission_classes = [IsAuthenticatedOrAuthorOrReadOnly]
@@ -262,6 +295,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
                 type=str,
             ),
         ],
+        summary='Get video comments',
     )
     def list(self, request, *args, **kwargs):
         try:
@@ -328,6 +362,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
                 ],
             ),
         },
+        summary='Like or dislike comment',
     )
     @action(methods=['post'], url_path='like', detail=True)
     def like_create(self, request, pk):
@@ -345,6 +380,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
 
         return Response(result, status.HTTP_201_CREATED)
 
+    @extend_schema(summary='Delete like or dislike comment')
     @action(methods=['delete'], url_path='unlike', detail=True)
     def like_delete(self, request, pk):
         use_case: CommentLikeDeleteUseCase = self.container.resolve(CommentLikeDeleteUseCase)
@@ -386,6 +422,7 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
         return VideoHistory.objects.filter(channel=self.request.user.channel).select_related('video__author')
 
     @extend_schema(
+        request=None,
         parameters=[
             OpenApiParameter(
                 name='v',
@@ -394,15 +431,21 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
                 type=str,
             ),
         ],
+        responses={
+            201: {
+                'type': 'object',
+                'properties': {
+                    'status': {
+                        'type': 'string',
+                        'example': 'Video added in history',
+                    },
+                },
+            },
+        },
+        summary='Add video in history',
     )
     @action(methods=['post'], detail=False, url_path='add', url_name='add')
     def add_video_in_history(self, request):
-        """API endpoint to add video in watching history.
-
-        To add video you need to provide required query parameter - 'v' with video_id.
-        Example: api/v1/history/add/?v=au90D2BoHuT
-
-        """
         video_id = request.query_params.get('v')
 
         try:
@@ -414,24 +457,30 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
         return Response(result, status.HTTP_201_CREATED)
 
     @extend_schema(
+        request=None,
         parameters=[
             OpenApiParameter(
                 name='v',
-                description='Parameter identifying video to delete from history.',
+                description='Parameter identifying video to add in playlist.',
                 required=True,
                 type=str,
             ),
         ],
+        responses={
+            201: {
+                'type': 'object',
+                'properties': {
+                    'status': {
+                        'type': 'string',
+                        'example': 'Video successfully deleted from history',
+                    },
+                },
+            },
+        },
+        summary='Delete video from history',
     )
     @action(methods=['delete'], url_path='delete', url_name='delete', detail=False)
     def delete_video_from_history(self, request):
-        """API endpoint to delete video from watching history.
-
-        To delete video you need to provide required query parameter - 'v' with video_id.
-
-        Example: api/v1/history/delete/?v=au90D2BoHuT
-
-        """
         video_id = request.query_params.get('v')
 
         try:
@@ -440,18 +489,11 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
 
-        return Response(result, status.HTTP_204_NO_CONTENT)
+        return Response(result, status.HTTP_200_OK)
 
 
+@extend_schema(summary='Get all personal channel videos')
 class MyVideoView(generics.ListAPIView):
-    """API endpoint to get all user's videos.
-
-    Supports cursor pagination.
-
-    Example: api/v1/videos-personal/
-
-    """
-
     serializer_class = video_serializers.VideoPreviewSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = CustomCursorPagination
@@ -505,6 +547,18 @@ class PlaylistAPIView(viewsets.ModelViewSet):
                 type=str,
             ),
         ],
+        responses={
+            201: {
+                'type': 'object',
+                'properties': {
+                    'status': {
+                        'type': 'string',
+                        'example': 'Video added in playlist',
+                    },
+                },
+            },
+        },
+        summary='Add video in playlist',
     )
     @action(
         methods=['post'],
@@ -539,6 +593,7 @@ class PlaylistAPIView(viewsets.ModelViewSet):
                 type=str,
             ),
         ],
+        summary='Delete video from playlist',
     )
     @action(
         methods=['delete'],

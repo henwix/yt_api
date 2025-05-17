@@ -188,9 +188,9 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_THROTTLE_RATES': {
         'anon_burst': '100/day',
-        'anon_sustained': '100/hour',
+        'anon_sustained': '1000/hour',
         'user_burst': '1000/day',
-        'user_sustained': '100/minute',
+        'user_sustained': '1000/minute',
     },
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.URLPathVersioning',
     'DEFAULT_VERSION': 'v1',

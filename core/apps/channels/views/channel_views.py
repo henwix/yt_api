@@ -13,11 +13,7 @@ from rest_framework.response import Response
 
 import orjson
 import punq
-from drf_spectacular.utils import (
-    extend_schema,
-    OpenApiExample,
-    OpenApiTypes,
-)
+from drf_spectacular.utils import extend_schema
 
 from core.apps.channels.models import (
     Channel,
@@ -44,14 +40,6 @@ from core.project.containers import get_container
 
 
 class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
-    """API endpoint for detail, update and delete 'Channel' instances.
-
-    If the request method is DELETE, related/associated 'User' will also be deleted.
-
-    Example: /api/v1/channel/
-
-    """
-
     queryset = Channel.objects.all()
     serializer_class = ChannelSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -91,14 +79,10 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema(
+    summary='Get list of subscribers',
+)
 class ChannelSubscribersView(generics.ListAPIView, PaginationMixin):
-    """API endpoint to channel's subscribers listing.
-
-    Supports cache for 15 minutes and Cursor pagination.
-    Example: /api/v1/channel/subscribers/
-
-    """
-
     serializer_class = SubscriptionSerializer
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = CustomCursorPagination
@@ -134,13 +118,11 @@ class ChannelSubscribersView(generics.ListAPIView, PaginationMixin):
         return response
 
 
+@extend_schema(
+    summary='Get channel main page: channel info and last 5 public videos',
+)
 class ChannelMainView(generics.RetrieveAPIView):
-    """API endpoint to get channel main page. Main page includes info about
-    channel and last 5 public videos.
-
-    Example: /api/v1/c/henwixchannel
-
-    """
+    """Main page includes info about channel and last 5 public videos."""
 
     serializer_class = ChannelAndVideosSerializer
     lookup_url_kwarg = 'slug'
@@ -156,15 +138,10 @@ class ChannelMainView(generics.RetrieveAPIView):
         return self.service.get_channel_main_page_list()
 
 
+@extend_schema(
+    summary='Get detailed info about channel',
+)
 class ChannelAboutView(generics.RetrieveAPIView):
-    """API endpoint to get info about channel.
-
-    Supports caching. Cache available in 15 minutes.
-
-    Example: /api/v1/c/henwixchannel/about
-
-    """
-
     serializer_class = ChannelAboutSerializer
     lookup_url_kwarg = 'slug'
     lookup_field = 'slug'
@@ -208,22 +185,20 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
             },
         },
         responses={
-            200: OpenApiTypes.OBJECT,
-            201: OpenApiTypes.OBJECT,
-            204: OpenApiTypes.OBJECT,
-            400: OpenApiTypes.OBJECT,
-            404: OpenApiTypes.OBJECT,
+            201: {
+                'type': 'object',
+                'properties': {
+                    'status': {
+                        'type': 'string',
+                        'example': 'Subscription created',
+                    },
+                },
+            },
         },
-        examples=[OpenApiExample("Example: sub to 'henwix' channel", value={'to': 'henwix'}, request_only=True)],
+        summary='Subscribe to channel',
     )
     @action(methods=['post'], url_path='subscribe', detail=False)
     def subscribe(self, request):
-        """API endpoint to subscribe.
-
-        JSON-body parameters: 'slug' - channel's slug to subscribe
-        Example: api/v1/subscription/subscribe/
-
-        """
         try:
             result = self.service.subscribe(user=request.user, channel_slug=request.data.get('to'))
         except ServiceException as error:
@@ -247,20 +222,20 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
             },
         },
         responses={
-            204: OpenApiTypes.OBJECT,
-            404: OpenApiTypes.OBJECT,
+            201: {
+                'type': 'object',
+                'properties': {
+                    'status': {
+                        'type': 'string',
+                        'example': 'Subscription deleted',
+                    },
+                },
+            },
         },
-        examples=[OpenApiExample("Example: unsub from 'henwix' channel", value={'to': 'henwix'}, request_only=True)],
+        summary='Unsubscribe from channel',
     )
     @action(methods=['post'], url_path='unsubscribe', detail=False)
     def unsubscribe(self, request):
-        """API endpoint to unsubscribe.
-
-        JSON-body parameters: 'to' - channel's slug to unsubscribe
-        Example: api/v1/subscription/unsubscribe/
-
-        """
-
         try:
             result = self.service.unsubscribe(user=request.user, channel_slug=request.data.get('to'))
         except ServiceException as error:

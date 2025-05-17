@@ -187,7 +187,7 @@ class ORMVideoService(BaseVideoService):
         if not deleted:
             raise VideoLikeNotFoundError(channel_slug=channel.slug, video_id=video.video_id)
 
-        return {'status': 'Success'}
+        return {'status': 'success'}
 
     def view_create(self, user: User, video_id: str, ip_address: str) -> dict:
         channel, video = self._user_and_video_validate(user, video_id)
@@ -198,7 +198,7 @@ class ORMVideoService(BaseVideoService):
             raise ViewExistsError(channel_slug=channel.slug, video_id=video.video_id)
 
         self.video_repository.create_view(channel, video, ip_address)
-        return {'status': 'Success'}
+        return {'status': 'success'}
 
     def get_videos_for_listing(self) -> Iterable[Video]:
         return (

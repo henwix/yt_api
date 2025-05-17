@@ -41,6 +41,22 @@ from core.project.containers import get_container
             'required': ['name', 'filename'],
         },
     },
+    responses={
+        201: {
+            'type': 'object',
+            'properties': {
+                'upload_id': {
+                    'type': 'string',
+                    'example': 'test_upload_id',
+                },
+                'key': {
+                    'type': 'string',
+                    'example': 'videos/test_key.mp4',
+                },
+            },
+        },
+    },
+    summary='Create multipart upload',
 )
 class CreateMultipartUploadView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
@@ -78,6 +94,20 @@ class CreateMultipartUploadView(generics.GenericAPIView):
         return Response(result, status=status.HTTP_201_CREATED)
 
 
+@extend_schema(
+    responses={
+        201: {
+            'type': 'object',
+            'properties': {
+                'upload_url': {
+                    'type': 'string',
+                    'example': 'test_upload_url',
+                },
+            },
+        },
+    },
+    summary='Generate upload url for video',
+)
 class GenerateUploadPartUrlView(generics.GenericAPIView):
     serializer_class = GenerateUploadPartUrlSerializer
     permission_classes = [IsAuthenticated]
@@ -163,6 +193,20 @@ class GenerateDownloadVideoUrlView(generics.GenericAPIView):
         return Response(result, status=status.HTTP_201_CREATED)
 
 
+@extend_schema(
+    responses={
+        200: {
+            'type': 'object',
+            'properties': {
+                'status': {
+                    'type': 'string',
+                    'example': 'success',
+                },
+            },
+        },
+    },
+    summary='Abort multipart upload',
+)
 class AbortMultipartUploadView(generics.GenericAPIView):
     serializer_class = AbortUploadSerializer
     permission_classes = [IsAuthenticated]
@@ -199,6 +243,24 @@ class AbortMultipartUploadView(generics.GenericAPIView):
         return Response(result, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    responses={
+        200: {
+            'type': 'object',
+            'properties': {
+                'status': {
+                    'type': 'string',
+                    'example': 'success',
+                },
+                'message': {
+                    'type': 'string',
+                    'example': 'Video upload completed successfully',
+                },
+            },
+        },
+    },
+    summary='Complete multipart upload',
+)
 class CompleteMultipartUploadView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CompleteUploadSerializer

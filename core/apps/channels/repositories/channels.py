@@ -82,7 +82,11 @@ class ORMChannelMainRepository(BaseChannelMainRepository):
     def get_channel_main_page_list(self) -> Iterable[Channel]:
         second_qs = (
             Video.objects.select_related('author')
-            .filter(author__slug=OuterRef('author__slug'), status=Video.VideoStatus.PUBLIC)
+            .filter(
+                author__slug=OuterRef('author__slug'),
+                status=Video.VideoStatus.PUBLIC,
+                upload_status=Video.UploadStatus.FINISHED,
+            )
             .order_by('-created_at')
             .values('pk')[:5]
         )
@@ -114,7 +118,14 @@ class ORMChannelAboutRepository(BaseChannelAboutRepository):
             .select_related('user')
             .annotate(
                 total_views=Count('videos__views', distinct=True),
-                total_videos=Count('videos', filter=Q(videos__status=Video.VideoStatus.PUBLIC), distinct=True),
+                total_videos=Count(
+                    'videos',
+                    filter=Q(
+                        videos__status=Video.VideoStatus.PUBLIC,
+                        videos__upload_status=Video.UploadStatus.FINISHED,
+                    ),
+                    distinct=True,
+                ),
                 total_subs=Count('followers', distinct=True),
             )
         )

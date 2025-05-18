@@ -38,6 +38,9 @@ from core.project.containers import get_container
                 'upload_url': {
                     'type': 'string',
                 },
+                'key': {
+                    'type': 'string',
+                },
             },
         },
     },

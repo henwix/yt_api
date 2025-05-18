@@ -212,13 +212,13 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
             'application/json': {
                 'type': 'object',
                 'properties': {
-                    'to': {
+                    'from': {
                         'type': 'string',
                         'description': "'slug' field from channel's instance to unsubscribe",
                         'example': 'henwix',
                     },
                 },
-                'required': ['to'],
+                'required': ['from'],
             },
         },
         responses={
@@ -237,7 +237,7 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
     @action(methods=['post'], url_path='unsubscribe', detail=False)
     def unsubscribe(self, request):
         try:
-            result = self.service.unsubscribe(user=request.user, channel_slug=request.data.get('to'))
+            result = self.service.unsubscribe(user=request.user, channel_slug=request.data.get('from'))
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise

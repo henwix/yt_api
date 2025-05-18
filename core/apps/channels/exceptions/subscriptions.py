@@ -8,13 +8,13 @@ from core.apps.common.exceptions import ServiceException
 @dataclass
 class SelfSubscriptionError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = {'error': "You can't subscribe to yourself"}
+    default_detail = {'error': "You can't subscribe/unsubscribe to/from yourself"}
 
     channel_slug: str
 
     @property
     def message(self):
-        return "Self-subscription not allowed"
+        return "User can't subscribe/unsubscribe to/from yourself"
 
 
 @dataclass

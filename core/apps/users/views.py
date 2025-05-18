@@ -59,7 +59,7 @@ from .use_cases.auth import (  # noqa
     summary='Login user and get JWT tokens or send OTP code',
 )
 class UserLoginView(APIView):
-    """Returns access and refresh tokens if user does not have OTP enabled or,
+    """Returns access and refresh tokens if user does not have OTP enabled, or
     sends an email with a code to verify OTP."""
     def post(self, request):
         container: punq.Container = get_container()

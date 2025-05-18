@@ -21,7 +21,7 @@ class VideoCommentSerializer(serializers.ModelSerializer):
     )
     author_slug = serializers.CharField(source='author.slug', read_only=True)
     update_link = serializers.HyperlinkedIdentityField(
-        view_name='v1:videos:videos-comment-detail',
+        view_name='v1:videos:videos-comments-detail',
         many=False,
         read_only=True,
     )

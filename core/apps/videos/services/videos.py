@@ -11,6 +11,7 @@ from typing import (
 from django.contrib.auth import get_user_model
 from django.db.models import (
     Count,
+    Prefetch,
     Q,
 )
 
@@ -337,14 +338,39 @@ class ORMVideoPlaylistService(BaseVideoPlaylistService):
             queryset.filter(channel=channel)
             .prefetch_related('videos__author')
             .select_related('channel')
-            .annotate(videos_count=Count('videos', distinct=True))
+            .annotate(
+                videos_count=Count(
+                    'videos',
+                    distinct=True,
+                    filter=Q(
+                        videos__status=Video.VideoStatus.PUBLIC,
+                    ) & Q(videos__upload_status=Video.UploadStatus.FINISHED),
+                ),
+            )
         )
 
     def get_playlists_for_retrieving(self) -> Iterable[Playlist]:
         queryset = self.playlist_repository.get_all_playlists()
 
         return (
-            queryset.prefetch_related('videos__author')
+            queryset.prefetch_related(
+                Prefetch(
+                    'videos',
+                    queryset=self.video_repository.get_videos_list().filter(
+                        status=Video.VideoStatus.PUBLIC,
+                        upload_status=Video.UploadStatus.FINISHED,
+                    ),
+                ),
+                'videos__author',
+            )
             .select_related('channel')
-            .annotate(videos_count=Count('videos', distinct=True))
+            .annotate(
+                videos_count=Count(
+                    'videos',
+                    distinct=True,
+                    filter=Q(
+                        videos__status=Video.VideoStatus.PUBLIC,
+                    ) & Q(videos__upload_status=Video.UploadStatus.FINISHED),
+                ),
+            )
         )

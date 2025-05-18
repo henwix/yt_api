@@ -158,7 +158,7 @@ class VideoViewSet(
                         'status': drf_serializers.CharField(),
                     },
                 ),
-                description="Like created",
+                description="Like deleted",
                 examples=[
                     OpenApiExample(
                         name="Deleted",
@@ -272,7 +272,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
     pagination_class = CustomCursorPagination
     permission_classes = [IsAuthenticatedOrAuthorOrReadOnly]
     filter_backends = [filters.OrderingFilter]
-    ordering_fields = ['created_at', 'likes_count']
+    ordering_fields = ['created_at', 'likes_count', 'replies_count']
     ordering = ['-likes_count']
 
     def __init__(self, **kwargs):
@@ -511,8 +511,6 @@ class PlaylistAPIView(viewsets.ModelViewSet):
     - retrieve: allow any if not private
     - delete and update: author or staff only
 
-    Example: api/v1/playlist/, api/v1/playlist/kn2puLWEDmqIvavBgvYRSypsb162jSHE/
-
     """
 
     lookup_field = 'id'
@@ -539,6 +537,7 @@ class PlaylistAPIView(viewsets.ModelViewSet):
         return self.service.playlist_repository.get_all_playlists()
 
     @extend_schema(
+        request=None,
         parameters=[
             OpenApiParameter(
                 name='v',
@@ -569,9 +568,8 @@ class PlaylistAPIView(viewsets.ModelViewSet):
     def add_video_in_playlist(self, request, id):
         """API endpoint to add video in playlist.
 
-        Requires 'playlist id' in URL and 'v' query param which contains video_id.
-
-        Example: /api/v1/playlist/W9MghI-EVXdkfYzfuvUmCCWlJRcPm1FT/add-video/?v=33CjPuGJsEZ
+        Requires 'playlist id' in URL and 'v' query param which contains
+        video_id.
 
         """
         video_id = request.query_params.get('v')

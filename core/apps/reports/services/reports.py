@@ -38,7 +38,9 @@ class BaseVideoReportsService(ABC):
 
 class ORMVideoReportsService(BaseVideoReportsService):
     def _report_validation(self, video: Video | None, video_id: str, channel: Channel) -> None:
-        if not video:
+        if not video or (
+            video.upload_status == Video.UploadStatus.UPLOADING or video.status == Video.VideoStatus.PRIVATE
+        ):
             raise VideoNotFoundByVideoIdError(video_id=video_id)
 
         if VideoReport.objects.filter(video=video, author=channel).count() >= 3:

@@ -30,7 +30,7 @@ def invalidate_channel_cache(instance, created, **kwargs):
         logger.info('Cache for %s deleted', instance.name)
 
 
-# FIXME: починить количество запросов на удаление канала(мб через транзакции или как-то вручную удалять связи)
+# FIXME: fix number of requests when deleting channel because of CASCADE field in model
 @receiver(signal=[pre_delete], sender=Channel)
 def delete_channel_files_signal(instance, **kwargs):
     """This signal will collect channel's related videos and avatar into list

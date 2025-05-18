@@ -81,7 +81,7 @@ class BaseVideoRepository(ABC):
         ...
 
 
-# TODO: раскидать фильтры у всех методов через Q() и передачу их в качестве аргументов
+# TODO: refactor filters in repo using Q classes as method arguments
 class ORMVideoRepository(BaseVideoRepository):
     def video_create(self, data: dict) -> None:
         return Video.objects.create(**data)

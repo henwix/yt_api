@@ -1,19 +1,14 @@
-import logging
+from logging import Logger
 
 from django.contrib.auth import get_user_model
 
 import orjson
+import punq
 from celery import shared_task
 from djoser.conf import settings
 
 from core.apps.common.clients.email_client import EmailClient
-
-
-logger = logging.getLogger('django.request')  # TODO: что-то придумать тут с логгером
-
-
-START_LOG_FORMAT = 'Start sending %s email to %s'
-SUCCESS_LOG_FORMAT = '%s email successfully sent to %s'
+from core.project.containers import get_container
 
 
 def _get_user_context(context):
@@ -24,35 +19,73 @@ def _get_user_context(context):
 
 @shared_task
 def send_activation_email(context, to):
-    logger.info(START_LOG_FORMAT, 'activation', to[0])
+    container: punq.Container = get_container()
+    logger: Logger = container.resolve(Logger)
+
+    logger.info(
+        'Start sending activation email',
+        extra={'log_meta': orjson.dumps({'email': to[0]}).decode()},
+    )
     settings.EMAIL.activation(None, _get_user_context(context)).send(to)
-    logger.info(SUCCESS_LOG_FORMAT, 'Activation', to[0])
+    logger.info(
+        'Activation email successfully sent',
+        extra={'log_meta': orjson.dumps({'email': to[0]}).decode()},
+    )
 
 
 @shared_task
 def send_confirmation_email(context, to):
-    logger.info(START_LOG_FORMAT, 'confirmation', to[0])
+    container: punq.Container = get_container()
+    logger: Logger = container.resolve(Logger)
+
+    logger.info(
+        'Start sending confirmation email',
+        extra={'log_meta': orjson.dumps({'email': to[0]}).decode()},
+    )
     settings.EMAIL.confirmation(None, _get_user_context(context)).send(to)
-    logger.info(SUCCESS_LOG_FORMAT, 'Confirmation', to[0])
+    logger.info(
+        'Confirmation email successfully sent',
+        extra={'log_meta': orjson.dumps({'email': to[0]}).decode()},
+    )
 
 
 @shared_task
 def send_reset_password_email(context, to):
-    logger.info(START_LOG_FORMAT, 'password reset', to[0])
+    container: punq.Container = get_container()
+    logger: Logger = container.resolve(Logger)
+
+    logger.info(
+        'Start sending password reset email',
+        extra={'log_meta': orjson.dumps({'email': to[0]}).decode()},
+    )
     settings.EMAIL.password_reset(None, _get_user_context(context)).send(to)
-    logger.info(SUCCESS_LOG_FORMAT, 'Password reset', to[0])
+    logger.info(
+        'Password reset email successfully sent',
+        extra={'log_meta': orjson.dumps({'email': to[0]}).decode()},
+    )
 
 
 @shared_task
 def send_reset_username_email(context, to):
-    logger.info(START_LOG_FORMAT, 'username reset', to[0])
+    container: punq.Container = get_container()
+    logger: Logger = container.resolve(Logger)
+
+    logger.info(
+        'Start sending username reset email',
+        extra={'log_meta': orjson.dumps({'email': to[0]}).decode()},
+    )
     settings.EMAIL.username_reset(None, _get_user_context(context)).send(to)
-    logger.info(SUCCESS_LOG_FORMAT, 'Username reset', to[0])
+    logger.info(
+        'Username reset email successfully sent',
+        extra={'log_meta': orjson.dumps({'email': to[0]}).decode()},
+    )
 
 
 @shared_task(bind=True, max_retries=5)
 def send_otp_code_email(self, email: str, code: str):
-    email_client: EmailClient = EmailClient()
+    container: punq.Container = get_container()
+    logger: Logger = container.resolve(Logger)
+    email_client: EmailClient = container.resolve(EmailClient)
 
     try:
         logger.info(

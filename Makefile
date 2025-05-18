@@ -74,10 +74,6 @@ app-down:
 app-restart:
 	${DC} -f ${APP_DEV_FILE} ${ENV} down && ${DC} -f ${APP_DEV_FILE} ${ENV} up -d
 
-.PHONY: app-restart-logs
-app-restart-logs:
-	${DC} -f ${APP_DEV_FILE} ${ENV} down && ${DC} -f ${APP_DEV_FILE} ${ENV} up -d && ${LOGS} ${APP_CONTAINER} -f
-
 .PHONY: app-logs
 app-logs:
 	${LOGS} ${APP_CONTAINER} -f
@@ -149,11 +145,3 @@ nginx-logs-prod:
 .PHONY: superuser-prod
 superuser-prod:
 	${EXEC} ${APP_CONTAINER_PROD} ${MANAGE_PY} createsuperuser
-
-.PHONY: db-prod
-db-prod:
-	${DC} -f ${APP_PROD_FILE} ${ENV} up -d ${DB_SERVICE}
-
-.PHONY: db-down-prod
-db-down-prod:
-	${DC} -f ${APP_PROD_FILE} ${ENV} down ${DB_SERVICE}

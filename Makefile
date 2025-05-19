@@ -48,7 +48,7 @@ db-shell:
 
 .PHONY: monitoring
 monitoring:
-	${DC} -f ${MONITORING_FILE} up -d
+	${DC} -f ${MONITORING_FILE} ${ENV} up -d
 
 .PHONY: monitoring-down
 monitoring-down:
@@ -56,7 +56,7 @@ monitoring-down:
 
 .PHONY: monitoring-restart
 monitoring-restart:
-	${DC} -f ${MONITORING_FILE} down && ${DC} -f ${MONITORING_FILE} up -d
+	${DC} -f ${MONITORING_FILE} down && ${DC} -f ${MONITORING_FILE} ${ENV} up -d
 
 .PHONY: monitoring-logs
 monitoring-logs:

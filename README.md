@@ -31,6 +31,7 @@
 * `make celery-logs` - follow the logs in celery container
 * `make beat-logs` - follow the logs in celery-beat container
 * `make test` - run application test
+* `pre-commit install` - install pre-commit
 
 
 ### Production Implemented Commands

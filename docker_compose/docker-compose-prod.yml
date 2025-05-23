@@ -12,6 +12,8 @@ services:
       - ../.env
     command: "sh entrypoint.prod.sh"
     depends_on:
+      celery:
+        condition: service_healthy
       redis:
         condition: service_healthy
       postgres:
@@ -39,7 +41,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U yt-user -d yt"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 30s
       retries: 5
@@ -65,20 +67,31 @@ services:
     command: celery -A core.project.celery worker -l info -Q media-queue,email-queue
     env_file:
       - ../.env
+    healthcheck:
+      test: ["CMD", "celery", "-A", "core.project.celery", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     depends_on:
-      - redis
-      - postgres
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
 
   celery-beat:
     container_name: yt-celery-beat-prod
     image: yt-web-prod
     restart: unless-stopped
-    command: celery -A core.project.celery beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    command: sh -c "sleep 15 && celery -A core.project.celery beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler"
     env_file:
       - ../.env
     depends_on:
-      - redis
-      - postgres
+      web:
+        condition: service_started
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
 
 volumes:
   postgres_data:

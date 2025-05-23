@@ -7,13 +7,11 @@ ENV = --env-file .env
 APP_CONTAINER = yt-web-dev
 DB_CONTAINER = yt-postgres-dev
 DB_SERVICE = postgres
-CELERY_CONTAINER = yt-celery-dev
-CELERY_BEAT_CONTAINER = yt-celery-beat-dev
-
+CELERY_DEV_CONTAINER = yt-celery-dev
+BEAT_DEV_CONTAINER = yt-celery-beat-dev
 APP_DEV_FILE = docker_compose/docker-compose-dev.yml
 
 # -- PRODUCTION VARIABLES --
-
 APP_CONTAINER_PROD = docker_compose-web-1
 APP_PROD_FILE = docker_compose/docker-compose-prod.yml
 DB_CONTAINER_PROD = yt-postgres-prod
@@ -84,11 +82,11 @@ app-shell:
 
 .PHONY: celery-logs
 celery-logs:
-	${LOGS} ${CELERY_CONTAINER} -f
+	${LOGS} ${CELERY_DEV_CONTAINER} -f
 
 .PHONY: beat-logs
 beat-logs:
-	${LOGS} ${CELERY_BEAT_CONTAINER} -f
+	${LOGS} ${BEAT_DEV_CONTAINER} -f
 
 .PHONY: makemigrations
 makemigrations:
@@ -114,34 +112,34 @@ test:
 # -- PRODUCTION COMMANDS --
 
 
-.PHONY: certbot-create-prod
-certbot-create-prod:
+.PHONY: certbot-create-p
+certbot-create-p:
 	${DC} -f ${CERTBOT_CREATE_FILE} ${ENV} up && docker container prune -f
 
-.PHONY: certbot-renew-prod
-certbot-renew-prod:
+.PHONY: certbot-renew-p
+certbot-renew-p:
 	${DC} -f ${CERTBOT_RENEW_FILE} run --rm certbot
 
-.PHONY: build-prod
-build-prod:
+.PHONY: build-p
+build-p:
 	${DC} -f ${APP_PROD_FILE} build
 
-.PHONY: app-prod
-app-prod:
-	${DC} -f ${APP_PROD_FILE} up -d
+.PHONY: app-p
+app-p:
+	${DC} -f ${APP_PROD_FILE} ${ENV} up -d
 
-.PHONY: app-down-prod
-app-down-prod:
+.PHONY: app-down-p
+app-down-p:
 	${DC} -f ${APP_PROD_FILE} down
 
-.PHONY: app-restart-prod
-app-restart-prod:
+.PHONY: app-restart-p
+app-restart-p:
 	${DC} -f ${APP_PROD_FILE} down && ${DC} -f ${APP_PROD_FILE} ${ENV} up --build -d
 
-.PHONY: nginx-logs-prod
-nginx-logs-prod:
+.PHONY: nginx-logs-p
+nginx-logs-p:
 	${LOGS} ${NGINX_CONTAINER} -f
 
-.PHONY: superuser-prod
-superuser-prod:
+.PHONY: superuser-p
+superuser-p:
 	${EXEC} ${APP_CONTAINER_PROD} ${MANAGE_PY} createsuperuser

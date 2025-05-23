@@ -278,7 +278,7 @@ LOGGING = {
     },
     'filters': {
         'log_meta_filter': {
-            "()": "core.apps.common.loggers.LogMetaFilter",
+            "()": "core.project.loggers.LogMetaFilter",
         },
     },
     'handlers': {
@@ -346,6 +346,7 @@ AWS_S3_AVATAR_BUCKET_PREFIX = os.environ.get('AWS_S3_AVATAR_BUCKET_PREFIX')
 CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_RESULT_BACKEND = 'redis://redis:6379/0'  # 'django-db'
 CELERY_RESULT_EXPIRES = 3600  # 1 hour in seconds
+CELERY_TASK_TRACK_STARTED = True
 
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'

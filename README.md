@@ -1,4 +1,4 @@
-# YouTube-like API pet project with Docker Compose, PostgreSQL, Redis, Celery, Beat and Makefile.
+# YouTube-like API pet project with Docker Compose, PostgreSQL, Redis, Celery, Celery-Beat and Makefile.
 
 ## Requirements
 

@@ -11,7 +11,7 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 
-from .views import (
+from core.api.v1.users.views import (
     CodeVerifyView,
     CustomUserViewSet,
     UserLoginView,

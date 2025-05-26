@@ -16,18 +16,17 @@ from rest_framework_simplejwt.tokens import RefreshToken  # noqa
 
 from core.apps.common.exceptions import ServiceException
 from core.apps.common.pagination import CustomPageNumberPagination
-from core.project.containers import get_container  # noqa
-
-from .tasks import (
+from core.apps.users.tasks import (
     send_activation_email,
     send_confirmation_email,
     send_reset_password_email,
     send_reset_username_email,
 )
-from .use_cases.auth import (  # noqa
+from core.apps.users.use_cases.auth import (
     AuthorizeUserUseCase,
     VerifyCodeUseCase,
 )
+from core.project.containers import get_container  # noqa
 
 
 @extend_schema(

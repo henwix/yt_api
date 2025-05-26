@@ -4,13 +4,13 @@ from django.urls import (
 )
 from rest_framework.routers import DefaultRouter
 
-from core.apps.channels.views.channel_upload_views import (
+from core.api.v1.channels.views.channel_upload_views import (
     CompleteUploadAvatarView,
     DeleteChannelAvatarView,
     GenerateDownloadAvatarUrlView,
     GenerateUploadAvatarUrlView,
 )
-from core.apps.channels.views.channel_views import (
+from core.api.v1.channels.views.channel_views import (
     ChannelAboutView,
     ChannelMainView,
     ChannelRetrieveUpdateDeleteView,

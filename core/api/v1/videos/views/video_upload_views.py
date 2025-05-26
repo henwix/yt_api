@@ -12,14 +12,14 @@ import punq
 from botocore.exceptions import ClientError
 from drf_spectacular.utils import extend_schema
 
-from core.apps.common.exceptions import ServiceException
-from core.apps.common.serializers.upload_serializers import (
+from core.api.v1.common.serializers.upload_serializers import (
     AbortUploadSerializer,
     CompleteUploadSerializer,
     GenerateUploadPartUrlSerializer,
     KeySerializer,
 )
-from core.apps.videos.serializers import video_serializers
+from core.api.v1.videos.serializers import video_serializers
+from core.apps.common.exceptions import ServiceException
 from core.apps.videos.use_cases.videos_upload.abort_upload_video import AbortVideoMultipartUploadUseCase
 from core.apps.videos.use_cases.videos_upload.complete_upload_video import CompleteVideoMultipartUploadUseCase
 from core.apps.videos.use_cases.videos_upload.create_upload_video import CreateVideoMultipartUploadUseCase

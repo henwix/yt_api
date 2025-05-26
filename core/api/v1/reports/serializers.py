@@ -5,9 +5,8 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from core.apps.reports.models import VideoReport
 from core.apps.videos.models import Video
-
-from .models import VideoReport
 
 
 class VideoReportSerializer(serializers.ModelSerializer):

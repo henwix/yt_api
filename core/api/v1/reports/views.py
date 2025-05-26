@@ -10,13 +10,12 @@ from rest_framework.response import Response
 import orjson
 import punq
 
+from core.api.v1.reports.serializers import VideoReportSerializer
 from core.apps.common.exceptions import ServiceException
 from core.apps.common.pagination import CustomCursorPagination
+from core.apps.reports.permissions import IsStaffOrCreateOnly
+from core.apps.reports.services.reports import BaseVideoReportsService
 from core.project.containers import get_container
-
-from .permissions import IsStaffOrCreateOnly
-from .serializers import VideoReportSerializer
-from .services.reports import BaseVideoReportsService
 
 
 class VideoReportsView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIView, viewsets.GenericViewSet):

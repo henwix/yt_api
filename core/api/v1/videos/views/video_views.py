@@ -23,6 +23,7 @@ from drf_spectacular.utils import (
     OpenApiResponse,
 )
 
+from core.api.v1.videos.serializers import video_serializers
 from core.apps.common.exceptions import ServiceException
 from core.apps.common.mixins import PaginationMixin
 from core.apps.common.pagination import (
@@ -40,7 +41,6 @@ from core.apps.videos.models import (
 )
 from core.apps.videos.pagination import HistoryCursorPagination
 from core.apps.videos.permissions import IsAuthorOrReadOnlyPlaylist
-from core.apps.videos.serializers import video_serializers
 from core.apps.videos.services.comments import BaseCommentService
 from core.apps.videos.services.videos import (
     BaseVideoHistoryService,

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ..models import (
+from core.apps.videos.models import (
     Playlist,
     Video,
     VideoComment,

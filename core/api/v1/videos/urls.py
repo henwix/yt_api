@@ -4,7 +4,7 @@ from django.urls import (
 )
 from rest_framework.routers import DefaultRouter
 
-from core.apps.videos.views import (
+from core.api.v1.videos.views import (
     video_upload_views,
     video_views,
 )

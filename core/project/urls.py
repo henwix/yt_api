@@ -20,7 +20,7 @@ urlpatterns = [
     path('api/v1/', include('core.api.v1.urls')),
 
     # documentation
-    path('docs-schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('schema/', SpectacularAPIView.as_view(), name='schema'),
     path('docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 
     # prometheus metrics

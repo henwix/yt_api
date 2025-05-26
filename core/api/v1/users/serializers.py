@@ -10,8 +10,8 @@ from djoser.serializers import (
     ValidationError,
 )
 
+from core.api.v1.channels.serializers import ChannelSerializer
 from core.apps.channels.models import Channel
-from core.apps.channels.serializers import ChannelSerializer
 
 
 class CustomUserCreatePasswordRetypeSerializer(UserCreatePasswordRetypeSerializer):

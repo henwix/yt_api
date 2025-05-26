@@ -202,6 +202,8 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': '-',
     'VERSION': '1.3.6',
     'SERVE_INCLUDE_SCHEMA': False,
+    'DISABLE_ERRORS_AND_WARNINGS': True,
+    'SORT_OPERATIONS': False,
     'SCHEMA_PATH_PREFIX': r'/api/v[1-2]/',
     'SWAGGER_UI_SETTINGS': {'deepLinking': True, 'persistAuthorization': True},
 }
@@ -216,10 +218,10 @@ DJOSER = {
     'EMAIL_FRONTEND_DOMAIN': 'front-domain.com',
     'EMAIL_FRONTEND_SITE_NAME': 'YT',
     'SERIALIZERS': {
-        'user_create': 'core.apps.users.serializers.CustomUserCreateSerializer',
-        'user_create_password_retype': 'core.apps.users.serializers.CustomUserCreatePasswordRetypeSerializer',
-        'user': 'core.apps.users.serializers.CustomUserSerializer',
-        'current_user': 'core.apps.users.serializers.CustomUserSerializer',
+        'user_create': 'core.api.v1.users.serializers.CustomUserCreateSerializer',
+        'user_create_password_retype': 'core.api.v1.users.serializers.CustomUserCreatePasswordRetypeSerializer',
+        'user': 'core.api.v1.users.serializers.CustomUserSerializer',
+        'current_user': 'core.api.v1.users.serializers.CustomUserSerializer',
     },
 }
 

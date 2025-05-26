@@ -4,7 +4,7 @@ from django.urls import (
 )
 from rest_framework.routers import DefaultRouter
 
-from .views import VideoReportsView
+from core.api.v1.reports.views import VideoReportsView
 
 
 app_name = 'reports'

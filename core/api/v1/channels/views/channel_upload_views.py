@@ -12,12 +12,12 @@ import punq
 from botocore.exceptions import ClientError
 from drf_spectacular.utils import extend_schema
 
+from core.api.v1.common.serializers.upload_serializers import KeySerializer
 from core.apps.channels.use_cases.avatar_upload.complete_upload_avatar import CompleteUploadAvatarUseCase
 from core.apps.channels.use_cases.avatar_upload.delete_avatar import DeleteChannelAvatarUseCase
 from core.apps.channels.use_cases.avatar_upload.download_avatar_url import GenerateUrlForAvatarDownloadUseCase
 from core.apps.channels.use_cases.avatar_upload.upload_avatar_url import GenerateUploadAvatarUrlUseCase
 from core.apps.common.exceptions import ServiceException
-from core.apps.common.serializers.upload_serializers import KeySerializer
 from core.project.containers import get_container
 
 

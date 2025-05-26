@@ -15,15 +15,15 @@ import orjson
 import punq
 from drf_spectacular.utils import extend_schema
 
-from core.apps.channels.models import (
-    Channel,
-    SubscriptionItem,
-)
-from core.apps.channels.serializers import (
+from core.api.v1.channels.serializers import (
     ChannelAboutSerializer,
     ChannelAndVideosSerializer,
     ChannelSerializer,
     SubscriptionSerializer,
+)
+from core.apps.channels.models import (
+    Channel,
+    SubscriptionItem,
 )
 from core.apps.channels.services.channels import (
     BaseChannelAboutService,

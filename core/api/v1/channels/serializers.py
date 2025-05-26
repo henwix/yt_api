@@ -1,8 +1,7 @@
 from rest_framework import serializers
 
-from core.apps.videos.serializers.video_serializers import VideoPreviewSerializer
-
-from .models import (
+from core.api.v1.videos.serializers.video_serializers import VideoPreviewSerializer
+from core.apps.channels.models import (
     Channel,
     SubscriptionItem,
 )

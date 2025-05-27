@@ -5,4 +5,4 @@ services:
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
       - /var/www/certbot:/var/www/certbot
-    command: certificates
+    command: renew --webroot -w /var/www/certbot --agree-tos

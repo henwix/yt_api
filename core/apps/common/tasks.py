@@ -10,12 +10,19 @@ from core.apps.common.providers.files import BaseBotoFileProvider
 from core.project.containers import get_container
 
 
-@shared_task
-def test_task():
+@shared_task(bind=True, max_retries=3)
+def test_task(self):
+    import random  # noqa
+
     container = get_container()
     logger: Logger = container.resolve(Logger)
-
     logger.info('test task running')
+
+    is_restart = random.choice([True, False])  # noqa
+    if is_restart:
+        logger.info('Restarting task')
+        raise self.retry(countdown=5)
+    return 'test task completed successfully'
 
 
 @shared_task(bind=True, max_retries=10)

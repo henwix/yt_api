@@ -1,4 +1,4 @@
-# YouTube-like API pet project with Docker Compose, PostgreSQL, Redis, Celery, Celery-Beat and Makefile.
+# YouTube-like API pet project with Docker Compose, PostgreSQL, Redis, Celery, Celery-Beat, Flower and Makefile.
 
 ## Requirements
 
@@ -27,7 +27,6 @@
 * `make db` - up postgresql database
 * `make db-down` - down postgresql database
 * `make db-logs` - follow the logs in db container
-* `make db-shell` - run psql shell for postgresql, works only when db container is running
 * `make celery-logs` - follow the logs in celery container
 * `make beat-logs` - follow the logs in celery-beat container
 * `make test` - run application test

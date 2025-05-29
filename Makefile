@@ -40,9 +40,9 @@ db-down:
 db-logs:
 	${LOGS} ${DB_CONTAINER} -f
 
-.PHONY: db-shell
-db-shell:
-	${EXEC} ${DB_CONTAINER} psql -U yt-user -d yt
+# .PHONY: db-shell
+# db-shell:
+#	 ${EXEC} ${DB_CONTAINER} psql -U yt-user -d yt
 
 .PHONY: monitoring
 monitoring:
@@ -134,7 +134,7 @@ app-down-p:
 
 .PHONY: app-restart-p
 app-restart-p:
-	${DC} -f ${APP_PROD_FILE} down && ${DC} -f ${APP_PROD_FILE} ${ENV} up --build -d
+	${DC} -f ${APP_PROD_FILE} ${ENV} down && ${DC} -f ${APP_PROD_FILE} ${ENV} up --build -d
 
 .PHONY: nginx-logs-p
 nginx-logs-p:

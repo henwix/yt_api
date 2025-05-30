@@ -10,8 +10,8 @@ services:
       - ../static:/app/static
     env_file:
       - ../.env
-    deploy:
-      replicas: 2
+    # deploy:
+      # replicas: 2
     command: "sh entrypoint.prod.sh"
     depends_on:
       celery:

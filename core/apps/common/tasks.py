@@ -10,6 +10,7 @@ from core.apps.common.providers.files import BaseBotoFileProvider
 from core.project.containers import get_container
 
 
+# TODO: delete this task after testing
 @shared_task(bind=True, max_retries=3)
 def test_task(self):
     import random  # noqa

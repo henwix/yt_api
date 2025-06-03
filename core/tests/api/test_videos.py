@@ -38,7 +38,7 @@ def test_video_retrieved(
     assert response.data.get('name') == video.name
     assert response.data.get('description') == video.description
     assert response.data.get('status') == video.status
-    assert response.data.get('author_name') == str(video.author)
+    assert response.data.get('author_name') == video.author.name
     assert response.data.get('views_count') == expected_views
     assert response.data.get('subs_count') == expected_subs
     assert response.data.get('likes_count') == expected_likes

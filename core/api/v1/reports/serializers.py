@@ -36,6 +36,7 @@ class VideoReportSerializer(serializers.ModelSerializer):
         model = VideoReport
         fields = ['report_link', 'video', 'video_link', 'author_link', 'reason', 'description']
 
+    #  TODO: Move this logic into validators
     def create(self, validated_data):
         request = self.context.get('request')
         user_channel = request.user.channel

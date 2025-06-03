@@ -1,14 +1,11 @@
 from dataclasses import dataclass
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
 
 from core.apps.channels.services.channels import BaseChannelService
 from core.apps.channels.services.s3_channels import BaseAvatarValidatorService
 from core.apps.common.services.files import BaseS3FileService
-
-
-User = get_user_model()
+from core.apps.users.entities import UserEntity
 
 
 @dataclass
@@ -17,7 +14,7 @@ class DeleteChannelAvatarUseCase:
     channel_service: BaseChannelService
     validator_service: BaseAvatarValidatorService
 
-    def execute(self, user: User) -> dict:
+    def execute(self, user: UserEntity) -> dict:
         channel = self.channel_service.get_channel_by_user_or_404(user=user)
         self.validator_service.validate(channel=channel)
 

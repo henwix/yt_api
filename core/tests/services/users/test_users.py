@@ -4,6 +4,7 @@ from rest_framework.test import APIClient
 import punq
 import pytest
 
+from core.apps.users.converters.users import user_from_entity
 from core.apps.users.exceptions.users import UserNotFoundError
 from core.apps.users.services.users import (
     BaseUserService,
@@ -23,13 +24,17 @@ def test_user_authentication(user_service: BaseUserService):
     user.set_password(password)
     user.save()
 
-    authenticated_by_username = user_service.authenticate(
-        login=user.username,
-        password=password,
+    authenticated_by_username = user_from_entity(
+        user_service.authenticate(
+            login=user.username,
+            password=password,
+        ),
     )
-    authenticated_by_email = user_service.authenticate(
-        login=user.email,
-        password=password,
+    authenticated_by_email = user_from_entity(
+        user_service.authenticate(
+            login=user.email,
+            password=password,
+        ),
     )
 
     assert user == authenticated_by_username
@@ -46,9 +51,9 @@ def test_user_not_found():
 
 @pytest.mark.django_db
 def test_get_user_by_email(user_service: BaseUserService, user: User):
-    received_user = user_service.get_by_email(user.email)
+    user_dto = user_from_entity(user_service.get_by_email(user.email))
 
-    assert user == received_user
+    assert user == user_dto
 
 
 @pytest.mark.django_db

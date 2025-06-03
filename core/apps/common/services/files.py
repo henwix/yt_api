@@ -145,21 +145,17 @@ class S3FileService(BaseS3FileService):
         expires_in: int,
         cache_key: str,
     ) -> str:
-        # return cached url if it exists
         cached_url = self.cache_service.get_cached_data(key=cache_key)
         if cached_url:
             return cached_url
 
-        # validate that file exists in s3
         self.file_exists_validator.validate(key=key)
 
-        # generate download url
         url = self.boto_provider.generate_download_url(
             key=key,
             expires_in=expires_in,
         )
 
-        # save url to cache
         self.cache_service.cache_data(key=cache_key, data=url, timeout=expires_in)
 
         return url

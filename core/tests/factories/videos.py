@@ -9,9 +9,8 @@ from core.apps.videos.models import (
     VideoLike,
     VideoView,
 )
-
-from .channels import ChannelModelFactory
-from .common import factory_lazy_function
+from core.tests.factories.channels import ChannelModelFactory
+from core.tests.factories.common import factory_lazy_function
 
 
 fake = Faker()

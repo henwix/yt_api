@@ -18,6 +18,7 @@ from core.apps.channels.use_cases.avatar_upload.delete_avatar import DeleteChann
 from core.apps.channels.use_cases.avatar_upload.download_avatar_url import GenerateUrlForAvatarDownloadUseCase
 from core.apps.channels.use_cases.avatar_upload.upload_avatar_url import GenerateUploadAvatarUrlUseCase
 from core.apps.common.exceptions import ServiceException
+from core.apps.users.converters.users import user_to_entity
 from core.project.containers import get_container
 
 
@@ -143,7 +144,7 @@ class DeleteChannelAvatarView(generics.GenericAPIView):
         logger: Logger = container.resolve(Logger)
 
         try:
-            result = use_case.execute(user=request.user)
+            result = use_case.execute(user=user_to_entity(request.user))
 
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -179,7 +180,10 @@ class CompleteUploadAvatarView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
 
         try:
-            result = use_case.execute(key=serializer.validated_data.get('key'), user=request.user)
+            result = use_case.execute(
+                key=serializer.validated_data.get('key'),
+                user=user_to_entity(request.user),
+            )
 
         except ServiceException as error:
             logger.error(

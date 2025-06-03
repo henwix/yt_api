@@ -1,3 +1,5 @@
+from logging import Logger
+
 from django.contrib.auth import get_user_model  # noqa
 from django.db import transaction
 from rest_framework import status  # noqa
@@ -104,6 +106,7 @@ class CodeVerifyView(APIView):
     def post(self, request):
         container: punq.Container = get_container()
         use_case: VerifyCodeUseCase = container.resolve(VerifyCodeUseCase)
+        logger: Logger = container.resolve(Logger)
 
         try:
             result = use_case.execute(
@@ -111,12 +114,13 @@ class CodeVerifyView(APIView):
                 code=request.data.get('code'),
             )
         except ServiceException as error:
-            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
 
         return Response(result, status=status.HTTP_201_CREATED)
 
 
+# TODO: refactor
 class CustomUserViewSet(UserViewSet):
     pagination_class = CustomPageNumberPagination
     queryset = get_user_model().objects.all().prefetch_related('channel')

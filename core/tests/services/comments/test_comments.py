@@ -1,6 +1,7 @@
 import pytest
 
 from core.apps.channels.models import Channel
+from core.apps.videos.converters.comments import video_comment_from_entity
 from core.apps.videos.models import (
     Video,
     VideoComment,
@@ -25,9 +26,9 @@ def test_comments_retrieved_by_video_id(video: Video, comment_service: BaseComme
 @pytest.mark.django_db
 def test_comment_retrieved_by_id(comment_service: BaseCommentService):
     expected_comment = VideoCommentModelFactory()
-    retrieved_comment = comment_service.get_by_id(id=expected_comment.pk)
+    comment_dto = video_comment_from_entity(comment_service.get_by_id_or_404(id=expected_comment.pk))
 
-    assert expected_comment == retrieved_comment
+    assert expected_comment == comment_dto
 
 
 @pytest.mark.django_db
@@ -46,14 +47,14 @@ def test_replies_retrieved_by_comment_id(comment: VideoComment, comment_service:
 @pytest.mark.django_db
 def test_comment_updated_status_changed(comment: VideoComment, comment_service: BaseCommentService):
     assert comment.is_updated is False
-    comment_service.change_updated_status(comment_id=comment.pk)
+    comment_service.change_updated_status(comment_id=comment.pk, is_updated=True)
     assert VideoComment.objects.filter(id=comment.pk, is_updated=True).exists()
 
 
 @pytest.mark.django_db
 def test_like_status_changed(comment_service: BaseCommentService, like: VideoCommentLikeItem):
     assert like.is_like is True
-    comment_service.change_like_status(
+    comment_service.update_like_status(
         like_id=like.pk,
         is_like=False,
     )
@@ -75,8 +76,8 @@ def test_like_created(
     )
 
     assert created is True
-    assert retrieved_like.author == channel
-    assert retrieved_like.comment == comment
+    assert retrieved_like.author_id == channel.pk
+    assert retrieved_like.comment_id == comment.pk
     assert retrieved_like.is_like == is_like
 
 
@@ -89,8 +90,8 @@ def test_like_retrieved(comment_service: BaseCommentService, like: VideoCommentL
     )
 
     assert created is False
-    assert retrieved_like.author == like.author
-    assert retrieved_like.comment == like.comment
+    assert retrieved_like.author_id == like.author_id
+    assert retrieved_like.comment_id == like.comment_id
     assert retrieved_like.is_like == like.is_like
 
 

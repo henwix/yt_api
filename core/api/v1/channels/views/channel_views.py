@@ -21,6 +21,7 @@ from core.api.v1.channels.serializers import (
     ChannelSerializer,
     SubscriptionSerializer,
 )
+from core.apps.channels.converters.channels import channel_from_entity
 from core.apps.channels.models import (
     Channel,
     SubscriptionItem,
@@ -36,6 +37,7 @@ from core.apps.common.exceptions import ServiceException
 from core.apps.common.mixins import PaginationMixin
 from core.apps.common.pagination import CustomCursorPagination
 from core.apps.common.services.cache import BaseCacheService
+from core.apps.users.converters.users import user_to_entity
 from core.project.containers import get_container
 
 
@@ -52,11 +54,14 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         self.logger: Logger = container.resolve(Logger)
 
     def get_object(self):
-        return self.channel_service.repository.get_channel_by_user(self.request.user)
+        channel = self.channel_service.repository.get_channel_by_user_or_none(
+            user=user_to_entity(self.request.user),
+        )
+        return channel_from_entity(channel) if channel else None
 
     def retrieve(self, request, *args, **kwargs):
-        user = request.user
-        cache_key = f'retrieve_channel_{user.pk}'
+        user = user_to_entity(request.user)
+        cache_key = f'retrieve_channel_{user.id}'
 
         cached_data = self.cache_service.get_cached_data(cache_key)
 
@@ -75,7 +80,7 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         return Response(serializer.data, status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
-        self.channel_service.delete_channel(request.user)
+        self.channel_service.delete_channel(user_to_entity(request.user))
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -92,19 +97,22 @@ class ChannelSubscribersView(generics.ListAPIView, PaginationMixin):
         super().__init__(**kwargs)
         container: punq.Container = get_container()
         self.sub_service: BaseChannelSubsService = container.resolve(BaseChannelSubsService)
+        self.channel_service: BaseChannelService = container.resolve(BaseChannelService)
         self.cache_service: BaseCacheService = container.resolve(BaseCacheService)
 
+    # TODO: refactor with use case
     def list(self, request, *args, **kwargs):
         """Custom list method to cache response."""
 
         cache_key = f'subs_{request.user.pk}_{request.query_params.get("c", "1")}'
-
         cached_data = self.cache_service.get_cached_data(cache_key)
 
         if cached_data:
             return Response(cached_data, status.HTTP_200_OK)
 
-        qs = self.filter_queryset(self.sub_service.get_subscriber_list(channel=request.user.channel))
+        channel = self.channel_service.get_channel_by_user_or_404(user_to_entity(request.user))
+
+        qs = self.filter_queryset(self.sub_service.get_subscriber_list(channel=channel))
         paginated_response = self.mixin_pagination(qs)
 
         if paginated_response:
@@ -154,11 +162,13 @@ class ChannelAboutView(generics.RetrieveAPIView):
     def get_queryset(self):
         return self.service.get_channel_about_list()
 
+    # FIXME: не отображаются подписки и views в about page
     @method_decorator(cache_page(60 * 15, key_prefix='channel_about'))
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
 
 
+#  TODO:  Change 'to' and 'from' to 'channel_slug' in request data and add serializers for data validation
 class SubscriptionAPIView(viewsets.GenericViewSet):
     queryset = SubscriptionItem.objects.all()
     serializer_class = SubscriptionSerializer
@@ -200,7 +210,10 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
     @action(methods=['post'], url_path='subscribe', detail=False)
     def subscribe(self, request):
         try:
-            result = self.service.subscribe(user=request.user, channel_slug=request.data.get('to'))
+            result = self.service.subscribe(
+                user=user_to_entity(request.user),
+                channel_slug=request.data.get('to'),
+            )
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
@@ -237,9 +250,12 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
     @action(methods=['post'], url_path='unsubscribe', detail=False)
     def unsubscribe(self, request):
         try:
-            result = self.service.unsubscribe(user=request.user, channel_slug=request.data.get('from'))
+            result = self.service.unsubscribe(
+                user=user_to_entity(request.user),
+                channel_slug=request.data.get('from'),
+            )
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
         else:
-            return Response(result, status.HTTP_204_NO_CONTENT)
+            return Response(result, status.HTTP_200_OK)

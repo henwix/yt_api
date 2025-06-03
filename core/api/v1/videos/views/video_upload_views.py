@@ -20,6 +20,7 @@ from core.api.v1.common.serializers.upload_serializers import (
 )
 from core.api.v1.videos.serializers import video_serializers
 from core.apps.common.exceptions import ServiceException
+from core.apps.users.converters.users import user_to_entity
 from core.apps.videos.use_cases.videos_upload.abort_upload_video import AbortVideoMultipartUploadUseCase
 from core.apps.videos.use_cases.videos_upload.complete_upload_video import CompleteVideoMultipartUploadUseCase
 from core.apps.videos.use_cases.videos_upload.create_upload_video import CreateVideoMultipartUploadUseCase
@@ -68,11 +69,11 @@ class CreateMultipartUploadView(generics.GenericAPIView):
         logger: Logger = container.resolve(Logger)
 
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid()
+        serializer.is_valid(raise_exception=True)
 
         try:
             result = use_case.execute(
-                user=request.user,
+                user=user_to_entity(request.user),
                 filename=request.data.get('filename'),
                 validated_data=serializer.validated_data,
             )
@@ -122,7 +123,7 @@ class GenerateUploadPartUrlView(generics.GenericAPIView):
 
         try:
             result = use_case.execute(
-                user=request.user,
+                user=user_to_entity(request.user),
                 key=serializer.validated_data.get('key'),
                 upload_id=serializer.validated_data.get('upload_id'),
                 part_number=serializer.validated_data.get('part_number'),
@@ -172,7 +173,7 @@ class GenerateDownloadVideoUrlView(generics.GenericAPIView):
 
         try:
             result = use_case.execute(
-                user=request.user,
+                user=user_to_entity(request.user),
                 key=serializer.validated_data.get('key'),
             )
 
@@ -221,7 +222,7 @@ class AbortMultipartUploadView(generics.GenericAPIView):
 
         try:
             result = use_case.execute(
-                user=request.user,
+                user=user_to_entity(request.user),
                 key=serializer.validated_data.get('key'),
                 upload_id=serializer.validated_data.get('upload_id'),
             )
@@ -275,7 +276,7 @@ class CompleteMultipartUploadView(generics.GenericAPIView):
 
         try:
             result = use_case.execute(
-                user=request.user,
+                user=user_to_entity(request.user),
                 key=serializer.validated_data.get('key'),
                 upload_id=serializer.validated_data.get('upload_id'),
                 parts=serializer.validated_data.get('parts'),

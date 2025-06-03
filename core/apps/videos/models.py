@@ -160,8 +160,6 @@ class Playlist(models.Model):
         PUBLIC = 'PUBLIC', 'Public'
         PRIVATE = 'PRIVATE', 'Private'
 
-    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='playlists', db_index=True)
-    videos = models.ManyToManyField(Video, through='PlaylistItem', db_index=True)
     id = models.CharField(
         primary_key=True,
         max_length=32,
@@ -170,6 +168,8 @@ class Playlist(models.Model):
         editable=False,
         db_index=True,
     )
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='playlists', db_index=True)
+    videos = models.ManyToManyField(Video, through='PlaylistItem', db_index=True)
     title = models.CharField(max_length=150)
     description = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=7, choices=StatusChoices.choices, default=StatusChoices.PRIVATE)

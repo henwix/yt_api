@@ -1,6 +1,6 @@
 from rest_framework import permissions
 
-from .models import Playlist
+from core.apps.videos.models import Playlist
 
 
 # list, retrieve, create, delete, put/update

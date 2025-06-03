@@ -1,6 +1,11 @@
 import pytest
 
 from core.apps.channels.models import Channel
+from core.apps.videos.converters.videos import (
+    data_to_video_entity,
+    video_from_entity,
+)
+from core.apps.videos.entities.videos import VideoEntity
 from core.apps.videos.exceptions.upload import (
     VideoNotFoundByKeyError,
     VideoNotFoundByUploadIdError,
@@ -17,10 +22,10 @@ def test_video_created(video_service: BaseVideoService, channel: Channel):
         'name': 'Test video',
         'description': 'Test video description',
         'status': Video.VideoStatus.PUBLIC,
-        'author': channel,
+        'author_id': channel.pk,
         'upload_id': '123123456456',
     }
-    video_service.video_create(data)
+    video_service.video_create(data_to_video_entity(data))
 
     assert Video.objects.filter(
         name='Test video',
@@ -37,7 +42,8 @@ def test_video_retrieved_by_upload_id(video_service: BaseVideoService):
     expected_upload_id = '7581294982749kdsjgsd'
     video = VideoModelFactory.create(upload_id=expected_upload_id)
 
-    assert video_service.get_video_by_upload_id(upload_id=expected_upload_id) == video
+    video_dto = video_from_entity(video_service.get_video_by_upload_id(upload_id=expected_upload_id))
+    assert video_dto == video
 
 
 @pytest.mark.django_db
@@ -55,7 +61,9 @@ def test_video_retrieved_by_key(video_service: BaseVideoService):
     expected_key = 'videos/1lj10nas_test_video.mp4'
     video = VideoModelFactory.create(s3_key=expected_key)
 
-    assert video_service.get_video_by_key(key=expected_key) == video
+    video_dto = video_from_entity(video_service.get_video_by_key(key=expected_key))
+
+    assert video_dto == video
 
 
 @pytest.mark.django_db
@@ -102,3 +110,22 @@ def test_video_deleted_by_id(video_service: BaseVideoService):
     video_service.delete_video_by_id(video_id=video.video_id)
 
     assert not Video.objects.filter(video_id=video.video_id).exists()
+
+
+@pytest.mark.django_db
+def test_video_created_from_entity(video_service: BaseVideoService, channel: Channel):
+    entity = VideoEntity(
+        author_id=channel.pk,
+        name='Test video from entity123',
+        upload_id='dgsdg',
+        status=Video.VideoStatus.PUBLIC,
+    )
+
+    video_service.video_create(video_entity=entity)
+
+    assert Video.objects.filter(
+        name='Test video from entity123',
+        status=Video.VideoStatus.PUBLIC,
+        author=channel,
+        upload_id='dgsdg',
+    ).exists(), 'Video was not created from entity'

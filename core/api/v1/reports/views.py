@@ -15,6 +15,7 @@ from core.apps.common.exceptions import ServiceException
 from core.apps.common.pagination import CustomCursorPagination
 from core.apps.reports.permissions import IsStaffOrCreateOnly
 from core.apps.reports.services.reports import BaseVideoReportsService
+from core.apps.users.converters.users import user_to_entity
 from core.project.containers import get_container
 
 
@@ -37,10 +38,11 @@ class VideoReportsView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIVi
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
         try:
             result = self.service.create_report(
                 video_id=request.data.get('video'),
-                user=request.user,
+                user=user_to_entity(request.user),
                 reason=serializer.validated_data.get('reason'),
                 description=serializer.validated_data.get('description'),
             )

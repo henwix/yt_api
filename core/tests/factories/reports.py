@@ -4,9 +4,8 @@ from factory.django import DjangoModelFactory
 from faker import Faker
 
 from core.apps.reports.models import VideoReport
-
-from .channels import ChannelModelFactory
-from .videos import VideoModelFactory
+from core.tests.factories.channels import ChannelModelFactory
+from core.tests.factories.videos import VideoModelFactory
 
 
 fake = Faker()

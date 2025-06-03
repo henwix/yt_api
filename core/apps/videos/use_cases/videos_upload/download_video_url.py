@@ -1,17 +1,17 @@
 from dataclasses import dataclass
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
 
 from core.apps.channels.services.channels import BaseChannelService
 from core.apps.common.services.files import BaseS3FileService
+from core.apps.users.entities import (
+    AnonymousUserEntity,
+    UserEntity,
+)
 from core.apps.videos.services.videos import (
     BasePrivateVideoPermissionValidatorService,
     BaseVideoService,
 )
-
-
-User = get_user_model()
 
 
 @dataclass
@@ -21,7 +21,7 @@ class GenerateUrlForVideoDownloadUseCase:
     files_service: BaseS3FileService
     permission_validator: BasePrivateVideoPermissionValidatorService
 
-    def execute(self, user: User, key: str) -> dict:
+    def execute(self, user: UserEntity | AnonymousUserEntity, key: str) -> dict:
         channel = self.channel_service.get_channel_by_user_or_none(user=user)
         video = self.video_service.get_video_by_key(key=key)
 

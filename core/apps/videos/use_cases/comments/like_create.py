@@ -1,12 +1,8 @@
 from dataclasses import dataclass
 
-from django.contrib.auth import get_user_model
-
 from core.apps.channels.services.channels import BaseChannelService
+from core.apps.users.entities import UserEntity
 from core.apps.videos.services.comments import BaseCommentService
-
-
-User = get_user_model()
 
 
 @dataclass
@@ -14,9 +10,9 @@ class CommentLikeCreateUseCase:
     comment_service: BaseCommentService
     channel_service: BaseChannelService
 
-    def execute(self, user: User, comment_id: str, is_like: bool) -> dict:
+    def execute(self, user: UserEntity, comment_id: str, is_like: bool) -> dict:
         channel = self.channel_service.get_channel_by_user_or_404(user=user)
-        comment = self.comment_service.get_by_id(id=comment_id)
+        comment = self.comment_service.get_by_id_or_404(id=comment_id)
 
         like, created = self.comment_service.like_get_or_create(
             author=channel,
@@ -25,6 +21,6 @@ class CommentLikeCreateUseCase:
         )
 
         if not created and like.is_like != is_like:
-            self.comment_service.change_like_status(like_id=like.pk, is_like=is_like)
+            self.comment_service.update_like_status(like_id=like.id, is_like=is_like)
 
         return {'status': 'success', 'is_like': is_like}

@@ -4,27 +4,22 @@ from abc import (
 )
 from dataclasses import dataclass
 
-from django.contrib.auth import get_user_model
-
+from core.apps.channels.entities.channels import ChannelEntity
 from core.apps.channels.exceptions.channels import AvatarDoesNotExistsError
 from core.apps.channels.exceptions.upload import (
     AvatarFilenameFormatError,
     AvatarFilenameNotProvidedError,
 )
-from core.apps.channels.models import Channel
-
-
-User = get_user_model()
 
 
 class BaseAvatarValidatorService(ABC):
     @abstractmethod
-    def validate(self, channel: Channel) -> None:
+    def validate(self, channel: ChannelEntity) -> None:
         ...
 
 
 class AvatarExistsValidatorService(BaseAvatarValidatorService):
-    def validate(self, channel: Channel) -> None:
+    def validate(self, channel: ChannelEntity) -> None:
         if not channel.avatar_s3_key or channel.avatar_s3_key is None:
             raise AvatarDoesNotExistsError(channel_slug=channel.slug)
 

@@ -2,9 +2,6 @@ from django.contrib.auth import get_user_model
 from django.db import models
 
 
-# Create your models here.
-
-
 class Channel(models.Model):
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, related_name='channel', db_index=True)
     name = models.CharField(max_length=100)
@@ -14,7 +11,6 @@ class Channel(models.Model):
     subscriptions = models.ManyToManyField(
         to='self', symmetrical=False, through='SubscriptionItem', related_name='subscribers', blank=True,
     )
-
     avatar_s3_key = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):

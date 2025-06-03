@@ -6,4 +6,4 @@ class VideosConfig(AppConfig):
     name = 'core.apps.videos'
 
     def ready(self):
-        from . import signals  # noqa
+        from core.apps.videos import signals  # noqa

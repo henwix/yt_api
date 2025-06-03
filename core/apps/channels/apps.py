@@ -6,4 +6,4 @@ class ChannelsConfig(AppConfig):
     name = 'core.apps.channels'
 
     def ready(self):
-        from . import signals  # noqa
+        from core.apps.channels import signals  # noqa

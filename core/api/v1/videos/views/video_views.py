@@ -34,6 +34,7 @@ from core.apps.common.permissions import (
     IsAuthenticatedOrAdminOrReadOnly,
     IsAuthenticatedOrAuthorOrReadOnly,
 )
+from core.apps.users.converters.users import user_to_entity
 from core.apps.videos.filters import VideoFilter
 from core.apps.videos.models import (
     Video,
@@ -136,7 +137,11 @@ class VideoViewSet(
 
         """
         try:
-            result = self.service.like_create(request.user, video_id, request.data.get('is_like', True))
+            result = self.service.like_create(
+                user=user_to_entity(request.user),
+                video_id=video_id,
+                is_like=request.data.get('is_like', True),
+            )
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
@@ -181,7 +186,7 @@ class VideoViewSet(
 
         """
         try:
-            result = self.service.like_delete(request.user, video_id)
+            result = self.service.like_delete(user=user_to_entity(request.user), video_id=video_id)
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
@@ -222,7 +227,7 @@ class VideoViewSet(
         """
         try:
             result = self.service.view_create(
-                user=request.user,
+                user=user_to_entity(request.user),
                 video_id=video_id,
                 ip_address=request.META.get('HTTP_X_REAL_IP'),
             )
@@ -283,7 +288,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
 
     def get_queryset(self):
         if self.action in ['destroy', 'update', 'partial_update']:
-            return self.service.repository.get_all_comments()
+            return self.service.get_annotated_queryset()
         return self.service.get_related_queryset()
 
     @extend_schema(
@@ -311,7 +316,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
 
     def update(self, request, *args, **kwargs):
         response = super().update(request, *args, **kwargs)
-        self.service.change_updated_status(comment_id=kwargs.get('pk'))
+        self.service.change_updated_status(comment_id=kwargs.get('pk'), is_updated=True)
         return response
 
     @action(url_path='replies', url_name='replies', detail=True)
@@ -370,7 +375,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
 
         try:
             result = use_case.execute(
-                user=request.user,
+                user=user_to_entity(request.user),
                 comment_id=pk,
                 is_like=request.data.get('is_like', True),
             )
@@ -387,7 +392,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
 
         try:
             result = use_case.execute(
-                user=request.user,
+                user=user_to_entity(request.user),
                 comment_id=pk,
             )
         except ServiceException as error:
@@ -397,6 +402,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
         return Response(result, status.HTTP_204_NO_CONTENT)
 
 
+#  FIXME: fix all extra fields in serializers for docs
 class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
     """API endpoint to get list of watched videos.
 
@@ -449,7 +455,10 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
         video_id = request.query_params.get('v')
 
         try:
-            result = self.service.add_video_in_history(user=request.user, video_id=video_id)
+            result = self.service.add_video_in_history(
+                user=user_to_entity(request.user),
+                video_id=video_id,
+            )
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
@@ -481,10 +490,11 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
     )
     @action(methods=['delete'], url_path='delete', url_name='delete', detail=False)
     def delete_video_from_history(self, request):
-        video_id = request.query_params.get('v')
-
         try:
-            result = self.service.delete_video_from_history(user=request.user, video_id=video_id)
+            result = self.service.delete_video_from_history(
+                user=user_to_entity(request.user),
+                video_id=request.query_params.get('v'),
+            )
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
@@ -502,6 +512,9 @@ class MyVideoView(generics.ListAPIView):
         return Video.objects.all().filter(author=self.request.user.channel).select_related('author')
 
 
+#  TODO: maybe remove 'videos' from serializer and add new endpoints to load all playlist's related v
+#  TODO: after that remove .prefetch_related from get_queryset
+#  TODO: fix N+1 problem in get_queryset method
 class PlaylistAPIView(viewsets.ModelViewSet):
     """API endpoint to list/retrieve/create/update/delete playlists.
 
@@ -531,10 +544,8 @@ class PlaylistAPIView(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.action == 'list':
-            return self.service.get_playlists_for_listing(self.request.user)
-        if self.action == 'retrieve':
-            return self.service.get_playlists_for_retrieving()
-        return self.service.playlist_repository.get_all_playlists()
+            return self.service.get_playlists_for_listing(user_to_entity(self.request.user))
+        return self.service.get_playlists_for_retrieving()
 
     @extend_schema(
         request=None,
@@ -572,10 +583,11 @@ class PlaylistAPIView(viewsets.ModelViewSet):
         video_id.
 
         """
-        video_id = request.query_params.get('v')
-
         try:
-            result = self.service.add_video_in_playlist(playlist_id=id, video_id=video_id)
+            result = self.service.add_video_in_playlist(
+                playlist_id=id,
+                video_id=request.query_params.get('v'),
+            )
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
@@ -607,10 +619,11 @@ class PlaylistAPIView(viewsets.ModelViewSet):
         Example: /api/v1/playlist/W9MghI-EVXdkfYzfuvUmCCWlJRcPm1FT/delete-video/?v=33CjPuGJsEZ
 
         """
-        video_id = request.query_params.get('v')
-
         try:
-            result = self.service.delete_video_from_playlist(playlist_id=id, video_id=video_id)
+            result = self.service.delete_video_from_playlist(
+                playlist_id=id,
+                video_id=request.query_params.get('v'),
+            )
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise

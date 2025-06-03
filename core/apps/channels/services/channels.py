@@ -3,38 +3,33 @@ from abc import (
     abstractmethod,
 )
 from dataclasses import dataclass
-from typing import (
-    Iterable,
-    Tuple,
+from typing import Iterable
+
+from core.apps.channels.entities.channels import ChannelEntity
+from core.apps.channels.exceptions.channels import (
+    ChannelNotFoundError,
+    SlugChannelNotFoundError,
 )
-
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AnonymousUser
-
 from core.apps.channels.exceptions.subscriptions import (
     SelfSubscriptionError,
     SubscriptionDoesNotExistsError,
     SubscriptionExistsError,
 )
-
-from ..exceptions.channels import (
-    ChannelNotFoundError,
-    SlugChannelNotFoundError,
-)
-from ..models import (
+from core.apps.channels.models import (
     Channel,
     SubscriptionItem,
 )
-from ..repositories.channels import (
+from core.apps.channels.repositories.channels import (
     BaseChannelAboutRepository,
     BaseChannelMainRepository,
     BaseChannelRepository,
     BaseChannelSubsRepository,
     BaseSubscriptionRepository,
 )
-
-
-User = get_user_model()
+from core.apps.users.entities import (
+    AnonymousUserEntity,
+    UserEntity,
+)
 
 
 @dataclass(eq=False)
@@ -42,39 +37,39 @@ class BaseChannelService(ABC):
     repository: BaseChannelRepository
 
     @abstractmethod
-    def get_channel_by_user_or_404(self, user: User) -> Channel:
+    def get_channel_by_user_or_404(self, user: UserEntity) -> ChannelEntity:
         ...
 
     @abstractmethod
-    def get_channel_by_user_or_none(self, user: User) -> Channel | None:
+    def get_channel_by_user_or_none(self, user: UserEntity) -> ChannelEntity | None:
         ...
 
     @abstractmethod
-    def delete_channel(self, user: User) -> None:
+    def delete_channel(self, user: UserEntity) -> None:
         ...
 
     @abstractmethod
-    def set_avatar_s3_key(self, channel: Channel, avatar_s3_key: str | None) -> None:
+    def set_avatar_s3_key(self, channel: ChannelEntity, avatar_s3_key: str | None) -> None:
         ...
 
 
 class ORMChannelService(BaseChannelService):
-    def get_channel_by_user_or_404(self, user: User) -> Channel:
-        channel = self.repository.get_channel_by_user(user)
-        if channel is None:
-            raise ChannelNotFoundError(user_id=user.pk)
+    def get_channel_by_user_or_404(self, user: UserEntity) -> ChannelEntity:
+        channel = self.repository.get_channel_by_user_or_none(user)
 
+        if channel is None:
+            raise ChannelNotFoundError(user_id=user.id)
         return channel
 
-    def get_channel_by_user_or_none(self, user: User) -> Channel | None:
-        if isinstance(user, AnonymousUser):
+    def get_channel_by_user_or_none(self, user: UserEntity | AnonymousUserEntity) -> ChannelEntity | None:
+        if user.is_anonymous:
             return None
-        return self.repository.get_channel_by_user(user)
+        return self.repository.get_channel_by_user_or_none(user)
 
-    def delete_channel(self, user: User) -> None:
-        self.repository.delete_channel(user)
+    def delete_channel(self, user: UserEntity) -> None:
+        self.repository.delete_channel_by_user(user)
 
-    def set_avatar_s3_key(self, channel: Channel, avatar_s3_key: str | None) -> None:
+    def set_avatar_s3_key(self, channel: ChannelEntity, avatar_s3_key: str | None) -> None:
         self.repository.set_avatar_s3_key(channel=channel, avatar_s3_key=avatar_s3_key)
 
 
@@ -83,12 +78,12 @@ class BaseChannelSubsService(ABC):
     repository: BaseChannelSubsRepository
 
     @abstractmethod
-    def get_subscriber_list(self, channel: Channel) -> Iterable[SubscriptionItem]:
+    def get_subscriber_list(self, channel: ChannelEntity) -> Iterable[SubscriptionItem]:
         ...
 
 
 class ORMChannelSubsService(BaseChannelSubsService):
-    def get_subscriber_list(self, channel: Channel) -> Iterable[SubscriptionItem]:
+    def get_subscriber_list(self, channel: ChannelEntity) -> Iterable[SubscriptionItem]:
         return self.repository.get_subscriber_list(channel=channel).select_related('subscriber', 'subscribed_to')
 
 
@@ -122,45 +117,47 @@ class ORMChannelAboutService(BaseChannelAboutService):
 
 @dataclass(eq=False)
 class BaseSubscriptionService(ABC):
-    repository: BaseSubscriptionRepository
+    subscription_repository: BaseSubscriptionRepository
+    channel_repository: BaseChannelRepository
 
     @abstractmethod
-    def subscribe(self, user: User, channel_slug: str) -> dict:
+    def subscribe(self, user: UserEntity, channel_slug: str) -> dict:
         ...
 
     @abstractmethod
-    def unsubscribe(self, user: User, channel_slug: str) -> dict:
+    def unsubscribe(self, user: UserEntity, channel_slug: str) -> dict:
         ...
 
 
 class ORMSubscriptionService(BaseSubscriptionService):
-    def validate_subscription(self, user: User, channel_slug: str) -> Tuple[Channel, Channel]:
-        subscriber, subscribed_to = self.repository.get_channels(user, channel_slug)
+    def _validate_subscription(self, user: UserEntity, channel_slug: str) -> tuple[ChannelEntity, ChannelEntity]:
+        subscriber = self.channel_repository.get_channel_by_user_or_none(user)
+        subscribed_to = self.channel_repository.get_channel_by_slug(channel_slug)
 
         if not subscribed_to:
-            raise SlugChannelNotFoundError(channel_slug=user.pk)
+            raise SlugChannelNotFoundError(channel_slug=user.id)
 
-        if subscriber.pk == subscribed_to.pk:
+        if subscriber.id == subscribed_to.id:
             raise SelfSubscriptionError(channel_slug=subscriber.slug)
 
         return subscriber, subscribed_to
 
-    def subscribe(self, user: User, channel_slug: str) -> dict:
-        subscriber, subscribed_to = self.validate_subscription(user, channel_slug)
+    def subscribe(self, user: UserEntity, channel_slug: str) -> dict:
+        subscriber, subscribed_to = self._validate_subscription(user, channel_slug)
 
-        _, created = self.repository.get_or_create_sub(subscriber=subscriber, subscribed_to=subscribed_to)
+        _, created = self.subscription_repository.get_or_create_sub(subscriber=subscriber, subscribed_to=subscribed_to)
 
         if not created:
             raise SubscriptionExistsError(sub_slug=subscriber.slug, sub_to_slug=subscribed_to.slug)
 
-        return {'status': 'Subscription created'}
+        return {'status': 'subscription created'}
 
-    def unsubscribe(self, user: User, channel_slug: str) -> dict:
-        subscriber, subscribed_to = self.validate_subscription(user, channel_slug)
+    def unsubscribe(self, user: UserEntity, channel_slug: str) -> dict:
+        subscriber, subscribed_to = self._validate_subscription(user, channel_slug)
 
-        deleted, _ = self.repository.delete_sub(subscriber=subscriber, subscribed_to=subscribed_to)
+        deleted = self.subscription_repository.delete_sub(subscriber=subscriber, subscribed_to=subscribed_to)
 
         if not deleted:
             raise SubscriptionDoesNotExistsError(sub_slug=subscriber.slug, sub_to_slug=subscribed_to.slug)
 
-        return {'status': 'Subscription deleted'}
+        return {'status': 'subscription deleted'}

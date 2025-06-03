@@ -5,7 +5,7 @@ from django.utils import timezone
 import django_filters
 from dateutil.relativedelta import relativedelta
 
-from .models import Video
+from core.apps.videos.models import Video
 
 
 UPLOAD_DATE_STATUSES = (

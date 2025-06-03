@@ -7,12 +7,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from core.apps.channels.models import Channel
 from core.apps.videos.models import Video
 from core.project.containers import get_container
-from core.tests.factories.videos import VideoModelFactory
-
-from .factories.channels import (
+from core.tests.factories.channels import (
     ChannelModelFactory,
     UserModelFactory,
 )
+from core.tests.factories.videos import VideoModelFactory
 
 
 @pytest.fixture

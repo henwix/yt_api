@@ -57,7 +57,7 @@ class VideoCommentSerializer(serializers.ModelSerializer):
 class VideoSerializer(serializers.ModelSerializer):
     """Video serializer for video creation, updating and retrieving."""
 
-    author_name = serializers.StringRelatedField(source='author')
+    author_name = serializers.StringRelatedField(source='author.name')
     author_link = serializers.HyperlinkedRelatedField(
         view_name='v1:channels:channels-show',
         lookup_field='slug',
@@ -96,7 +96,6 @@ class VideoSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             'created_at',
-            'yt-link',
             'upload_status',
             'is_reported',
             'upload_id',
@@ -185,10 +184,25 @@ class PlaylistPreviewSerializer(serializers.ModelSerializer):
 
 class PlaylistSerializer(PlaylistPreviewSerializer):
     videos = VideoPreviewSerializer(many=True, read_only=True)
+    playlist_link = serializers.HyperlinkedIdentityField(
+        view_name='v1:videos:playlists-detail',
+        lookup_field='id',
+        lookup_url_kwarg='id',
+        read_only=True,
+    )
 
     class Meta:
         model = PlaylistPreviewSerializer.Meta.model
-        fields = ['title', 'description', 'status', 'channel_name', 'channel_link', 'videos_count', 'videos']
+        fields = [
+            'title',
+            'description',
+            'playlist_link',
+            'status',
+            'channel_name',
+            'channel_link',
+            'videos_count',
+            'videos',
+        ]
 
     def create(self, validated_data):
         request = self.context.get('request')

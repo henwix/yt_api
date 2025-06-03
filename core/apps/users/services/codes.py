@@ -7,8 +7,7 @@ from dataclasses import dataclass
 from logging import Logger
 
 from core.apps.common.providers.cache import BaseCacheProvider
-
-from ..exceptions.codes import (
+from core.apps.users.exceptions.codes import (
     CodeNotEqualException,
     CodeNotProvidedException,
 )

@@ -3,20 +3,19 @@ from abc import (
     abstractmethod,
 )
 from dataclasses import dataclass
-from typing import (
-    Iterable,
-    Tuple,
-)
+from typing import Iterable
 
-from django.contrib.auth import get_user_model
 from django.db.models import (
     Count,
     Prefetch,
     Q,
 )
 
+from core.apps.channels.entities.channels import ChannelEntity
 from core.apps.channels.models import Channel
 from core.apps.channels.repositories.channels import BaseChannelRepository
+from core.apps.users.entities import UserEntity
+from core.apps.videos.entities.videos import VideoEntity
 from core.apps.videos.exceptions.playlists import (
     PlaylistIdNotProvidedError,
     PlaylistNotFoundError,
@@ -26,8 +25,7 @@ from core.apps.videos.exceptions.upload import (
     VideoNotFoundByKeyError,
     VideoNotFoundByUploadIdError,
 )
-
-from ..exceptions.videos import (
+from core.apps.videos.exceptions.videos import (
     PrivateVideoPermissionError,
     VideoAuthorNotMatchError,
     VideoIdNotProvidedError,
@@ -36,54 +34,51 @@ from ..exceptions.videos import (
     VideoNotFoundInHistoryError,
     ViewExistsError,
 )
-from ..models import (
+from core.apps.videos.models import (
     Playlist,
     Video,
 )
-from ..repositories.videos import (
+from core.apps.videos.repositories.videos import (
     BasePlaylistRepository,
     BaseVideoHistoryRepository,
     BaseVideoRepository,
 )
 
 
-User = get_user_model()
-
-
 class BaseVideoValidatorService(ABC):
     @abstractmethod
-    def validate(self, video: Video | None, video_id: str) -> None:
+    def validate(self, video: VideoEntity | None, video_id: str) -> None:
         ...
 
 
 class VideoExistsValidatorService(BaseVideoValidatorService):
-    def validate(self, video: Video | None, video_id: str) -> None:
+    def validate(self, video: VideoEntity | None, video_id: str) -> None:
         if not video:
             raise VideoNotFoundByVideoIdError(video_id=video_id)
 
 
 class BaseVideoAuthorValidatorService(ABC):
     @abstractmethod
-    def validate(self, video: Video, author: Channel) -> None:
+    def validate(self, video: VideoEntity, author: ChannelEntity) -> None:
         ...
 
 
 class VideoMatchAuthorValidatorService(BaseVideoAuthorValidatorService):
     def validate(self, video: Video, author: Channel) -> None:
-        if not video.author_id == author.pk:
-            raise VideoAuthorNotMatchError(video_id=video.pk, author_id=author.pk)
+        if not video.author_id == author.id:
+            raise VideoAuthorNotMatchError(video_id=video.id, author_id=author.id)
 
 
 class BasePrivateVideoPermissionValidatorService(ABC):
     @abstractmethod
-    def validate(self, video: Video, channel: Channel | None) -> None:
+    def validate(self, video: VideoEntity, channel: ChannelEntity | None) -> None:
         ...
 
 
 class VideoPrivatePermissionValidatorService(BasePrivateVideoPermissionValidatorService):
-    def validate(self, video: Video, channel: Channel | None) -> None:
-        if video.status == Video.VideoStatus.PRIVATE and (channel is None or video.author_id != channel.pk):
-            raise PrivateVideoPermissionError(video_id=video.pk, channel_id=channel.pk if channel else None)
+    def validate(self, video: VideoEntity, channel: ChannelEntity | None) -> None:
+        if video.status == Video.VideoStatus.PRIVATE and (channel is None or video.author_id != channel.id):
+            raise PrivateVideoPermissionError(video_id=video.id, channel_id=channel.id if channel else 'AnonymousUser')
 
 
 @dataclass(eq=False)
@@ -93,15 +88,15 @@ class BaseVideoService(ABC):
     validator_service: BaseVideoValidatorService
 
     @abstractmethod
-    def video_create(self, data: dict) -> None:
+    def video_create(self, video_entity: VideoEntity) -> None:
         ...
 
     @abstractmethod
-    def get_video_by_upload_id(self, upload_id: str) -> Video:
+    def get_video_by_upload_id(self, upload_id: str) -> VideoEntity:
         ...
 
     @abstractmethod
-    def get_video_by_key(self, key: str) -> Video:
+    def get_video_by_key(self, key: str) -> VideoEntity:
         ...
 
     @abstractmethod
@@ -118,37 +113,41 @@ class BaseVideoService(ABC):
         ...
 
     @abstractmethod
-    def like_create(self, user: User, video_id: str, is_like: bool) -> dict:
+    def like_create(self, user: UserEntity, video_id: str, is_like: bool) -> dict:
         ...
 
     @abstractmethod
-    def like_delete(self, user: User, video_id: str) -> dict:
+    def like_delete(self, user: UserEntity, video_id: str) -> dict:
         ...
 
     @abstractmethod
-    def view_create(self, user: User, video_id: str, ip_address: str) -> dict:
+    def view_create(self, user: UserEntity, video_id: str, ip_address: str) -> dict:
         ...
 
 
 class ORMVideoService(BaseVideoService):
-    def _user_and_video_validate(self, user, video_id) -> Tuple[Channel | None, Video | None]:
-        channel = self.channel_repository.get_channel_by_user(user=user)
-        video = self.video_repository.get_video_by_id(video_id)
+    def _user_and_video_validate(
+        self,
+        user: UserEntity,
+        video_id: str,
+    ) -> tuple[ChannelEntity | None, VideoEntity | None]:
+        channel = self.channel_repository.get_channel_by_user_or_none(user=user)
+        video = self.video_repository.get_video_by_id_or_none(video_id)
 
         self.validator_service.validate(video=video, video_id=video_id)
 
         return channel, video
 
-    def video_create(self, data: dict) -> None:
-        self.video_repository.video_create(data=data)
+    def video_create(self, video_entity: VideoEntity) -> None:
+        self.video_repository.video_create(video_entity=video_entity)
 
-    def get_video_by_upload_id(self, upload_id: str) -> Video:
+    def get_video_by_upload_id(self, upload_id: str) -> VideoEntity:
         video = self.video_repository.get_video_by_upload_id(upload_id=upload_id)
         if not video:
             raise VideoNotFoundByUploadIdError(upload_id=upload_id)
         return video
 
-    def get_video_by_key(self, key: str) -> Video:
+    def get_video_by_key(self, key: str) -> VideoEntity:
         video = self.video_repository.get_video_by_key(key=key)
         if not video:
             raise VideoNotFoundByKeyError(key=key)
@@ -169,34 +168,33 @@ class ORMVideoService(BaseVideoService):
     def delete_video_by_id(self, video_id: str) -> None:
         self.video_repository.delete_video_by_id(video_id=video_id)
 
-    def like_create(self, user: User, video_id: str, is_like: bool) -> dict:
+    def like_create(self, user: UserEntity, video_id: str, is_like: bool) -> dict:
         channel, video = self._user_and_video_validate(user, video_id)
 
         like, created = self.video_repository.like_get_or_create(channel, video, is_like)
 
         if not created and like.is_like != is_like:
-            like.is_like = is_like
-            like.save()
+            self.video_repository.update_is_like_field(like, is_like)
 
         return {'status': 'success', 'is_like': is_like}
 
-    def like_delete(self, user: User, video_id: str) -> dict:
+    def like_delete(self, user: UserEntity, video_id: str) -> dict:
         channel, video = self._user_and_video_validate(user, video_id)
 
-        deleted, _ = self.video_repository.like_delete(channel, video)
+        deleted = self.video_repository.like_delete(channel, video)
 
         if not deleted:
-            raise VideoLikeNotFoundError(channel_slug=channel.slug, video_id=video.video_id)
+            raise VideoLikeNotFoundError(channel_slug=channel.slug, video_id=video.id)
 
         return {'status': 'success'}
 
-    def view_create(self, user: User, video_id: str, ip_address: str) -> dict:
+    def view_create(self, user: UserEntity, video_id: str, ip_address: str) -> dict:
         channel, video = self._user_and_video_validate(user, video_id)
 
         last_view_exists = self.video_repository.last_view_exists(channel, video, ip_address)
 
         if last_view_exists:
-            raise ViewExistsError(channel_slug=channel.slug, video_id=video.video_id)
+            raise ViewExistsError(channel_slug=channel.slug, video_id=video.id)
 
         self.video_repository.create_view(channel, video, ip_address)
         return {'status': 'success'}
@@ -233,45 +231,45 @@ class BaseVideoHistoryService(ABC):
     history_repository: BaseVideoHistoryRepository
 
     @abstractmethod
-    def add_video_in_history(self, user: User, video_id: str) -> dict:
+    def add_video_in_history(self, user: UserEntity, video_id: str) -> dict:
         ...
 
     @abstractmethod
-    def delete_video_from_history(self, user: User, video_id: str) -> dict:
+    def delete_video_from_history(self, user: UserEntity, video_id: str) -> dict:
         ...
 
 
 class ORMVideoHistoryService(BaseVideoHistoryService):
-    def _validate_video_id_and_get_objects(self, video_id: str, user: User) -> Tuple[Channel, Video]:
+    def _validate_video_id_and_get_objects(self, video_id: str, user: UserEntity) -> tuple[ChannelEntity, VideoEntity]:
         """Validate video_id and returns channel and video objects from
         database."""
 
         if not video_id:
             raise VideoIdNotProvidedError()
 
-        channel = self.channel_repository.get_channel_by_user(user=user)
-        video = self.video_repository.get_video_by_id(video_id=video_id)
+        channel = self.channel_repository.get_channel_by_user_or_none(user=user)
+        video = self.video_repository.get_video_by_id_or_none(video_id=video_id)
 
         if not video:
             raise VideoNotFoundByVideoIdError(video_id=video_id)
 
         return channel, video
 
-    def add_video_in_history(self, user: User, video_id: str) -> dict:
+    def add_video_in_history(self, user: UserEntity, video_id: str) -> dict:
         channel, video = self._validate_video_id_and_get_objects(video_id, user)
 
         history_item, created = self.history_repository.get_or_create_history_item(video=video, channel=channel)
 
         if not created:
-            self.history_repository.update_watch_time(history_item=history_item)
+            self.history_repository.update_watch_time(video_history=history_item)
             return {'status': 'Video already exists in history, watched_at has been updated'}
 
         return {'status': 'Video added in history'}
 
-    def delete_video_from_history(self, user: User, video_id: str) -> dict:
+    def delete_video_from_history(self, user: UserEntity, video_id: str) -> dict:
         channel, video = self._validate_video_id_and_get_objects(video_id, user)
 
-        deleted, _ = self.history_repository.delete_history_item(video=video, channel=channel)
+        deleted = self.history_repository.delete_history_item(video=video, channel=channel)
 
         if not deleted:
             raise VideoNotFoundInHistoryError(video_id=video_id, channel_slug=channel.slug)
@@ -304,7 +302,7 @@ class ORMVideoPlaylistService(BaseVideoPlaylistService):
             raise PlaylistIdNotProvidedError()
 
         playlist = self.playlist_repository.get_playlist_by_id(playlist_id=playlist_id)
-        video = self.video_repository.get_video_by_id(video_id=video_id)
+        video = self.video_repository.get_video_by_id_or_none(video_id=video_id)
 
         if not video:
             raise VideoNotFoundByVideoIdError(video_id=video_id)
@@ -325,17 +323,17 @@ class ORMVideoPlaylistService(BaseVideoPlaylistService):
     def delete_video_from_playlist(self, playlist_id: str, video_id: str) -> dict:
         playlist, video = self._validate_data_and_return_objects(playlist_id, video_id)
 
-        deleted, _ = self.playlist_repository.playlist_item_delete(playlist=playlist, video=video)
+        deleted = self.playlist_repository.playlist_item_delete(playlist=playlist, video=video)
 
         if not deleted:
             raise VideoNotInPlaylistError()
         return {'status': 'Video successfully deleted from playlist'}
 
-    def get_playlists_for_listing(self, user: User) -> Iterable[Playlist]:
+    def get_playlists_for_listing(self, user: UserEntity) -> Iterable[Playlist]:
         queryset = self.playlist_repository.get_all_playlists()
-        channel = self.channel_repository.get_channel_by_user(user=user)
+        channel = self.channel_repository.get_channel_by_user_or_none(user=user)
         return (
-            queryset.filter(channel=channel)
+            queryset.filter(channel_id=channel.id)
             .prefetch_related('videos__author')
             .select_related('channel')
             .annotate(

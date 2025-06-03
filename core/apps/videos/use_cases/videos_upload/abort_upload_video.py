@@ -1,16 +1,12 @@
 from dataclasses import dataclass
 
-from django.contrib.auth import get_user_model
-
 from core.apps.channels.services.channels import BaseChannelService
 from core.apps.common.services.files import BaseS3FileService
+from core.apps.users.entities import UserEntity
 from core.apps.videos.services.videos import (
     BaseVideoAuthorValidatorService,
     BaseVideoService,
 )
-
-
-User = get_user_model()
 
 
 @dataclass
@@ -20,7 +16,7 @@ class AbortVideoMultipartUploadUseCase:
     validator_service: BaseVideoAuthorValidatorService
     files_service: BaseS3FileService
 
-    def execute(self, user: User, key: str, upload_id: str):
+    def execute(self, user: UserEntity, key: str, upload_id: str):
         # retrieve channel by user
         author = self.channel_service.get_channel_by_user_or_404(user=user)
 
@@ -37,6 +33,6 @@ class AbortVideoMultipartUploadUseCase:
         )
 
         # delete video associated with 'upload_id'
-        self.video_service.delete_video_by_id(video_id=video.video_id)
+        self.video_service.delete_video_by_id(video_id=video.id)
 
         return {'status': 'success'}

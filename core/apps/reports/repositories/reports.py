@@ -4,10 +4,11 @@ from abc import (
 )
 from typing import Iterable
 
-from core.apps.channels.models import Channel
-from core.apps.videos.models import Video
-
-from ..models import VideoReport
+from core.apps.channels.entities.channels import ChannelEntity
+from core.apps.reports.converters.reports import report_to_entity
+from core.apps.reports.entities.reports import VideoReportEntity
+from core.apps.reports.models import VideoReport
+from core.apps.videos.entities.videos import VideoEntity
 
 
 class BaseVideoReportsRepository(ABC):
@@ -16,7 +17,13 @@ class BaseVideoReportsRepository(ABC):
         ...
 
     @abstractmethod
-    def create_report(self, video: Video, author: Channel, reason: str, description: str) -> VideoReport:
+    def create_report(
+        self,
+        video: VideoEntity,
+        author: ChannelEntity,
+        reason: str,
+        description: str,
+    ) -> VideoReportEntity:
         ...
 
 
@@ -24,5 +31,17 @@ class ORMVideoReportRepository(BaseVideoReportsRepository):
     def get_reports(self) -> Iterable[VideoReport]:
         return VideoReport.objects.all()
 
-    def create_report(self, video: Video, author: Channel, reason: str, description: str) -> VideoReport:
-        return VideoReport.objects.create(video=video, author=author, reason=reason, description=description)
+    def create_report(
+        self,
+        video: VideoEntity,
+        author: ChannelEntity,
+        reason: str,
+        description: str,
+    ) -> VideoReportEntity:
+        report_dto = VideoReport.objects.create(
+            video_id=video.id,
+            author_id=author.id,
+            reason=reason,
+            description=description,
+        )
+        return report_to_entity(report_dto)

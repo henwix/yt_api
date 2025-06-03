@@ -8,12 +8,11 @@ from django.dispatch import receiver
 
 import punq
 
+from core.apps.channels.models import Channel
 from core.apps.common.providers.cache import BaseCacheProvider
 from core.apps.common.providers.files import BaseCeleryFileProvider
 from core.apps.videos.models import Video
 from core.project.containers import get_container
-
-from .models import Channel
 
 
 @receiver(signal=[post_save], sender=Channel)

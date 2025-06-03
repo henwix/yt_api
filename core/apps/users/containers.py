@@ -17,7 +17,7 @@ from core.apps.users.services.users import (
     BaseUserService,
     BaseUserValidatorService,
     ORMUserService,
-    UserValidatorService,
+    UserExistsValidatorService,
 )
 from core.apps.users.use_cases.auth import (
     AuthorizeUserUseCase,
@@ -28,7 +28,7 @@ from core.apps.users.use_cases.auth import (
 def init_users(container: punq.Container) -> None:
     #  services
     container.register(BaseUserService, ORMUserService)
-    container.register(BaseUserValidatorService, UserValidatorService)
+    container.register(BaseUserValidatorService, UserExistsValidatorService)
     container.register(BaseCodeService, EmailCodeService)
 
     #  repositories

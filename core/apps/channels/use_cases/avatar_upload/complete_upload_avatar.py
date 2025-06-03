@@ -1,15 +1,11 @@
 from dataclasses import dataclass
 
-from django.contrib.auth import get_user_model
-
 from core.apps.channels.services.channels import BaseChannelService
 from core.apps.common.services.files import (
     BaseFileExistsInS3ValidatorService,
     BaseS3FileService,
 )
-
-
-User = get_user_model()
+from core.apps.users.entities import UserEntity
 
 
 @dataclass
@@ -18,7 +14,7 @@ class CompleteUploadAvatarUseCase:
     file_exists_validator: BaseFileExistsInS3ValidatorService
     channel_service: BaseChannelService
 
-    def execute(self, key: str, user: User) -> dict:
+    def execute(self, key: str, user: UserEntity) -> dict:
         self.file_exists_validator.validate(key=key)
 
         channel = self.channel_service.get_channel_by_user_or_404(user=user)

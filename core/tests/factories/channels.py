@@ -8,8 +8,7 @@ from core.apps.channels.models import (
     Channel,
     SubscriptionItem,
 )
-
-from .common import factory_lazy_function
+from core.tests.factories.common import factory_lazy_function
 
 
 User = get_user_model()

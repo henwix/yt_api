@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 import pytest
 from faker import Faker
 
+from core.apps.channels.converters.channels import channel_from_entity
 from core.apps.channels.exceptions.channels import ChannelNotFoundError
 from core.apps.channels.exceptions.subscriptions import (
     SelfSubscriptionError,
@@ -42,7 +43,8 @@ def test_channel_not_found_error(channel_service: BaseChannelService):
 @pytest.mark.django_db
 def test_channel_retrieved_from_channel_or_404(channel_service: BaseChannelService, user_with_channel: User):
     """Test get_channel when a user has an existing channel in database."""
-    assert user_with_channel.channel == channel_service.get_channel_by_user_or_404(user_with_channel)
+    channel_dto = channel_from_entity(channel_service.get_channel_by_user_or_404(user_with_channel))
+    assert user_with_channel.channel == channel_dto
 
 
 @pytest.mark.django_db
@@ -54,7 +56,8 @@ def test_channel_is_none(channel_service: BaseChannelService):
 @pytest.mark.django_db
 def test_channel_retrieved_from_channel_or_none(channel_service: BaseChannelService, user_with_channel: User):
     """Test get_channel when a user has an existing channel in database."""
-    assert user_with_channel.channel == channel_service.get_channel_by_user_or_none(user_with_channel)
+    channel_dto = channel_from_entity(channel_service.get_channel_by_user_or_none(user_with_channel))
+    assert user_with_channel.channel == channel_dto
 
 
 @pytest.mark.django_db

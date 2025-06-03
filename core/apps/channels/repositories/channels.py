@@ -2,13 +2,8 @@ from abc import (
     ABC,
     abstractmethod,
 )
-from typing import (
-    Dict,
-    Iterable,
-    Tuple,
-)
+from typing import Iterable
 
-from django.contrib.auth import get_user_model
 from django.db.models import (
     Count,
     OuterRef,
@@ -17,59 +12,75 @@ from django.db.models import (
     Subquery,
 )
 
-from core.apps.videos.models import Video
-
-from ..models import (
+from core.apps.channels.converters.channels import (
+    channel_from_entity,
+    channel_to_entity,
+)
+from core.apps.channels.converters.subscriptions import sub_to_entity
+from core.apps.channels.entities.channels import ChannelEntity
+from core.apps.channels.entities.subscriptions import SubscriptionItemEntity
+from core.apps.channels.models import (
     Channel,
     SubscriptionItem,
 )
-
-
-User = get_user_model()
+from core.apps.users.converters.users import user_from_entity
+from core.apps.users.entities import UserEntity
+from core.apps.videos.models import Video
 
 
 class BaseChannelRepository(ABC):
     @abstractmethod
-    def get_channel_by_user(self, user: User) -> Channel | None:
+    def get_channel_by_user_or_none(self, user: UserEntity) -> ChannelEntity | None:
         ...
 
     @abstractmethod
-    def get_channel_by_id(self, user_id: int) -> Channel | None:
+    def get_channel_by_user_id(self, user_id: int) -> ChannelEntity | None:
         ...
 
     @abstractmethod
-    def delete_channel(self, user: User) -> None:
+    def get_channel_by_slug(self, slug: str) -> ChannelEntity | None:
         ...
 
     @abstractmethod
-    def set_avatar_s3_key(self, channel: Channel, avatar_s3_key: str | None) -> None:
+    def delete_channel_by_user(self, user: UserEntity) -> None:
+        ...
+
+    @abstractmethod
+    def set_avatar_s3_key(self, channel: ChannelEntity, avatar_s3_key: str | None) -> None:
         ...
 
 
 class ORMChannelRepository(BaseChannelRepository):
-    def get_channel_by_user(self, user: User) -> Channel | None:
-        return Channel.objects.filter(user=user).first()
+    def get_channel_by_user_or_none(self, user: UserEntity) -> ChannelEntity | None:
+        channel_dto = Channel.objects.filter(user_id=user.id).first()
+        return channel_to_entity(channel_dto) if channel_dto else None
 
-    def get_channel_by_id(self, user_id: int) -> Channel | None:
-        return Channel.objects.filter(user_id=user_id).first()
+    def get_channel_by_user_id(self, user_id: int) -> ChannelEntity | None:
+        channel_dto = Channel.objects.filter(user_id=user_id).first()
+        return channel_to_entity(channel_dto) if channel_dto else None
 
-    def delete_channel(self, user: User) -> None:
-        user.delete()
+    def get_channel_by_slug(self, slug) -> ChannelEntity | None:
+        channel_dto = Channel.objects.filter(slug=slug).first()
+        return channel_to_entity(channel_dto) if channel_dto else None
 
-    def set_avatar_s3_key(self, channel: Channel, avatar_s3_key: str | None) -> None:
-        channel.avatar_s3_key = avatar_s3_key
-        channel.save()
+    def delete_channel_by_user(self, user: UserEntity) -> None:
+        user_from_entity(user).delete()
+
+    def set_avatar_s3_key(self, channel: ChannelEntity, avatar_s3_key: str | None) -> None:
+        channel_dto: Channel = channel_from_entity(channel)
+        channel_dto.avatar_s3_key = avatar_s3_key
+        channel_dto.save()
 
 
 class BaseChannelSubsRepository(ABC):
     @abstractmethod
-    def get_subscriber_list(self, channel: Channel) -> Iterable[SubscriptionItem]:
+    def get_subscriber_list(self, channel: ChannelEntity) -> Iterable[SubscriptionItem]:
         ...
 
 
 class ORMChannelSubsRepository(BaseChannelSubsRepository):
-    def get_subscriber_list(self, channel: Channel) -> Iterable[SubscriptionItem]:
-        return SubscriptionItem.objects.filter(subscribed_to=channel)
+    def get_subscriber_list(self, channel: ChannelEntity) -> Iterable[SubscriptionItem]:
+        return SubscriptionItem.objects.filter(subscribed_to_id=channel.id)
 
 
 class BaseChannelMainRepository(ABC):
@@ -134,26 +145,38 @@ class ORMChannelAboutRepository(BaseChannelAboutRepository):
 
 class BaseSubscriptionRepository(ABC):
     @abstractmethod
-    def get_channels(self, user: User, slug: str) -> Tuple[Channel, Channel | None]:
+    def get_or_create_sub(
+        self,
+        subscriber: ChannelEntity,
+        subscribed_to: ChannelEntity,
+    ) -> tuple[SubscriptionItemEntity, bool]:
         ...
 
     @abstractmethod
-    def get_or_create_sub(self, subscriber: Channel, subscribed_to: Channel) -> Tuple[SubscriptionItem, bool]:
-        ...
-
-    @abstractmethod
-    def delete_sub(self, subscriber: Channel, subscribed_to: Channel) -> Tuple[int, Dict[str, int]]:
+    def delete_sub(self, subscriber: ChannelEntity, subscribed_to: ChannelEntity) -> bool:
         ...
 
 
 class ORMSubscriptionRepository(BaseSubscriptionRepository):
-    def get_channels(self, user: User, slug: str) -> Tuple[Channel, Channel | None]:
-        subscriber = user.channel
-        subscribed_to = Channel.objects.filter(slug=slug).first()
-        return subscriber, subscribed_to
+    def get_or_create_sub(
+        self,
+        subscriber: ChannelEntity,
+        subscribed_to: ChannelEntity,
+    ) -> tuple[SubscriptionItemEntity, bool]:
+        subscription_dto, created = SubscriptionItem.objects.get_or_create(
+            subscriber_id=subscriber.id, subscribed_to_id=subscribed_to.id,
+        )
 
-    def get_or_create_sub(self, subscriber: Channel, subscribed_to: Channel) -> Tuple[SubscriptionItem, bool]:
-        return SubscriptionItem.objects.get_or_create(subscriber=subscriber, subscribed_to=subscribed_to)
+        return sub_to_entity(subscription_dto), created
 
-    def delete_sub(self, subscriber: Channel, subscribed_to: Channel) -> Tuple[int, Dict[str, int]]:
-        return SubscriptionItem.objects.filter(subscriber=subscriber, subscribed_to=subscribed_to).delete()
+    def delete_sub(
+        self,
+        subscriber: ChannelEntity,
+        subscribed_to: ChannelEntity,
+    ) -> bool:
+        deleted, _ = SubscriptionItem.objects.filter(
+            subscriber_id=subscriber.id,
+            subscribed_to_id=subscribed_to.id,
+        ).delete()
+
+        return True if deleted else False

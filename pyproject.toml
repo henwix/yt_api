@@ -52,7 +52,7 @@ tqdm = "^4.67.1"
 gunicorn = "^23.0.0"
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "core.project.settings.prod"
+DJANGO_SETTINGS_MODULE = "core.project.settings.local"
 python_files = ["test_*.py", "*_test.py", "testing/python/*.py"]
 
 

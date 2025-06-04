@@ -14,7 +14,7 @@ from core.apps.users.repositories.users import BaseUserRepository
 
 class BaseUserValidatorService(ABC):
     @abstractmethod
-    def validate(self, user: UserEntity) -> None:
+    def validate(self, user: UserEntity | None) -> None:
         ...
 
 

@@ -9,7 +9,7 @@ from core.apps.users.services.codes import BaseCodeService
 
 @pytest.mark.django_db
 def test_code_generated(code_service: BaseCodeService):
-    """Test code generated."""
+    """Test that the code has been generated."""
     email = 'test@test.com'
     code = code_service.generate_code(email)
 
@@ -18,7 +18,7 @@ def test_code_generated(code_service: BaseCodeService):
 
 @pytest.mark.django_db
 def test_code_validated(code_service: BaseCodeService):
-    """Test code validated."""
+    """Test that the code has been validated."""
     email = 'test@test.com'
     code = code_service.generate_code(email)
 
@@ -27,7 +27,7 @@ def test_code_validated(code_service: BaseCodeService):
 
 @pytest.mark.django_db
 def test_code_not_provided_error(code_service: BaseCodeService):
-    """Test error raised when code not provided."""
+    """Test that an error has been raised when the code is not provided."""
     email = 'test@test.com'
 
     with pytest.raises(CodeNotProvidedException):
@@ -36,7 +36,7 @@ def test_code_not_provided_error(code_service: BaseCodeService):
 
 @pytest.mark.django_db
 def test_code_not_equal_error(code_service: BaseCodeService):
-    """Test error raised when code is not equal."""
+    """Test that an error has been raised when the code is not equal."""
     email = 'test@test.com'
     code_service.generate_code(email)
 

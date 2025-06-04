@@ -3,7 +3,10 @@ from django.contrib.auth import get_user_model
 import pytest
 from faker import Faker
 
-from core.apps.channels.converters.channels import channel_from_entity
+from core.apps.channels.converters.channels import (
+    channel_from_entity,
+    channel_to_entity,
+)
 from core.apps.channels.exceptions.channels import ChannelNotFoundError
 from core.apps.channels.exceptions.subscriptions import (
     SelfSubscriptionError,
@@ -20,6 +23,7 @@ from core.apps.channels.services.channels import (
     BaseChannelSubsService,
     BaseSubscriptionService,
 )
+from core.apps.users.converters.users import user_to_entity
 from core.tests.factories.channels import (
     ChannelModelFactory,
     SubscriptionItemModelFactory,
@@ -43,7 +47,11 @@ def test_channel_not_found_error(channel_service: BaseChannelService):
 @pytest.mark.django_db
 def test_channel_retrieved_from_channel_or_404(channel_service: BaseChannelService, user_with_channel: User):
     """Test get_channel when a user has an existing channel in database."""
-    channel_dto = channel_from_entity(channel_service.get_channel_by_user_or_404(user_with_channel))
+    channel_dto = channel_from_entity(
+        channel=channel_service.get_channel_by_user_or_404(
+            user=user_to_entity(user_with_channel),
+        ),
+    )
     assert user_with_channel.channel == channel_dto
 
 
@@ -56,14 +64,20 @@ def test_channel_is_none(channel_service: BaseChannelService):
 @pytest.mark.django_db
 def test_channel_retrieved_from_channel_or_none(channel_service: BaseChannelService, user_with_channel: User):
     """Test get_channel when a user has an existing channel in database."""
-    channel_dto = channel_from_entity(channel_service.get_channel_by_user_or_none(user_with_channel))
+    channel_dto = channel_from_entity(
+        channel=channel_service.get_channel_by_user_or_none(
+            user=user_to_entity(user_with_channel),
+        ),
+    )
     assert user_with_channel.channel == channel_dto
 
 
 @pytest.mark.django_db
 def test_channel_and_user_delete(channel_service: BaseChannelService, user_with_channel: User):
     """Test deleting a user and their channel from database."""
-    channel_service.delete_channel(user_with_channel)
+    channel_service.delete_channel(
+        user=user_to_entity(user_with_channel),
+    )
 
     assert not Channel.objects.filter(user_id=user_with_channel.pk).exists()
     assert not User.objects.filter(id=user_with_channel.pk).exists()
@@ -72,7 +86,7 @@ def test_channel_and_user_delete(channel_service: BaseChannelService, user_with_
 @pytest.mark.django_db
 def test_subscribers_list_empty(channel_sub_service: BaseChannelSubsService, channel: Channel):
     """Test subscriptions count zero with no subscribers in database."""
-    subs = channel_sub_service.get_subscriber_list(channel=channel)
+    subs = channel_sub_service.get_subscriber_list(channel=channel_to_entity(channel))
     assert subs.count() == 0
 
 
@@ -82,7 +96,7 @@ def test_subscribers_exists(channel_sub_service: BaseChannelSubsService, channel
     expected_value = 10
 
     SubscriptionItemModelFactory.create_batch(size=expected_value, subscribed_to=channel)
-    subs = channel_sub_service.get_subscriber_list(channel=channel)
+    subs = channel_sub_service.get_subscriber_list(channel=channel_to_entity(channel))
 
     assert subs.count() == expected_value
 
@@ -92,7 +106,10 @@ def test_subscribe_exists_error(subscription_service: BaseSubscriptionService):
     """Test subscription to channel already exists."""
     with pytest.raises(SubscriptionExistsError):
         subscription = SubscriptionItemModelFactory()
-        subscription_service.subscribe(user=subscription.subscriber.user, channel_slug=subscription.subscribed_to.slug)
+        subscription_service.subscribe(
+            user=user_to_entity(subscription.subscriber.user),
+            channel_slug=subscription.subscribed_to.slug,
+        )
 
 
 @pytest.mark.django_db
@@ -100,21 +117,21 @@ def test_subscribe_does_not_exists_error(subscription_service: BaseSubscriptionS
     """Test subscription to channel does not exists in database."""
     with pytest.raises(SubscriptionDoesNotExistsError):
         subscriber, subscribed_to = ChannelModelFactory.create_batch(size=2)
-        subscription_service.unsubscribe(user=subscriber.user, channel_slug=subscribed_to.slug)
+        subscription_service.unsubscribe(user=user_to_entity(subscriber.user), channel_slug=subscribed_to.slug)
 
 
 @pytest.mark.django_db
 def test_subscribe_to_yourself_error(subscription_service: BaseSubscriptionService, channel: Channel):
     """Test if the channels are the same when subscribing."""
     with pytest.raises(SelfSubscriptionError):
-        subscription_service.subscribe(user=channel.user, channel_slug=channel.slug)
+        subscription_service.subscribe(user=user_to_entity(channel.user), channel_slug=channel.slug)
 
 
 @pytest.mark.django_db
 def test_unsubscribe_from_yourself_error(subscription_service: BaseSubscriptionService, channel: Channel):
     """Test if the channels are the same when unsubscribing."""
     with pytest.raises(SelfSubscriptionError):
-        subscription_service.unsubscribe(user=channel.user, channel_slug=channel.slug)
+        subscription_service.unsubscribe(user=user_to_entity(channel.user), channel_slug=channel.slug)
 
 
 @pytest.mark.django_db
@@ -124,7 +141,7 @@ def test_subscription_created(subscription_service: BaseSubscriptionService):
 
     assert not SubscriptionItem.objects.filter(subscriber=subscriber, subscribed_to=subscribed_to).exists()
 
-    subscription_service.subscribe(user=subscriber.user, channel_slug=subscribed_to.slug)
+    subscription_service.subscribe(user=user_to_entity(subscriber.user), channel_slug=subscribed_to.slug)
     assert SubscriptionItem.objects.filter(subscriber=subscriber, subscribed_to=subscribed_to).exists()
 
 
@@ -133,15 +150,16 @@ def test_subscription_deleted(subscription_service: BaseSubscriptionService):
     """Test deleted subscription to channel not in database."""
     subscriber, subscribed_to = ChannelModelFactory.create_batch(size=2)
 
-    subscription_service.subscribe(user=subscriber.user, channel_slug=subscribed_to.slug)
+    subscription_service.subscribe(user=user_to_entity(subscriber.user), channel_slug=subscribed_to.slug)
     assert SubscriptionItem.objects.filter(subscriber=subscriber, subscribed_to=subscribed_to).exists()
 
-    subscription_service.unsubscribe(user=subscriber.user, channel_slug=subscribed_to.slug)
+    subscription_service.unsubscribe(user=user_to_entity(subscriber.user), channel_slug=subscribed_to.slug)
     assert not SubscriptionItem.objects.filter(subscriber=subscriber, subscribed_to=subscribed_to).exists()
 
 
 @pytest.mark.django_db
 def test_main_channel_page_correct(channel_main_service: BaseChannelMainService, channel: Channel):
+    """Test main channel page data retrieved correctly."""
     expected_subs = 10
     expected_videos = 5  # not more than 5 because main_channel endpoint returns last 5 videos
 

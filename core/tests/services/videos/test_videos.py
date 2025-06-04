@@ -5,7 +5,6 @@ from core.apps.videos.converters.videos import (
     data_to_video_entity,
     video_from_entity,
 )
-from core.apps.videos.entities.videos import VideoEntity
 from core.apps.videos.exceptions.upload import (
     VideoNotFoundByKeyError,
     VideoNotFoundByUploadIdError,
@@ -17,7 +16,7 @@ from core.tests.factories.videos import VideoModelFactory
 
 @pytest.mark.django_db
 def test_video_created(video_service: BaseVideoService, channel: Channel):
-    """Test video created."""
+    """Test that the video has been created by provided data."""
     data = {
         'name': 'Test video',
         'description': 'Test video description',
@@ -38,7 +37,7 @@ def test_video_created(video_service: BaseVideoService, channel: Channel):
 
 @pytest.mark.django_db
 def test_video_retrieved_by_upload_id(video_service: BaseVideoService):
-    """Test video retrieved by upload id."""
+    """Test that the video has been retrieved by upload_id."""
     expected_upload_id = '7581294982749kdsjgsd'
     video = VideoModelFactory.create(upload_id=expected_upload_id)
 
@@ -48,7 +47,8 @@ def test_video_retrieved_by_upload_id(video_service: BaseVideoService):
 
 @pytest.mark.django_db
 def test_video_not_found_by_upload_id(video_service: BaseVideoService):
-    """Test error raised when video not found by upload id."""
+    """Test that an error has been raised when the video is not found by upload
+    id."""
     expected_upload_id = '11hfhgjhtytsdfg'
 
     with pytest.raises(VideoNotFoundByUploadIdError):
@@ -57,7 +57,7 @@ def test_video_not_found_by_upload_id(video_service: BaseVideoService):
 
 @pytest.mark.django_db
 def test_video_retrieved_by_key(video_service: BaseVideoService):
-    """Test video retrieved by key."""
+    """Test that the video has been retrieved by key."""
     expected_key = 'videos/1lj10nas_test_video.mp4'
     video = VideoModelFactory.create(s3_key=expected_key)
 
@@ -68,7 +68,8 @@ def test_video_retrieved_by_key(video_service: BaseVideoService):
 
 @pytest.mark.django_db
 def test_video_not_found_by_key(video_service: BaseVideoService):
-    """Test error raised when video not found by key."""
+    """Test that an error has been raised when the video is not found by
+    key."""
     expected_key = 'videos/123dsg34_test_video.mp4'
 
     with pytest.raises(VideoNotFoundByKeyError):
@@ -77,7 +78,7 @@ def test_video_not_found_by_key(video_service: BaseVideoService):
 
 @pytest.mark.django_db
 def test_video_updated_after_upload(video_service: BaseVideoService):
-    """Test video updated after upload."""
+    """Test that the video has been updated after upload."""
     expected_upload_id = 'kgsfasfbnas'
     expected_s3_key = 'videos/asg3au010124_test_video.mp4'
 
@@ -102,7 +103,7 @@ def test_video_updated_after_upload(video_service: BaseVideoService):
 
 @pytest.mark.django_db
 def test_video_deleted_by_id(video_service: BaseVideoService):
-    """Test video deleted by id."""
+    """Test that the video has been deleted by id."""
     video = VideoModelFactory.create(upload_id='129847aoshfoa')
 
     assert Video.objects.filter(video_id=video.video_id).exists()
@@ -110,22 +111,3 @@ def test_video_deleted_by_id(video_service: BaseVideoService):
     video_service.delete_video_by_id(video_id=video.video_id)
 
     assert not Video.objects.filter(video_id=video.video_id).exists()
-
-
-@pytest.mark.django_db
-def test_video_created_from_entity(video_service: BaseVideoService, channel: Channel):
-    entity = VideoEntity(
-        author_id=channel.pk,
-        name='Test video from entity123',
-        upload_id='dgsdg',
-        status=Video.VideoStatus.PUBLIC,
-    )
-
-    video_service.video_create(video_entity=entity)
-
-    assert Video.objects.filter(
-        name='Test video from entity123',
-        status=Video.VideoStatus.PUBLIC,
-        author=channel,
-        upload_id='dgsdg',
-    ).exists(), 'Video was not created from entity'

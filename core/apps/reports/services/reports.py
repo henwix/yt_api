@@ -25,8 +25,7 @@ class BaseReportLimitByOneUserValidatorService(ABC):
 
 class ReportLimitByOneUserValidatorService(BaseReportLimitByOneUserValidatorService):
     def validate(self, video: VideoEntity, channel: ChannelEntity) -> None:
-        """Raise an error if the limit of reports by one user is greater than
-        3."""
+        """Raise an error if the limit of reports by one user >= 3."""
         reports_count = self.report_repository.get_user_reports_count(video=video, channel=channel)
         if reports_count >= 3:
             raise ReportLimitError(video_id=video.id, channel_slug=channel.slug)

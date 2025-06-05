@@ -14,6 +14,7 @@ from django.db.models import (
 from core.apps.channels.entities.channels import ChannelEntity
 from core.apps.channels.models import Channel
 from core.apps.channels.repositories.channels import BaseChannelRepository
+from core.apps.channels.services.channels import BaseChannelService
 from core.apps.users.entities import UserEntity
 from core.apps.videos.entities.videos import VideoEntity
 from core.apps.videos.exceptions.playlists import (
@@ -99,6 +100,7 @@ class VideoPrivateOrUploadingValidatorService(BaseVideoPrivateOrUploadingValidat
 class BaseVideoService(ABC):
     video_repository: BaseVideoRepository
     channel_repository: BaseChannelRepository
+    channel_service: BaseChannelService
     validator_service: BaseVideoValidatorService
 
     @abstractmethod
@@ -152,8 +154,8 @@ class ORMVideoService(BaseVideoService):
         self,
         user: UserEntity,
         video_id: str,
-    ) -> tuple[ChannelEntity | None, VideoEntity | None]:
-        channel = self.channel_repository.get_channel_by_user_or_none(user=user)
+    ) -> tuple[ChannelEntity | None, VideoEntity]:
+        channel = self.channel_service.get_channel_by_user_or_none(user=user)
         video = self.video_repository.get_video_by_id_or_none(video_id)
 
         self.validator_service.validate(video=video, video_id=video_id)
@@ -226,7 +228,10 @@ class ORMVideoService(BaseVideoService):
         last_view_exists = self.video_repository.last_view_exists(channel, video, ip_address)
 
         if last_view_exists:
-            raise ViewExistsError(channel_slug=channel.slug, video_id=video.id)
+            raise ViewExistsError(
+                channel_slug=channel.slug if channel else 'AnonymousUser',
+                video_id=video.id,
+            )
 
         self.video_repository.create_view(channel, video, ip_address)
         return {'status': 'success'}
@@ -358,7 +363,7 @@ class ORMVideoPlaylistService(BaseVideoPlaylistService):
         deleted = self.playlist_repository.playlist_item_delete(playlist=playlist, video=video)
 
         if not deleted:
-            raise VideoNotInPlaylistError()
+            raise VideoNotInPlaylistError(playlist_id, video_id)
         return {'status': 'Video successfully deleted from playlist'}
 
     def get_playlists_for_listing(self, user: UserEntity) -> Iterable[Playlist]:

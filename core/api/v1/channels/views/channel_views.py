@@ -19,6 +19,7 @@ from core.api.v1.channels.serializers import (
     ChannelAboutSerializer,
     ChannelAndVideosSerializer,
     ChannelSerializer,
+    CreateSubscriptionInSerializer,
     SubscriptionSerializer,
 )
 from core.apps.channels.converters.channels import channel_from_entity
@@ -100,7 +101,6 @@ class ChannelSubscribersView(generics.ListAPIView, PaginationMixin):
         self.channel_service: BaseChannelService = container.resolve(BaseChannelService)
         self.cache_service: BaseCacheService = container.resolve(BaseCacheService)
 
-    # TODO: refactor with use case
     def list(self, request, *args, **kwargs):
         """Custom list method to cache response."""
 
@@ -162,16 +162,14 @@ class ChannelAboutView(generics.RetrieveAPIView):
     def get_queryset(self):
         return self.service.get_channel_about_list()
 
-    # FIXME: не отображаются подписки и views в about page
     @method_decorator(cache_page(60 * 15, key_prefix='channel_about'))
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
 
 
-#  TODO:  Change 'to' and 'from' to 'channel_slug' in request data and add serializers for data validation
 class SubscriptionAPIView(viewsets.GenericViewSet):
     queryset = SubscriptionItem.objects.all()
-    serializer_class = SubscriptionSerializer
+    serializer_class = CreateSubscriptionInSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def __init__(self, **kwargs):
@@ -185,13 +183,13 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
             'application/json': {
                 'type': 'object',
                 'properties': {
-                    'to': {
+                    'channel_slug': {
                         'type': 'string',
                         'description': "'slug' field from channel instance to subscribe",
                         'example': 'henwix',
                     },
                 },
-                'required': ['to'],
+                'required': ['channel_slug'],
             },
         },
         responses={
@@ -209,10 +207,13 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
     )
     @action(methods=['post'], url_path='subscribe', detail=False)
     def subscribe(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         try:
             result = self.service.subscribe(
                 user=user_to_entity(request.user),
-                channel_slug=request.data.get('to'),
+                channel_slug=serializer.validated_data.get('channel_slug'),
             )
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -225,13 +226,13 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
             'application/json': {
                 'type': 'object',
                 'properties': {
-                    'from': {
+                    'channel_slug': {
                         'type': 'string',
                         'description': "'slug' field from channel's instance to unsubscribe",
                         'example': 'henwix',
                     },
                 },
-                'required': ['from'],
+                'required': ['channel_slug'],
             },
         },
         responses={
@@ -249,10 +250,13 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
     )
     @action(methods=['post'], url_path='unsubscribe', detail=False)
     def unsubscribe(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         try:
             result = self.service.unsubscribe(
                 user=user_to_entity(request.user),
-                channel_slug=request.data.get('from'),
+                channel_slug=serializer.validated_data.get('channel_slug'),
             )
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})

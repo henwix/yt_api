@@ -7,9 +7,6 @@ from core.apps.channels.models import (
 )
 
 
-# TODO:    - posts: add, detail, delete, likes
-
-
 class ChannelSerializer(serializers.ModelSerializer):
     """Channel serializer for user creation and detail endpoints."""
 
@@ -71,3 +68,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubscriptionItem
         fields = ['sub_slug', 'sub_link', 'created_at']
+
+
+class CreateSubscriptionInSerializer(serializers.Serializer):
+    channel_slug = serializers.SlugField(max_length=40)

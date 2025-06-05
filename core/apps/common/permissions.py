@@ -5,7 +5,7 @@ from core.apps.videos.models import Video
 
 class IsAuthenticatedOrAdminOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
-        if view.action == 'view':
+        if view.action == 'view_create':
             return True
 
         if request.method in permissions.SAFE_METHODS:

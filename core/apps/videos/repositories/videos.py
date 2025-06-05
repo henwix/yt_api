@@ -95,7 +95,7 @@ class BaseVideoRepository(ABC):
         ...
 
     @abstractmethod
-    def last_view_exists(self, channel: ChannelEntity, video: VideoEntity, ip_address: str) -> bool:
+    def last_view_exists(self, channel: ChannelEntity | None, video: VideoEntity, ip_address: str) -> bool:
         ...
 
     @abstractmethod
@@ -170,18 +170,17 @@ class ORMVideoRepository(BaseVideoRepository):
     def update_is_like_field(self, like: VideoLikeEntity, is_like: bool) -> None:
         VideoLike.objects.filter(pk=like.id).update(is_like=is_like)
 
-    def last_view_exists(self, channel: ChannelEntity, video: VideoEntity, ip_address: str) -> bool:
+    def last_view_exists(self, channel: ChannelEntity | None, video: VideoEntity, ip_address: str) -> bool:
         return VideoView.objects.filter(
-            # FIXME: проверить, как доходит отсюда видео при условии, что юзер аноним. не вылетает ли ошибка в сервисе
             channel_id=channel.id if channel else None,
             video_id=video.id,
-            ip_address=ip_address if ip_address else None,
+            ip_address=ip_address,
             created_at__gte=timezone.now() - timedelta(hours=24),
         ).exists()
 
-    def create_view(self, channel: ChannelEntity, video: VideoEntity, ip_address: str) -> None:
+    def create_view(self, channel: ChannelEntity | None, video: VideoEntity, ip_address: str) -> None:
         VideoView.objects.create(
-            channel_id=channel.id,
+            channel_id=channel.id if channel else None,
             video_id=video.id,
             ip_address=ip_address,
         )

@@ -512,9 +512,7 @@ class MyVideoView(generics.ListAPIView):
         return Video.objects.all().filter(author=self.request.user.channel).select_related('author')
 
 
-#  TODO: maybe remove 'videos' from serializer and add new endpoints to load all playlist's related v
-#  TODO: after that remove .prefetch_related from get_queryset
-#  TODO: fix N+1 problem in get_queryset method
+#  TODO: maybe remove 'videos' from serializer and add new endpoints to load all playlist's related videos
 class PlaylistAPIView(viewsets.ModelViewSet):
     """API endpoint to list/retrieve/create/update/delete playlists.
 

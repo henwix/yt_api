@@ -1,10 +1,10 @@
 import pytest
 
+from core.apps.channels.converters.channels import channel_to_entity
 from core.apps.channels.models import Channel
-from core.apps.reports.exceptions.reports import ReportLimitError
 from core.apps.reports.models import VideoReport
 from core.apps.reports.services.reports import BaseVideoReportsService
-from core.apps.users.converters.users import user_to_entity
+from core.apps.videos.converters.videos import video_to_entity
 from core.apps.videos.models import Video
 from core.tests.factories.reports import VideoReportModelFactory
 
@@ -32,28 +32,10 @@ def test_reports_created(report_service: BaseVideoReportsService, video: Video, 
     assert not VideoReport.objects.filter(video=video, author=channel).exists()
 
     report_service.create_report(
-        video_id=video.video_id,
-        user=user_to_entity(channel.user),
+        video=video_to_entity(video),
+        author=channel_to_entity(channel),
         reason='MISINFORMATION',
         description='Test report description',
     )
 
     assert VideoReport.objects.filter(video=video, author=channel).exists()
-
-
-@pytest.mark.django_db
-def test_reports_limit_error(report_service: BaseVideoReportsService, video: Video, channel: Channel):
-    """Test that an ReportLimitError raised when the user have reached the
-    limit of reports."""
-    VideoReportModelFactory.create_batch(
-        size=3,
-        video=video,
-        author=channel,
-    )
-    with pytest.raises(ReportLimitError):
-        report_service.create_report(
-            video_id=video.video_id,
-            user=user_to_entity(channel.user),
-            reason='MISINFORMATION',
-            description='Test report description',
-        )

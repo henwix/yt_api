@@ -15,6 +15,7 @@ from core.apps.common.exceptions import ServiceException
 from core.apps.common.pagination import CustomCursorPagination
 from core.apps.reports.permissions import IsStaffOrCreateOnly
 from core.apps.reports.services.reports import BaseVideoReportsService
+from core.apps.reports.use_cases.create import CreateReportUseCase
 from core.apps.users.converters.users import user_to_entity
 from core.project.containers import get_container
 
@@ -26,9 +27,9 @@ class VideoReportsView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIVi
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        container: punq.Container = get_container()
-        self.service: BaseVideoReportsService = container.resolve(BaseVideoReportsService)
-        self.logger: Logger = container.resolve(Logger)
+        self.container: punq.Container = get_container()
+        self.service: BaseVideoReportsService = self.container.resolve(BaseVideoReportsService)
+        self.logger: Logger = self.container.resolve(Logger)
 
     def get_queryset(self):
         if self.action == ['list', 'retrieve']:
@@ -36,11 +37,12 @@ class VideoReportsView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIVi
         return self.service.get_report_list()
 
     def create(self, request, *args, **kwargs):
+        use_case: CreateReportUseCase = self.container.resolve(CreateReportUseCase)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         try:
-            result = self.service.create_report(
+            result = use_case.execute(
                 video_id=request.data.get('video'),
                 user=user_to_entity(request.user),
                 reason=serializer.validated_data.get('reason'),

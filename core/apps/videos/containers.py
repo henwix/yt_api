@@ -27,6 +27,7 @@ from core.apps.videos.services.videos import (
     BaseVideoAuthorValidatorService,
     BaseVideoHistoryService,
     BaseVideoPlaylistService,
+    BaseVideoPrivateOrUploadingValidatorService,
     BaseVideoService,
     BaseVideoValidatorService,
     ORMVideoHistoryService,
@@ -34,6 +35,7 @@ from core.apps.videos.services.videos import (
     ORMVideoService,
     VideoExistsValidatorService,
     VideoMatchAuthorValidatorService,
+    VideoPrivateOrUploadingValidatorService,
     VideoPrivatePermissionValidatorService,
 )
 from core.apps.videos.use_cases.comments.like_create import CommentLikeCreateUseCase
@@ -72,6 +74,7 @@ def init_videos(container: punq.Container) -> None:
     container.register(BaseVideoFilenameValidatorService, factory=build_video_filename_validators)
     container.register(BaseVideoAuthorValidatorService, VideoMatchAuthorValidatorService)
     container.register(BasePrivateVideoPermissionValidatorService, VideoPrivatePermissionValidatorService)
+    container.register(BaseVideoPrivateOrUploadingValidatorService, VideoPrivateOrUploadingValidatorService)
 
     # init use cases
     container.register(CommentLikeCreateUseCase)

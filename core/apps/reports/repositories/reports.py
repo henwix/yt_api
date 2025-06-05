@@ -26,6 +26,10 @@ class BaseVideoReportsRepository(ABC):
     ) -> VideoReportEntity:
         ...
 
+    @abstractmethod
+    def get_user_reports_count(self, video: VideoEntity, channel: ChannelEntity) -> int:
+        ...
+
 
 class ORMVideoReportRepository(BaseVideoReportsRepository):
     def get_reports(self) -> Iterable[VideoReport]:
@@ -45,3 +49,6 @@ class ORMVideoReportRepository(BaseVideoReportsRepository):
             description=description,
         )
         return report_to_entity(report_dto)
+
+    def get_user_reports_count(self, video: VideoEntity, channel: ChannelEntity) -> int:
+        return VideoReport.objects.filter(video_id=video.id, author_id=channel.id).count()

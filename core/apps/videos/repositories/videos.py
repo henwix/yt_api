@@ -5,6 +5,7 @@ from abc import (
 from datetime import timedelta
 from typing import Iterable
 
+from django.db.models import Count
 from django.utils import timezone
 
 from core.apps.channels.entities.channels import ChannelEntity
@@ -38,7 +39,6 @@ from core.apps.videos.models import (
 )
 
 
-#  TODO: separate video repo and video_like repo
 class BaseVideoRepository(ABC):
     @abstractmethod
     def video_create(self, video_entity: VideoEntity) -> None:
@@ -67,6 +67,14 @@ class BaseVideoRepository(ABC):
 
     @abstractmethod
     def get_video_by_id_or_none(self, video_id: str) -> VideoEntity | None:
+        ...
+
+    @abstractmethod
+    def get_video_by_id_with_reports_count(self, video_id: str) -> VideoEntity | None:
+        ...
+
+    @abstractmethod
+    def update_is_reported_field(self, video: VideoEntity, is_reported: bool) -> None:
         ...
 
     @abstractmethod
@@ -128,6 +136,16 @@ class ORMVideoRepository(BaseVideoRepository):
     def get_video_by_id_or_none(self, video_id: str) -> VideoEntity | None:
         video_dto = Video.objects.filter(video_id=video_id).first()
         return video_to_entity(video_dto) if video_dto else None
+
+    def get_video_by_id_with_reports_count(self, video_id: str) -> VideoEntity | None:
+        video_dto = Video.objects.filter(video_id=video_id).annotate(
+            reports_count=Count('reports'),
+        ).first()
+
+        return video_to_entity(video_dto) if video_dto else None
+
+    def update_is_reported_field(self, video: VideoEntity, is_reported: bool) -> None:
+        Video.objects.filter(pk=video.id).update(is_reported=is_reported)
 
     def like_get_or_create(
         self,

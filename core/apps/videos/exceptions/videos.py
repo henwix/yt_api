@@ -90,3 +90,16 @@ class PrivateVideoPermissionError(ServiceException):
     @property
     def message(self):
         return 'You do not have permission to access this video'
+
+
+@dataclass
+class PrivateVideoOrUploadingError(ServiceException):
+    status_code = status.HTTP_403_FORBIDDEN
+    default_detail = {'error': "You can't perform actions if the video is private or is still uploading"}
+
+    video_id: str
+    channel_id: int
+
+    @property
+    def message(self):
+        return "You can't perform actions if the video is private or is still uploading"

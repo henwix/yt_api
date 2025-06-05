@@ -29,6 +29,8 @@ def video_to_entity(video: Video) -> VideoEntity:
         status=video.status,
         upload_status=video.upload_status,
         is_reported=video.is_reported,
+
+        reports_count=getattr(video, 'reports_count', 0),
     )
 
 

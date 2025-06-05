@@ -26,6 +26,7 @@ from core.apps.videos.exceptions.upload import (
     VideoNotFoundByUploadIdError,
 )
 from core.apps.videos.exceptions.videos import (
+    PrivateVideoOrUploadingError,
     PrivateVideoPermissionError,
     VideoAuthorNotMatchError,
     VideoIdNotProvidedError,
@@ -81,6 +82,19 @@ class VideoPrivatePermissionValidatorService(BasePrivateVideoPermissionValidator
             raise PrivateVideoPermissionError(video_id=video.id, channel_id=channel.id if channel else 'AnonymousUser')
 
 
+class BaseVideoPrivateOrUploadingValidatorService(ABC):
+    @abstractmethod
+    def validate(self, video: VideoEntity, channel: ChannelEntity) -> None:
+        ...
+
+
+class VideoPrivateOrUploadingValidatorService(BaseVideoPrivateOrUploadingValidatorService):
+    def validate(self, video: VideoEntity, channel: ChannelEntity) -> None:
+        """Raise an error if the video is PRIVATE or still UPLOADING."""
+        if video.status == Video.VideoStatus.PRIVATE or video.upload_status == Video.UploadStatus.UPLOADING:
+            raise PrivateVideoOrUploadingError(video_id=video.id, channel_id=channel.id)
+
+
 @dataclass(eq=False)
 class BaseVideoService(ABC):
     video_repository: BaseVideoRepository
@@ -97,6 +111,14 @@ class BaseVideoService(ABC):
 
     @abstractmethod
     def get_video_by_key(self, key: str) -> VideoEntity:
+        ...
+
+    @abstractmethod
+    def get_video_by_id_with_reports_count(self, video_id: str) -> VideoEntity:
+        ...
+
+    @abstractmethod
+    def update_is_reported_field(self, video: VideoEntity, is_reported: bool) -> None:
         ...
 
     @abstractmethod
@@ -152,6 +174,16 @@ class ORMVideoService(BaseVideoService):
         if not video:
             raise VideoNotFoundByKeyError(key=key)
         return video
+
+    def get_video_by_id_with_reports_count(self, video_id: str) -> VideoEntity:
+        video = self.video_repository.get_video_by_id_with_reports_count(video_id)
+
+        if not video:
+            raise VideoNotFoundByVideoIdError(video.id)
+        return video
+
+    def update_is_reported_field(self, video: VideoEntity, is_reported: bool) -> None:
+        self.video_repository.update_is_reported_field(video, is_reported)
 
     def update_video_after_upload(
         self,

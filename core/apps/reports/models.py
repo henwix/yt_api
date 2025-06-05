@@ -18,7 +18,7 @@ class VideoReport(models.Model):
         LEGAL_ISSUE = 'LEGAL_ISSUE', 'Legal issue'
         CAPTIONS_ISSUE = 'CAPTIONS_ISSUE', 'Captions issue'
 
-    video = models.ForeignKey(Video, on_delete=models.CASCADE)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='reports')
     author = models.ForeignKey(Channel, on_delete=models.SET_NULL, null=True)
     reason = models.CharField(choices=ReportReasons.choices, max_length=28, db_index=True)
     description = models.TextField()

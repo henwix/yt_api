@@ -73,8 +73,8 @@ services:
     command: celery -A core.project.celery worker -l info -Q media-queue,email-queue
     env_file:
       - ../.env
-    deploy:
-      replicas: 2
+    # deploy:
+      # replicas: 2
     healthcheck:
       test: ["CMD", "celery", "-A", "core.project.celery", "status"]
       interval: 30s

@@ -10,8 +10,8 @@ services:
       - ../static:/app/static
     env_file:
       - ../.env
-    # deploy:
-      # replicas: 2
+    deploy:
+      replicas: 2
     command: "sh entrypoint.prod.sh"
     depends_on:
       celery:
@@ -20,6 +20,8 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      pgbouncer:
+        condition: service_started
 
   nginx:
     container_name: yt-nginx-prod
@@ -53,6 +55,27 @@ services:
       retries: 5
     env_file:
       - ../.env
+
+  pgbouncer:
+    container_name: yt-pgbouncer-prod
+    image: bitnami/pgbouncer:latest
+    environment:
+      - POSTGRESQL_USERNAME=${POSTGRES_USER}
+      - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRESQL_DATABASE=${POSTGRES_DB}
+      - POSTGRESQL_HOST=${POSTGRES_HOST}
+      - POSTGRESQL_PORT=5432
+      - PGBOUNCER_IGNORE_STARTUP_PARAMETERS=extra_float_digits
+      - PGBOUNCER_DATABASE=${POSTGRES_DB}
+      - PGBOUNCER_POOL_MODE=transaction
+      - PGBOUNCER_MAX_CLIENT_CONN=100
+      - PGBOUNCER_DEFAULT_POOL_SIZE=20
+      - PGBOUNCER_RESERVE_POOL_SIZE=5
+    env_file:
+      - ../.env
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   redis:
     container_name: yt-redis-prod

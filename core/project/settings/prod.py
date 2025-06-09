@@ -1,7 +1,20 @@
+import os
+
 from .main import *  # noqa
 
 
 DEBUG = False
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('POSTGRES_DB'),
+        'USER': os.environ.get('POSTGRES_USER'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+        'HOST': 'pgbouncer',  # pgbouncer host
+        'PORT': '6432',  # pgbouncer port
+    },
+}
 
 CSRF_TRUSTED_ORIGINS = [
     'https://api.henwix.space',

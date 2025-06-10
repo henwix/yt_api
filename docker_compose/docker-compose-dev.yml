@@ -75,24 +75,24 @@ services:
       postgres:
         condition: service_healthy
 
-  flower:
-    container_name: yt-flower-dev
-    image: mher/flower:latest
-    command: celery --broker=redis://redis:${REDIS_PORT}/0 flower 
-    volumes:
-      - flower_data:/data
-    env_file:
-      - ../.env
-    ports:
-      - "${FLOWER_PORT}:5555"
-    environment:
-      - FLOWER_BASIC_AUTH=${FLOWER_USERNAME}:${FLOWER_PASSWORD}
-      - FLOWER_PORT=5555
-      - FLOWER_PERSISTENT=True
-      - FLOWER_DB=/data/flower
-    depends_on:
-      redis:
-        condition: service_healthy
+  # flower:
+  #   container_name: yt-flower-dev
+  #   image: mher/flower:latest
+  #   command: celery --broker=redis://redis:${REDIS_PORT}/0 flower 
+  #   volumes:
+  #     - flower_data:/data
+  #   env_file:
+  #     - ../.env
+  #   ports:
+  #     - "${FLOWER_PORT}:5555"
+  #   environment:
+  #     - FLOWER_BASIC_AUTH=${FLOWER_USERNAME}:${FLOWER_PASSWORD}
+  #     - FLOWER_PORT=5555
+  #     - FLOWER_PERSISTENT=True
+  #     - FLOWER_DB=/data/flower
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy
 
 volumes:
   postgres_data:

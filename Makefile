@@ -54,7 +54,7 @@ monitoring-down:
 
 .PHONY: monitoring-restart
 monitoring-restart:
-	${DC} -f ${MONITORING_FILE} down && ${DC} -f ${MONITORING_FILE} ${ENV} up -d
+	${DC} -f ${MONITORING_FILE} ${ENV} down && ${DC} -f ${MONITORING_FILE} ${ENV} up -d
 
 .PHONY: monitoring-logs
 monitoring-logs:
@@ -143,3 +143,15 @@ nginx-logs-p:
 .PHONY: superuser-p
 superuser-p:
 	${EXEC} ${APP_CONTAINER_PROD} ${MANAGE_PY} createsuperuser
+
+.PHONY: pr
+pr:
+	${DC} -f ${MONITORING_FILE} ${ENV} down && ${DC} -f ${MONITORING_FILE} ${ENV} up -d && ${DC} -f ${APP_PROD_FILE} ${ENV} down && ${DC} -f ${APP_PROD_FILE} ${ENV} up --build -d
+
+.PHONY: pd
+pd:
+	${DC} -f ${MONITORING_FILE} ${ENV} down && ${DC} -f ${APP_PROD_FILE} ${ENV} down
+
+.PHONY: p
+p:
+	${DC} -f ${MONITORING_FILE} ${ENV} up -d && ${DC} -f ${APP_PROD_FILE} ${ENV} up --build -d

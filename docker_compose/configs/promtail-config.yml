@@ -10,7 +10,6 @@ clients:
 
 scrape_configs:
 - job_name: docker-logs
-  entry_parser: raw
   static_configs:
   - targets:
       - localhost

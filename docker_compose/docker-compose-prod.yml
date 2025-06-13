@@ -6,6 +6,10 @@ services:
       dockerfile: Dockerfile.prod
     image: yt-web-prod
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"
     volumes:
       - ../static:/app/static
     env_file:
@@ -28,6 +32,10 @@ services:
     image: nginx:latest
     entrypoint: ["sh", "/entrypoint.nginx.sh"]
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"
     ports:
       - "80:80"
       - "443:443"
@@ -93,6 +101,10 @@ services:
     # container_name: yt-celery-prod
     image: yt-web-prod
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"
     command: celery -A core.project.celery worker -l info -Q media-queue,email-queue
     env_file:
       - ../.env
@@ -113,6 +125,10 @@ services:
     container_name: yt-celery-beat-prod
     image: yt-web-prod
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"
     command: sh -c "sleep 15 && celery -A core.project.celery beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler"
     env_file:
       - ../.env

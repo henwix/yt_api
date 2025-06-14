@@ -40,7 +40,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ../nginx.template.conf:/etc/nginx/nginx.template.conf:ro
+      - ../${NGINX_CONFIG_NAME}:/etc/nginx/nginx.template.conf:ro
       - ../entrypoint.nginx.sh:/entrypoint.nginx.sh
       - ../static:/static:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro

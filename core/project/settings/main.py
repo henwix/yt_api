@@ -117,7 +117,7 @@ CACHES = {
     'default': {
         'BACKEND': 'django_prometheus.cache.backends.redis.RedisCache',
         'LOCATION': 'redis://redis:6379/1',
-        },
+    },
 }
 
 # Password validation

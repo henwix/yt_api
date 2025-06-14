@@ -115,12 +115,9 @@ DATABASES = {
 
 CACHES = {
     'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
+        'BACKEND': 'django_prometheus.cache.backends.redis.RedisCache',
         'LOCATION': 'redis://redis:6379/1',
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
-    },
 }
 
 # Password validation
@@ -187,8 +184,8 @@ REST_FRAMEWORK = {
         'core.apps.common.throttles.UserSustainedRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon_burst': '100/day',
-        'anon_sustained': '1000/hour',
+        'anon_burst': '1000/day',
+        'anon_sustained': '100/hour',
         'user_burst': '1000/day',
         'user_sustained': '1000/minute',
     },

@@ -8,3 +8,13 @@ scrape_configs:
     metrics_path: /metrics
     static_configs:
       - targets: ["nginx"]
+
+  - job_name: "celery"
+    metrics_path: /celery
+    static_configs:
+      - targets: ["nginx"]
+  
+  - job_name: "celery-two"
+    metrics_path: /celery-two
+    static_configs:
+      - targets: ["nginx"]

@@ -140,33 +140,26 @@ services:
       postgres:
         condition: service_healthy
 
-          #flower:
-          #container_name: yt-flower-prod
-          #image: mher/flower:latest
-          #restart: unless-stopped
-          #command: celery --broker=redis://redis:${REDIS_PORT}/0 flower 
-          #volumes:
-          #- flower_data:/data
-          #env_file:
-          #- ../.env
-          #environment:
-          #- FLOWER_BASIC_AUTH=${FLOWER_USERNAME}:${FLOWER_PASSWORD}
-        #- FLOWER_PORT=5555
-        #- FLOWER_PERSISTENT=True
-        #- FLOWER_DB=/data/flower
-        #depends_on:
-      # redis:
-        #condition: service_healthy
+  # flower:
+  #   container_name: yt-flower-prod
+  #   image: mher/flower:latest
+  #   restart: unless-stopped
+  #   command: celery --broker=redis://redis:${REDIS_PORT}/0 flower 
+  #   volumes:
+  #     - flower_data:/data
+  #   env_file:
+  #     - ../.env
+  #   environment:
+  #     - FLOWER_BASIC_AUTH=${FLOWER_USERNAME}:${FLOWER_PASSWORD}
+  #     - FLOWER_PORT=5555
+  #     - FLOWER_PERSISTENT=True
+  #     - FLOWER_DB=/data/flower
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy
 
   celery-exporter:
     container_name: yt-celery-exporter-prod
-    restart: unless-stopped
-    image: ovalmoney/celery-exporter:latest
-    environment:
-      - CELERY_EXPORTER_BROKER_URL=redis://redis:${REDIS_PORT}/0
-  
-  celery-exporter-two:
-    container_name: yt-celery-exporter-two-prod
     restart: unless-stopped
     image: danihodovic/celery-exporter:latest
     environment:

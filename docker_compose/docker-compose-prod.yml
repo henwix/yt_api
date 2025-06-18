@@ -15,7 +15,7 @@ services:
     env_file:
       - ../.env
         #deploy:
-        # replicas: 2
+        #replicas: 2
     command: "sh entrypoint.prod.sh"
     depends_on:
       #   celery:
@@ -66,19 +66,19 @@ services:
 
   pgbouncer:
     container_name: yt-pgbouncer-prod
-    image: bitnami/pgbouncer:latest
+    restart: unless-stopped
+    image: edoburu/pgbouncer:latest
     environment:
-      - POSTGRESQL_USERNAME=${POSTGRES_USER}
-      - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRESQL_DATABASE=${POSTGRES_DB}
-      - POSTGRESQL_HOST=${POSTGRES_HOST}
-      - POSTGRESQL_PORT=5432
-      - PGBOUNCER_IGNORE_STARTUP_PARAMETERS=extra_float_digits
-      - PGBOUNCER_DATABASE=${POSTGRES_DB}
-      - PGBOUNCER_POOL_MODE=transaction
-      - PGBOUNCER_MAX_CLIENT_CONN=100
-      - PGBOUNCER_DEFAULT_POOL_SIZE=20
-      - PGBOUNCER_RESERVE_POOL_SIZE=5
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_HOST=${POSTGRES_HOST}
+      - DB_NAME=${POSTGRES_DB}
+      - DB_PORT=5432
+      - MAX_CLIENT_CONN=5000
+      - DEFAULT_POOL_SIZE=90
+      - RESERVE_POOL_SIZE=10
+      - POOL_MODE=transaction
+      - AUTH_TYPE=scram-sha-256
     env_file:
       - ../.env
     depends_on:
@@ -108,8 +108,8 @@ services:
     command: celery -A core.project.celery worker -l info -Q media-queue,email-queue
     env_file:
       - ../.env
-    deploy:
-      replicas: 2
+        #deploy:
+        #replicas: 2
       #healthcheck:
       #test: ["CMD", "celery", "-A", "core.project.celery", "status"]
       #interval: 30s
@@ -139,24 +139,6 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-
-  # flower:
-  #   container_name: yt-flower-prod
-  #   image: mher/flower:latest
-  #   restart: unless-stopped
-  #   command: celery --broker=redis://redis:${REDIS_PORT}/0 flower 
-  #   volumes:
-  #     - flower_data:/data
-  #   env_file:
-  #     - ../.env
-  #   environment:
-  #     - FLOWER_BASIC_AUTH=${FLOWER_USERNAME}:${FLOWER_PASSWORD}
-  #     - FLOWER_PORT=5555
-  #     - FLOWER_PERSISTENT=True
-  #     - FLOWER_DB=/data/flower
-  #   depends_on:
-  #     redis:
-  #       condition: service_healthy
 
   celery-exporter:
     container_name: yt-celery-exporter-prod

@@ -12,7 +12,8 @@ DATABASES = {
         'USER': os.environ.get('POSTGRES_USER'),
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
         'HOST': 'pgbouncer',  # pgbouncer host
-        'PORT': '6432',  # pgbouncer port
+        'PORT': '5432',  # pgbouncer port
+        'CONN_MAX_AGE': 0,      
     },
 }
 

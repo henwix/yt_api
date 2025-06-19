@@ -1,3 +1,5 @@
+import os
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -14,7 +16,7 @@ from drf_spectacular.views import (
 
 urlpatterns = [
     # other
-    path('OAsfhulBASfyAgfqWJhShsacAWF/', admin.site.urls),
+    path(os.environ.get('DJANGO_ADMIN_PATH') + "/", admin.site.urls),
 
     # API v1 endpoints
     path('api/v1/', include('core.api.v1.urls')),

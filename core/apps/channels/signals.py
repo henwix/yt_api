@@ -1,5 +1,6 @@
 from logging import Logger
 
+from django.conf import settings
 from django.db.models.signals import (
     post_save,
     pre_delete,
@@ -38,19 +39,20 @@ def delete_channel_files_signal(instance, **kwargs):
     container: punq.Container = get_container()
     celery_provider: BaseCeleryFileProvider = container.resolve(BaseCeleryFileProvider)
 
-    # Define empty 'files' list
+    # Define empty 'files' and 'cache_keys' lists
     files = []
+    cache_keys = []
 
-    # Collect all related videos to list and if it's not empty extend to 'files'
-    if instance.videos.exists():
-        videos = [
-            {'Key': v.s3_key} for v in instance.videos.all() if v.upload_status == Video.UploadStatus.FINISHED
-        ]
-        files.extend(videos)
+    # Iterate all related videos and add their keys in 'files' and 'cache_keys' lists
+    for v in instance.videos.all():
+        if v.s3_key is not None and v.upload_status == Video.UploadStatus.FINISHED:
+            files.append({'Key': v.s3_key})
+            cache_keys.append(settings.CACHE_KEYS['s3_video_url'] + v.s3_key)
 
-    # If avatar_s3_key exists it'll append to 'files' list
+    # If avatar_s3_key exists it'll append to 'files' list and 'cache_keys' list
     if instance.avatar_s3_key is not None:
         files.append({'Key': instance.avatar_s3_key})
+        cache_keys.append(settings.CACHE_KEYS['s3_avatar_url_' + instance.avatar_s3_key])
 
     if files:
-        celery_provider.delete_objects(objects=files)
+        celery_provider.delete_objects(objects=files, cache_keys=cache_keys)

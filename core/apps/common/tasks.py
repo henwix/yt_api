@@ -14,7 +14,7 @@ from core.project.containers import get_container
 def test_task(self):
     import random  # noqa
 
-    container = get_container()  
+    container = get_container()
     logger: Logger = container.resolve(Logger)
     logger.info('test task running')
 
@@ -26,12 +26,14 @@ def test_task(self):
 
 
 @shared_task(bind=True, max_retries=10)
-def delete_s3_objects_task(self, objects: list[dict]) -> str:
+def delete_s3_objects_task(self, objects: list[dict], cache_keys: list | None) -> str:
     container: punq.Container = get_container()
     boto_provider: BaseBotoFileProvider = container.resolve(BaseBotoFileProvider)
+    cache_provider: BaseCacheProvider = container.resolve(BaseCacheProvider)
     logger: Logger = container.resolve(Logger)
 
     try:
+        #  delete objects
         logger.info(
             'Trying to delete objects from AWS S3',
             extra={'log_meta': orjson.dumps({'number_of_files': len(objects)}).decode()},
@@ -39,6 +41,18 @@ def delete_s3_objects_task(self, objects: list[dict]) -> str:
         response = boto_provider.delete_objects(
             objects=objects,
         )
+
+        #  delete cache keys if exists
+        if cache_keys:
+            logger.info(
+                'Trying to delete cache keys',
+                extra={'log_meta': orjson.dumps({'number_of_keys': len(cache_keys)}).decode()},
+            )
+            cache_provider.delete_keys(keys=cache_keys)
+            logger.info(
+                'Cache keys successfully deleted from Redis.',
+                extra={'log_meta': orjson.dumps({'number_of_keys': len(cache_keys)}).decode()},
+            )
 
     except ClientError as error:
         logger.error(

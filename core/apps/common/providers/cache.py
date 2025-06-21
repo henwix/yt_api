@@ -20,6 +20,10 @@ class BaseCacheProvider(ABC):
     def delete(self, key: str) -> None:
         ...
 
+    @abstractmethod
+    def delete_keys(self, keys: list):
+        ...
+
 
 class RedisCacheProvider(BaseCacheProvider):
     def get(self, key: str) -> Any:
@@ -30,3 +34,6 @@ class RedisCacheProvider(BaseCacheProvider):
 
     def delete(self, key: str) -> None:
         return cache.delete(key)
+
+    def delete_keys(self, keys: list):
+        cache.delete_many(keys)

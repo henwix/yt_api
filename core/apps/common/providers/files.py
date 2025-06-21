@@ -11,7 +11,7 @@ class BaseCeleryFileProvider(ABC):
         ...
 
     @abstractmethod
-    def delete_objects(self, objects: list[dict]) -> None:
+    def delete_objects(self, objects: list[dict], cache_keys: list | None) -> None:
         ...
 
     @abstractmethod

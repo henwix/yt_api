@@ -10,10 +10,10 @@ class CeleryFileProvider(BaseCeleryFileProvider):
             queue='media-queue',
         )
 
-    def delete_objects(self, objects: list[dict]) -> None:
+    def delete_objects(self, objects: list[dict], cache_keys: list | None) -> None:
         app.send_task(
             'core.apps.common.tasks.delete_s3_objects_task',
-            args=(objects,),
+            args=(objects, cache_keys),
             queue='media-queue',
         )
 

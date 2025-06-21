@@ -30,6 +30,10 @@ from core.apps.videos.models import Video
 
 class BaseChannelRepository(ABC):
     @abstractmethod
+    def channel_exists(self, id: int) -> bool:
+        ...
+
+    @abstractmethod
     def get_channel_by_user_or_none(self, user: UserEntity) -> ChannelEntity | None:
         ...
 
@@ -51,6 +55,9 @@ class BaseChannelRepository(ABC):
 
 
 class ORMChannelRepository(BaseChannelRepository):
+    def channel_exists(self, id: int) -> bool:
+        return Channel.objects.filter(pk=id).exists()
+
     def get_channel_by_user_or_none(self, user: UserEntity) -> ChannelEntity | None:
         channel_dto = Channel.objects.filter(user_id=user.id).first()
         return channel_to_entity(channel_dto) if channel_dto else None

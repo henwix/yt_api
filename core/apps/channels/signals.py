@@ -52,7 +52,7 @@ def delete_channel_files_signal(instance, **kwargs):
     # If avatar_s3_key exists it'll append to 'files' list and 'cache_keys' list
     if instance.avatar_s3_key is not None:
         files.append({'Key': instance.avatar_s3_key})
-        cache_keys.append(settings.CACHE_KEYS['s3_avatar_url_' + instance.avatar_s3_key])
+        cache_keys.append(settings.CACHE_KEYS['s3_avatar_url'] + instance.avatar_s3_key)
 
     if files:
         celery_provider.delete_objects(objects=files, cache_keys=cache_keys)

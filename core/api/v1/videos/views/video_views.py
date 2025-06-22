@@ -48,6 +48,7 @@ from core.apps.videos.services.videos import (
     BaseVideoPlaylistService,
     BaseVideoService,
 )
+from core.apps.videos.signals import video_pre_delete
 from core.apps.videos.use_cases.comments.like_create import CommentLikeCreateUseCase
 from core.apps.videos.use_cases.comments.like_delete import CommentLikeDeleteUseCase
 from core.project.containers import get_container
@@ -147,6 +148,12 @@ class VideoViewSet(
             raise
 
         return Response(result, status.HTTP_201_CREATED)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        video_pre_delete.send(sender=Video, instance=instance)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(
         request=inline_serializer(

@@ -26,6 +26,7 @@ services:
     image: postgres:17.2-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+      - ../pg_backups:/var/pg_backups
     # ports:
       # - "${POSTGRES_PORT}:5432"
     healthcheck:

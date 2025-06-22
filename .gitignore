@@ -13,3 +13,4 @@ scripts
 .git
 static
 certs
+pg_backups

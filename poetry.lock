@@ -2164,6 +2164,22 @@ pure-eval = "*"
 tests = ["cython", "littleutils", "pygments", "pytest", "typeguard"]
 
 [[package]]
+name = "stripe"
+version = "12.2.0"
+description = "Python bindings for the Stripe API"
+optional = false
+python-versions = ">=3.6"
+groups = ["main"]
+files = [
+    {file = "stripe-12.2.0-py2.py3-none-any.whl", hash = "sha256:cc9086d162e65e32893e4a03c31194e36e07870653a5f30aacc62da61e548cb9"},
+    {file = "stripe-12.2.0.tar.gz", hash = "sha256:1ac2a4abba371acb3f99ff1c4a8748929862ad42d0cdee488298982f1be8d56e"},
+]
+
+[package.dependencies]
+requests = {version = ">=2.20", markers = "python_version >= \"3.0\""}
+typing_extensions = {version = ">=4.5.0", markers = "python_version >= \"3.7\""}
+
+[[package]]
 name = "tornado"
 version = "6.5.1"
 description = "Tornado is a Python web framework and asynchronous networking library, originally developed at FriendFeed."
@@ -2234,7 +2250,7 @@ files = [
     {file = "typing_extensions-4.13.0-py3-none-any.whl", hash = "sha256:c8dd92cc0d6425a97c18fbb9d1954e5ff92c1ca881a309c45f06ebc0b79058e5"},
     {file = "typing_extensions-4.13.0.tar.gz", hash = "sha256:0a4ac55a5820789d87e297727d229866c9650f6521b64206413c4fbada24d95b"},
 ]
-markers = {main = "python_version < \"3.13\"", dev = "python_version == \"3.11\""}
+markers = {dev = "python_version == \"3.11\""}
 
 [[package]]
 name = "tzdata"
@@ -2326,4 +2342,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "a157c03f73e588fa291358e4e2b7faaa9ceafdbfdfc8abc8956bf39f2cf0770c"
+content-hash = "f551c37ed93036895e94db95d31ac26f46d749d87aa0097bafebd905ceaa6740"

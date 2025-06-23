@@ -10,6 +10,6 @@ class VideoCommentEntity:
     is_updated: bool
     author_id: int
     video_id: str
-    comment_id: int | None
+    reply_comment_id: int | None
     reply_level: int
     # likes

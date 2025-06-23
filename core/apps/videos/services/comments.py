@@ -81,7 +81,7 @@ class ORMCommentService(BaseCommentService):
 
         qs = self._build_query(queryset=self.repository.get_all_comments())
         return qs.filter(
-            video__video_id=video_id, comment__isnull=True, reply_level=0,
+            video__video_id=video_id, reply_comment__isnull=True, reply_level=0,
         )
 
     def get_replies_by_comment_id(self, comment_id: str) -> Iterable[VideoComment]:
@@ -89,7 +89,7 @@ class ORMCommentService(BaseCommentService):
             raise CommentNotFoundError()
 
         qs = self._build_query(queryset=self.repository.get_all_comments())
-        return qs.select_related('comment').filter(comment_id=comment_id)
+        return qs.select_related('reply_comment').filter(reply_comment_id=comment_id)
 
     def change_updated_status(self, comment_id: str, is_updated: bool) -> None:
         self.repository.change_updated_status(comment_id=comment_id, is_updated=is_updated)

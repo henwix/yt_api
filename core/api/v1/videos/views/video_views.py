@@ -279,6 +279,7 @@ class VideoViewSet(
         return super().list(request, *args, **kwargs)
 
 
+# TODO: use case for comment creation
 class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
     serializer_class = video_serializers.VideoCommentSerializer
     pagination_class = CustomCursorPagination

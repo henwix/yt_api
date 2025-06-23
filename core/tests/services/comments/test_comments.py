@@ -44,7 +44,7 @@ def test_replies_retrieved_by_comment_id(comment: VideoComment, comment_service:
     expected_value = 6
     VideoCommentModelFactory.create_batch(
         size=expected_value,
-        comment=comment,
+        reply_comment=comment,
         reply_level=1,
     )
     qs = comment_service.get_replies_by_comment_id(comment_id=comment.pk)

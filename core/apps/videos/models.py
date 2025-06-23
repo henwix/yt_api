@@ -4,6 +4,7 @@ import string
 from django.db import models
 
 from core.apps.channels.models import Channel
+from core.apps.common.models import Comment
 
 
 def generate_video_link():
@@ -72,7 +73,7 @@ class Video(models.Model):
 class VideoLike(models.Model):
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='liked_videos', db_index=True)
     video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='likes', db_index=True)
-    is_like = models.BooleanField()
+    is_like = models.BooleanField(default=True, db_index=True)
 
     class Meta:
         constraints = [
@@ -100,29 +101,9 @@ class VideoView(models.Model):
         return f'View on video{self.video} by {getattr(self, "channel")}'
 
 
-class Comment(models.Model):
-    id = models.BigAutoField(primary_key=True, unique=True, editable=False)
-    text = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    is_updated = models.BooleanField(default=False)
-
-    class Meta:
-        abstract = True
-
-    def __str__(self):
-        return f'Comment #{id}'
-
-
 class VideoComment(Comment):
-    reply_level_choices = [
-        (0, 0),
-        (1, 1),
-    ]
-
     author = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='video_comments', db_index=True)
     video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='comments', db_index=True)
-    comment = models.ForeignKey(to='self', on_delete=models.CASCADE, related_name='replies', null=True, blank=True)
-    reply_level = models.PositiveIntegerField(choices=reply_level_choices, default=0, db_index=True)
     likes = models.ManyToManyField(Channel, through='VideoCommentLikeItem', db_index=True)
 
     def __str__(self):
@@ -136,7 +117,7 @@ class VideoCommentLikeItem(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['author', 'comment'], name='unique_comment_like'),
+            models.UniqueConstraint(fields=['author', 'comment'], name='unique_video_comment_like'),
         ]
 
     def __str__(self):

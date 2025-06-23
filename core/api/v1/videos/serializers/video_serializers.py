@@ -43,7 +43,7 @@ class VideoCommentSerializer(serializers.ModelSerializer):
             'created_at',
             'likes_count',
             'replies_count',
-            'comment',
+            'reply_comment',
         ]
         read_only_fields = ['pk', 'is_updated', 'created_at']
 

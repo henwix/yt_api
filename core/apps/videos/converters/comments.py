@@ -10,7 +10,7 @@ def video_comment_from_entity(video_comment: VideoCommentEntity) -> VideoComment
         is_updated=video_comment.is_updated,
         author_id=video_comment.author_id,
         video_id=video_comment.video_id,
-        comment_id=video_comment.comment_id,
+        reply_comment_id=video_comment.reply_comment_id,
         reply_level=video_comment.reply_level,
     )
 
@@ -23,6 +23,6 @@ def video_comment_to_entity(video_comment: VideoComment) -> VideoCommentEntity:
         is_updated=video_comment.is_updated,
         author_id=video_comment.author_id,
         video_id=video_comment.video_id,
-        comment_id=video_comment.comment_id,
+        reply_comment_id=video_comment.reply_comment_id,
         reply_level=video_comment.reply_level,
     )

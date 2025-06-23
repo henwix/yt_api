@@ -5,7 +5,7 @@ from core.apps.videos.models import (
     VideoComment,
     VideoCommentLikeItem,
 )
-from core.apps.videos.services.comments import BaseCommentService
+from core.apps.videos.services.comments import BaseVideoCommentService
 from core.tests.factories.video_comments import (
     VideoCommentLikeFactoryItem,
     VideoCommentModelFactory,
@@ -13,8 +13,8 @@ from core.tests.factories.video_comments import (
 
 
 @pytest.fixture
-def comment_service(container: punq.Container) -> BaseCommentService:
-    return container.resolve(BaseCommentService)
+def comment_service(container: punq.Container) -> BaseVideoCommentService:
+    return container.resolve(BaseVideoCommentService)
 
 
 @pytest.fixture

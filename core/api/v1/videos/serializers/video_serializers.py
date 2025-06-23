@@ -20,11 +20,11 @@ class VideoCommentSerializer(serializers.ModelSerializer):
         read_only=True,
     )
     author_slug = serializers.CharField(source='author.slug', read_only=True)
-    update_link = serializers.HyperlinkedIdentityField(
-        view_name='v1:videos:videos-comments-detail',
-        many=False,
-        read_only=True,
-    )
+    # update_link = serializers.HyperlinkedIdentityField(
+    #     view_name='v1:videos:videos-comments-detail',
+    #     many=False,
+    #     read_only=True,
+    # )
     likes_count = serializers.IntegerField(read_only=True)
     replies_count = serializers.IntegerField(read_only=True)
 
@@ -37,7 +37,7 @@ class VideoCommentSerializer(serializers.ModelSerializer):
             'author',
             'video',
             'text',
-            'update_link',
+            # 'update_link',
             'reply_level',
             'is_updated',
             'created_at',
@@ -45,13 +45,14 @@ class VideoCommentSerializer(serializers.ModelSerializer):
             'replies_count',
             'reply_comment',
         ]
-        read_only_fields = ['pk', 'is_updated', 'created_at']
+        read_only_fields = ['pk', 'is_updated', 'created_at', 'reply_level']
 
-    def create(self, validated_data):
-        user = self.context.get('request').user
-        validated_data['author'] = user.channel
 
-        return super().create(validated_data)
+class VideoCommentCreatedSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    text = serializers.CharField()
+    reply_level = serializers.IntegerField()
+    created_at = serializers.DateTimeField()
 
 
 class VideoSerializer(serializers.ModelSerializer):

@@ -3,12 +3,12 @@ from dataclasses import dataclass
 from core.apps.channels.services.channels import BaseChannelService
 from core.apps.users.entities import UserEntity
 from core.apps.videos.exceptions.comments import CommentLikeNotFoundError
-from core.apps.videos.services.comments import BaseCommentService
+from core.apps.videos.services.comments import BaseVideoCommentService
 
 
 @dataclass
 class CommentLikeDeleteUseCase:
-    comment_service: BaseCommentService
+    comment_service: BaseVideoCommentService
     channel_service: BaseChannelService
 
     def execute(self, user: UserEntity, comment_id: str) -> dict:

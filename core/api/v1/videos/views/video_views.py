@@ -23,7 +23,15 @@ from drf_spectacular.utils import (
     OpenApiResponse,
 )
 
-from core.api.v1.videos.serializers import video_serializers
+from core.api.v1.videos.serializers.video_serializers import (
+    PlaylistPreviewSerializer,
+    PlaylistSerializer,
+    VideoCommentCreatedSerializer,
+    VideoCommentSerializer,
+    VideoHistorySerializer,
+    VideoPreviewSerializer,
+    VideoSerializer,
+)
 from core.apps.common.exceptions import ServiceException
 from core.apps.common.mixins import PaginationMixin
 from core.apps.common.pagination import (
@@ -35,6 +43,7 @@ from core.apps.common.permissions import (
     IsAuthenticatedOrAuthorOrReadOnly,
 )
 from core.apps.users.converters.users import user_to_entity
+from core.apps.videos.converters.videos import video_to_entity
 from core.apps.videos.filters import VideoFilter
 from core.apps.videos.models import (
     Video,
@@ -42,13 +51,14 @@ from core.apps.videos.models import (
 )
 from core.apps.videos.pagination import HistoryCursorPagination
 from core.apps.videos.permissions import IsAuthorOrReadOnlyPlaylist
-from core.apps.videos.services.comments import BaseCommentService
+from core.apps.videos.services.comments import BaseVideoCommentService
 from core.apps.videos.services.videos import (
     BaseVideoHistoryService,
     BaseVideoPlaylistService,
     BaseVideoService,
 )
 from core.apps.videos.signals import video_pre_delete
+from core.apps.videos.use_cases.comments.comment_create import CreateVideoCommentUseCase
 from core.apps.videos.use_cases.comments.like_create import CommentLikeCreateUseCase
 from core.apps.videos.use_cases.comments.like_delete import CommentLikeDeleteUseCase
 from core.project.containers import get_container
@@ -251,8 +261,8 @@ class VideoViewSet(
 
         """
         if action == 'list':
-            return video_serializers.VideoPreviewSerializer
-        return video_serializers.VideoSerializer
+            return VideoPreviewSerializer
+        return VideoSerializer
 
     def get_queryset(self):
         """Custom get_queryset method.
@@ -279,9 +289,10 @@ class VideoViewSet(
         return super().list(request, *args, **kwargs)
 
 
-# TODO: use case for comment creation
+#  TODO: Add permission validation by video author.
+#  Video's author can't check comments if the videos is PRIVATE just like others users
 class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
-    serializer_class = video_serializers.VideoCommentSerializer
+    serializer_class = VideoCommentSerializer
     pagination_class = CustomCursorPagination
     permission_classes = [IsAuthenticatedOrAuthorOrReadOnly]
     filter_backends = [filters.OrderingFilter]
@@ -291,13 +302,33 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container: punq.Container = get_container()
-        self.service: BaseCommentService = self.container.resolve(BaseCommentService)
+        self.service: BaseVideoCommentService = self.container.resolve(BaseVideoCommentService)
         self.logger: Logger = self.container.resolve(Logger)
 
     def get_queryset(self):
         if self.action in ['destroy', 'update', 'partial_update']:
             return self.service.get_annotated_queryset()
         return self.service.get_related_queryset()
+
+    @extend_schema(responses=VideoCommentCreatedSerializer)
+    def create(self, request, *args, **kwargs):
+        use_case: CreateVideoCommentUseCase = self.container.resolve(CreateVideoCommentUseCase)
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            result = use_case.execute(
+                user=user_to_entity(request.user),
+                video=video_to_entity(serializer.validated_data.get('video')),
+                text=serializer.validated_data.get('text'),
+                reply_comment_id=getattr(serializer.validated_data.get('reply_comment'), 'pk', None),
+            )
+
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+        return Response(VideoCommentCreatedSerializer(result).data, status=status.HTTP_201_CREATED)
 
     @extend_schema(
         parameters=[
@@ -422,7 +453,7 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
     lookup_field = 'video_id'
     permission_classes = [IsAuthenticated]
     pagination_class = HistoryCursorPagination
-    serializer_class = video_serializers.VideoHistorySerializer
+    serializer_class = VideoHistorySerializer
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -512,7 +543,7 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 @extend_schema(summary='Get all personal channel videos')
 class MyVideoView(generics.ListAPIView):
-    serializer_class = video_serializers.VideoPreviewSerializer
+    serializer_class = VideoPreviewSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = CustomCursorPagination
 
@@ -545,8 +576,8 @@ class PlaylistAPIView(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'list':
-            return video_serializers.PlaylistPreviewSerializer
-        return video_serializers.PlaylistSerializer
+            return PlaylistPreviewSerializer
+        return PlaylistSerializer
 
     def get_queryset(self):
         if self.action == 'list':

@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
 import pytest
@@ -12,6 +13,9 @@ from core.tests.factories.channels import (
     UserModelFactory,
 )
 from core.tests.factories.videos import VideoModelFactory
+
+
+User = get_user_model()
 
 
 @pytest.fixture
@@ -58,3 +62,8 @@ def channel() -> Channel:
 def video() -> Video:
     """Returns video object."""
     return VideoModelFactory()
+
+
+@pytest.fixture
+def user() -> User:
+    return UserModelFactory()

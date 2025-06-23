@@ -15,33 +15,34 @@ from core.apps.videos.entities.comments import VideoCommentEntity
 from core.apps.videos.entities.likes import VideoCommentLikeItemEntity
 from core.apps.videos.exceptions.comments import CommentNotFoundError
 from core.apps.videos.exceptions.videos import VideoNotFoundByVideoIdError
-from core.apps.videos.models import VideoComment
+from core.apps.videos.models import (
+    Video,
+    VideoComment,
+)
 from core.apps.videos.repositories.comments import BaseVideoCommentRepository
 
 
 @dataclass
-class BaseCommentService(ABC):
+class BaseVideoCommentService(ABC):
     repository: BaseVideoCommentRepository
 
     @abstractmethod
-    def get_comments_by_video_id(self, video_id: str) -> Iterable[VideoComment]:
-        ...
+    def create_comment(self, comment_entity: VideoCommentEntity) -> VideoCommentEntity: ...
 
     @abstractmethod
-    def get_replies_by_comment_id(self, comment_id: str) -> Iterable[VideoComment]:
-        ...
+    def get_comments_by_video_id(self, video_id: str) -> Iterable[VideoComment]: ...
 
     @abstractmethod
-    def get_by_id_or_404(self, id: str) -> VideoCommentEntity:
-        ...
+    def get_replies_by_comment_id(self, comment_id: str) -> Iterable[VideoComment]: ...
 
     @abstractmethod
-    def change_updated_status(self, comment_id: str, is_updated: bool) -> None:
-        ...
+    def get_by_id_or_404(self, id: str) -> VideoCommentEntity: ...
 
     @abstractmethod
-    def update_like_status(self, like_id: int, is_like: bool) -> None:
-        ...
+    def change_updated_status(self, comment_id: str, is_updated: bool) -> None: ...
+
+    @abstractmethod
+    def update_like_status(self, like_id: int, is_like: bool) -> None: ...
 
     @abstractmethod
     def like_get_or_create(
@@ -49,20 +50,26 @@ class BaseCommentService(ABC):
         author: ChannelEntity,
         comment: VideoCommentEntity,
         is_like: bool,
-    ) -> tuple[VideoCommentLikeItemEntity, bool]:
-        ...
+    ) -> tuple[VideoCommentLikeItemEntity, bool]: ...
 
     @abstractmethod
-    def like_delete(self, author: ChannelEntity, comment: VideoCommentEntity) -> bool:
-        ...
+    def like_delete(self, author: ChannelEntity, comment: VideoCommentEntity) -> bool: ...
 
 
-class ORMCommentService(BaseCommentService):
+class ORMCommentService(BaseVideoCommentService):
     def _build_query(self, queryset: Iterable[VideoComment]) -> Iterable[VideoComment]:
-        return queryset.select_related('author', 'video').annotate(
-            likes_count=Count('likes', distinct=True, filter=Q(likes_items__is_like=True)),
-            replies_count=Count('replies', distinct=True),
+        return (
+            queryset.select_related("author", "video")
+            .filter(video__upload_status=Video.UploadStatus.FINISHED)
+            .annotate(
+                likes_count=Count("likes", distinct=True, filter=Q(likes_items__is_like=True)),
+                replies_count=Count("replies", distinct=True),
+            )
         )
+
+    def create_comment(self, comment_entity: VideoCommentEntity) -> VideoCommentEntity:
+        comment_entity.update_reply_level()
+        return self.repository.create_comment(comment_entity=comment_entity)
 
     def get_related_queryset(self) -> Iterable[VideoComment]:
         return self._build_query(
@@ -71,8 +78,8 @@ class ORMCommentService(BaseCommentService):
 
     def get_annotated_queryset(self) -> Iterable[VideoComment]:
         return self.repository.get_all_comments().annotate(
-            likes_count=Count('likes', distinct=True, filter=Q(likes_items__is_like=True)),
-            replies_count=Count('replies', distinct=True),
+            likes_count=Count("likes", distinct=True, filter=Q(likes_items__is_like=True)),
+            replies_count=Count("replies", distinct=True),
         )
 
     def get_comments_by_video_id(self, video_id: str) -> Iterable[VideoComment]:
@@ -81,7 +88,9 @@ class ORMCommentService(BaseCommentService):
 
         qs = self._build_query(queryset=self.repository.get_all_comments())
         return qs.filter(
-            video__video_id=video_id, reply_comment__isnull=True, reply_level=0,
+            video__video_id=video_id,
+            reply_comment__isnull=True,
+            reply_level=0,
         )
 
     def get_replies_by_comment_id(self, comment_id: str) -> Iterable[VideoComment]:
@@ -89,7 +98,7 @@ class ORMCommentService(BaseCommentService):
             raise CommentNotFoundError()
 
         qs = self._build_query(queryset=self.repository.get_all_comments())
-        return qs.select_related('reply_comment').filter(reply_comment_id=comment_id)
+        return qs.select_related("reply_comment").filter(reply_comment_id=comment_id)
 
     def change_updated_status(self, comment_id: str, is_updated: bool) -> None:
         self.repository.change_updated_status(comment_id=comment_id, is_updated=is_updated)

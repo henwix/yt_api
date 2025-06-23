@@ -13,7 +13,7 @@ from core.apps.videos.repositories.videos import (
     ORMVideoRepository,
 )
 from core.apps.videos.services.comments import (
-    BaseCommentService,
+    BaseVideoCommentService,
     ORMCommentService,
 )
 from core.apps.videos.services.s3_videos import (
@@ -38,6 +38,7 @@ from core.apps.videos.services.videos import (
     VideoPrivateOrUploadingValidatorService,
     VideoPrivatePermissionValidatorService,
 )
+from core.apps.videos.use_cases.comments.comment_create import CreateVideoCommentUseCase
 from core.apps.videos.use_cases.comments.like_create import CommentLikeCreateUseCase
 from core.apps.videos.use_cases.comments.like_delete import CommentLikeDeleteUseCase
 from core.apps.videos.use_cases.videos_upload.abort_upload_video import AbortVideoMultipartUploadUseCase
@@ -66,7 +67,7 @@ def init_videos(container: punq.Container) -> None:
     container.register(BaseVideoService, ORMVideoService)
     container.register(BaseVideoPlaylistService, ORMVideoPlaylistService)
     container.register(BaseVideoHistoryService, ORMVideoHistoryService)
-    container.register(BaseCommentService, ORMCommentService)
+    container.register(BaseVideoCommentService, ORMCommentService)
 
     container.register(BaseVideoValidatorService, VideoExistsValidatorService)
     container.register(VideoFilenameExistsValidatorService)
@@ -79,6 +80,7 @@ def init_videos(container: punq.Container) -> None:
     # init use cases
     container.register(CommentLikeCreateUseCase)
     container.register(CommentLikeDeleteUseCase)
+    container.register(CreateVideoCommentUseCase)
 
     container.register(CreateVideoMultipartUploadUseCase)
     container.register(AbortVideoMultipartUploadUseCase)

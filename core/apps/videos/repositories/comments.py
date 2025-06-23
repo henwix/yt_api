@@ -17,6 +17,10 @@ from core.apps.videos.models import (
 
 class BaseVideoCommentRepository(ABC):
     @abstractmethod
+    def create_comment(self, comment_entity: VideoCommentEntity) -> VideoCommentEntity:
+        ...
+
+    @abstractmethod
     def get_all_comments(self) -> Iterable[VideoComment]:
         ...
 
@@ -47,6 +51,11 @@ class BaseVideoCommentRepository(ABC):
 
 
 class ORMVideoCommentRepository(BaseVideoCommentRepository):
+    def create_comment(self, comment_entity: VideoCommentEntity) -> VideoCommentEntity:
+        # comment_dto = video_comment_from_entity(comment_entity).save()
+        comment_dto = VideoComment.objects.create(**comment_entity.__dict__)
+        return video_comment_to_entity(comment_dto)
+
     def get_all_comments(self) -> Iterable[VideoComment]:
         return VideoComment.objects.all()
 

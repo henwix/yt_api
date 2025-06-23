@@ -110,7 +110,7 @@ class BaseVideoRepository(ABC):
 # TODO: refactor filters in repo using Q classes as method arguments
 class ORMVideoRepository(BaseVideoRepository):
     def video_create(self, video_entity: VideoEntity) -> None:
-        return video_from_entity(video_entity).save()
+        video_from_entity(video_entity).save()
 
     def get_video_by_upload_id(self, upload_id: str) -> VideoEntity | None:
         video_dto = Video.objects.filter(upload_id=upload_id).first()

@@ -26,3 +26,7 @@ def video_comment_to_entity(video_comment: VideoComment) -> VideoCommentEntity:
         reply_comment_id=video_comment.reply_comment_id,
         reply_level=video_comment.reply_level,
     )
+
+
+def data_to_video_comment_entity(data: dict) -> VideoCommentEntity:
+    return VideoCommentEntity(**data)

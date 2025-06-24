@@ -339,7 +339,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
                 type=str,
             ),
         ],
-        summary='Get video comments',
+        summary="Get video's comments",
     )
     def list(self, request, *args, **kwargs):
         try:
@@ -358,6 +358,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
         self.service.change_updated_status(comment_id=kwargs.get('pk'), is_updated=True)
         return response
 
+    @extend_schema(summary="Get comment's replies")
     @action(url_path='replies', url_name='replies', detail=True)
     def get_replies_list(self, request, pk):
         try:

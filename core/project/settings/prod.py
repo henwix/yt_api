@@ -11,9 +11,9 @@ DATABASES = {
         'NAME': os.environ.get('POSTGRES_DB'),
         'USER': os.environ.get('POSTGRES_USER'),
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-        'HOST': 'pgbouncer',  # pgbouncer host
+        'HOST': os.environ.get('PGBOUNCER_HOST'),  # pgbouncer host
         'PORT': '5432',  # pgbouncer port
-        'CONN_MAX_AGE': 0,      
+        'CONN_MAX_AGE': 0,
     },
 }
 

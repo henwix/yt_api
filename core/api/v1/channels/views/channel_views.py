@@ -35,7 +35,7 @@ from core.apps.channels.services.channels import (
     BaseSubscriptionService,
 )
 from core.apps.common.exceptions import ServiceException
-from core.apps.common.mixins import PaginationMixin
+from core.apps.common.mixins import CustomViewMixin
 from core.apps.common.pagination import CustomCursorPagination
 from core.apps.common.services.cache import BaseCacheService
 from core.apps.users.converters.users import user_to_entity
@@ -88,7 +88,7 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
 @extend_schema(
     summary='Get list of subscribers',
 )
-class ChannelSubscribersView(generics.ListAPIView, PaginationMixin):
+class ChannelSubscribersView(generics.ListAPIView, CustomViewMixin):
     serializer_class = SubscriptionSerializer
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = CustomCursorPagination
@@ -102,7 +102,7 @@ class ChannelSubscribersView(generics.ListAPIView, PaginationMixin):
         self.cache_service: BaseCacheService = container.resolve(BaseCacheService)
 
     def list(self, request, *args, **kwargs):
-        """Custom list method to cache response."""
+        """Custom list method to cache the response for 2 minutes."""
 
         cache_key = f'subs_{request.user.pk}_{request.query_params.get("c", "1")}'
         cached_data = self.cache_service.get_cached_data(cache_key)
@@ -111,19 +111,11 @@ class ChannelSubscribersView(generics.ListAPIView, PaginationMixin):
             return Response(cached_data, status.HTTP_200_OK)
 
         channel = self.channel_service.get_channel_by_user_or_404(user_to_entity(request.user))
-
-        qs = self.filter_queryset(self.sub_service.get_subscriber_list(channel=channel))
-        paginated_response = self.mixin_pagination(qs)
-
-        if paginated_response:
-            self.cache_service.cache_data(cache_key, paginated_response.data, 60 * 15)
-            return paginated_response
-
-        serializer = self.get_serializer(qs, many=True)
-        self.cache_service.cache_data(cache_key, serializer.data, 60 * 15)
-
-        response = Response(serializer.data, status.HTTP_200_OK)
-        return response
+        return self.mixin_cache_and_response(
+            cache_key=cache_key,
+            timeout=60 * 2,
+            queryset=self.sub_service.get_subscriber_list(channel=channel),
+        )
 
 
 @extend_schema(

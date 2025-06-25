@@ -33,7 +33,7 @@ from core.api.v1.videos.serializers.video_serializers import (
     VideoSerializer,
 )
 from core.apps.common.exceptions import ServiceException
-from core.apps.common.mixins import PaginationMixin
+from core.apps.common.mixins import CustomViewMixin
 from core.apps.common.pagination import (
     CustomCursorPagination,
     CustomPageNumberPagination,
@@ -291,7 +291,7 @@ class VideoViewSet(
 
 #  TODO: Add permission validation by video author.
 #  Video's author can't check comments if the videos is PRIVATE just like others users
-class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
+class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
     serializer_class = VideoCommentSerializer
     pagination_class = CustomCursorPagination
     permission_classes = [IsAuthenticatedOrAuthorOrReadOnly]
@@ -350,7 +350,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
 
-        result = self.mixin_filter_and_pagination(qs)
+        result = self.mixin_filtration_and_pagination(qs)
         return result
 
     def update(self, request, *args, **kwargs):
@@ -367,7 +367,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, PaginationMixin):
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
 
-        result = self.mixin_filter_and_pagination(qs)
+        result = self.mixin_filtration_and_pagination(qs)
         return result
 
     @extend_schema(

@@ -1,0 +1,15 @@
+from dataclasses import dataclass
+
+from rest_framework import status
+
+from core.apps.common.exceptions import ServiceException
+
+
+@dataclass
+class PostAuthorSlugNotProvidedError(ServiceException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = {'error': "to get Posts by author 'slug' you need to provide 's' query-parameter"}
+
+    @property
+    def message(self):
+        return "'s' query-parameter to get Posts by author 'slug' was not provided"

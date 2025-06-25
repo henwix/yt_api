@@ -38,10 +38,7 @@ from core.apps.common.pagination import (
     CustomCursorPagination,
     CustomPageNumberPagination,
 )
-from core.apps.common.permissions import (
-    IsAuthenticatedOrAdminOrReadOnly,
-    IsAuthenticatedOrAuthorOrReadOnly,
-)
+from core.apps.common.permissions import IsAuthenticatedOrAuthorOrReadOnly
 from core.apps.users.converters.users import user_to_entity
 from core.apps.videos.converters.videos import video_to_entity
 from core.apps.videos.filters import VideoFilter
@@ -50,7 +47,10 @@ from core.apps.videos.models import (
     VideoHistory,
 )
 from core.apps.videos.pagination import HistoryCursorPagination
-from core.apps.videos.permissions import IsAuthorOrReadOnlyPlaylist
+from core.apps.videos.permissions import (
+    IsAuthorOrReadOnlyPlaylist,
+    VideoIsAuthenticatedOrAuthorOrAdminOrReadOnly,
+)
 from core.apps.videos.services.comments import BaseVideoCommentService
 from core.apps.videos.services.videos import (
     BaseVideoHistoryService,
@@ -82,7 +82,7 @@ class VideoViewSet(
 
     lookup_field = 'video_id'
     lookup_url_kwarg = 'video_id'
-    permission_classes = [IsAuthenticatedOrAdminOrReadOnly]
+    permission_classes = [VideoIsAuthenticatedOrAuthorOrAdminOrReadOnly]
     filter_backends = [
         filters.SearchFilter,
         filters.OrderingFilter,

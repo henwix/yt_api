@@ -9,12 +9,15 @@ import punq
 from drf_spectacular.utils import extend_schema
 
 from core.api.v1.posts.serializers import (
-    PostCreateInSerializer,
-    PostCreateOutSerializer,
+    PostDetailedSerializer,
+    PostInSerializer,
+    PostOutSerializer,
+    PostSerializer,
 )
 from core.apps.common.exceptions import ServiceException
 from core.apps.common.pagination import CustomCursorPagination
-from core.apps.common.permissions import IsAuthenticatedOrAdminOrReadOnly
+from core.apps.common.permissions import IsAuthenticatedOrAuthorOrAdminOrReadOnly
+from core.apps.posts.services.posts import BasePostService
 from core.apps.posts.use_cases.create_post import CreatePostUseCase
 from core.apps.users.converters.users import user_to_entity
 from core.project.containers import get_container
@@ -30,18 +33,30 @@ class PostAPIViewset(
 ):
     lookup_field = 'post_id'
     lookup_url_kwarg = 'post_id'
-    permission_classes = [IsAuthenticatedOrAdminOrReadOnly]
+    permission_classes = [IsAuthenticatedOrAuthorOrAdminOrReadOnly]
     pagination_class = CustomCursorPagination
 
     def __init__(self, **kwargs):
         self.container: punq.Container = get_container()
         self.logger: Logger = self.container.resolve(Logger)
+        self.service: BasePostService = self.container.resolve(BasePostService)
 
-    @extend_schema(request=PostCreateInSerializer, responses=PostCreateOutSerializer)
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return PostDetailedSerializer
+        if self.request.method in ['PUT', 'PATCH']:
+            return PostSerializer
+
+    def get_queryset(self):
+        if self.request.method == 'GET':
+            return self.service.get_posts_for_retrieving()
+        return self.service.get_all_posts()
+
+    @extend_schema(request=PostInSerializer, responses=PostOutSerializer)
     def create(self, request):
         use_case: CreatePostUseCase = self.container.resolve(CreatePostUseCase)
 
-        serializer = PostCreateInSerializer(data=request.data)
+        serializer = PostInSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         try:
@@ -54,4 +69,4 @@ class PostAPIViewset(
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
 
-        return Response(PostCreateOutSerializer(result).data, status=201)
+        return Response(PostOutSerializer(result).data, status=201)

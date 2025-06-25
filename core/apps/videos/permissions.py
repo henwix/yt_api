@@ -1,6 +1,9 @@
 from rest_framework import permissions
 
-from core.apps.videos.models import Playlist
+from core.apps.videos.models import (
+    Playlist,
+    Video,
+)
 
 
 # list, retrieve, create, delete, put/update
@@ -21,3 +24,20 @@ class IsAuthorOrReadOnlyPlaylist(permissions.BasePermission):
             return True
 
         return user_channel and (user_channel == obj.channel or request.user.is_staff)
+
+
+class VideoIsAuthenticatedOrAuthorOrAdminOrReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if view.action == 'view_create':
+            return True
+
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        return request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS and obj.status != Video.VideoStatus.PRIVATE:
+            return True
+
+        return hasattr(request.user, 'channel') and (obj.author == request.user.channel or request.user.is_staff)

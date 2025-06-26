@@ -318,6 +318,8 @@ CACHE_KEYS = {
     's3_video_url': 's3_video_url_',
     's3_avatar_url': 's3_avatar_url_',
     'related_posts': 'channel_posts_',
+    'subs_list': 'subs_',
+    'retrieve_channel': 'retrieve_channel_',
 }
 
 

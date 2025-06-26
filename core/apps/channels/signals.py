@@ -30,6 +30,9 @@ def invalidate_channel_cache(instance, created, **kwargs):
         logger.info('Cache for %s deleted', instance.name)
 
 
+# @receiver(signal=[post_save], sender= )
+
+
 # FIXME: fix number of requests when deleting channel because of CASCADE field in model
 @receiver(signal=[pre_delete], sender=Channel)
 def delete_channel_files_signal(instance, **kwargs):

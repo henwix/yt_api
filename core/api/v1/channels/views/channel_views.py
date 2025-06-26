@@ -1,5 +1,6 @@
 from logging import Logger
 
+from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework import (
@@ -62,7 +63,7 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         user = user_to_entity(request.user)
-        cache_key = f'retrieve_channel_{user.id}'
+        cache_key = f"{settings.CACHE_KEYS.get('retrieve_channel')}{user.id}"
 
         cached_data = self.cache_service.get_cached_data(cache_key)
 
@@ -104,7 +105,7 @@ class ChannelSubscribersView(generics.ListAPIView, CustomViewMixin):
     def list(self, request, *args, **kwargs):
         """Custom list method to cache the response for 2 minutes."""
 
-        cache_key = f'subs_{request.user.pk}_{request.query_params.get("c", "1")}'
+        cache_key = f"{settings.CACHE_KEYS.get('subs_list')}{request.user.pk}_{request.query_params.get('c', '1')}"
         cached_data = self.cache_service.get_cached_data(cache_key)
 
         if cached_data:

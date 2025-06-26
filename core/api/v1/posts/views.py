@@ -30,7 +30,6 @@ from core.apps.users.converters.users import user_to_entity
 from core.project.containers import get_container
 
 
-#  TODO: get, update, delete with new Serializers and 'queryset' or 'get_queryset' + get_channels_posts endpoint
 class PostAPIViewset(ModelViewSet, CustomViewMixin):
     lookup_field = 'post_id'
     lookup_url_kwarg = 'post_id'
@@ -106,3 +105,6 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
             timeout=10,
             queryset=qs,
         )
+    #  TODO: инвалидация кэша: листинг подписчиков + листинг постов
+    #  TODO: тесты на посты
+    #  TODO: лайки + комменты + лайки к комментам

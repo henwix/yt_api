@@ -120,6 +120,10 @@ class BaseVideoService(ABC):
         ...
 
     @abstractmethod
+    def get_video_by_id_or_404(self, video_id: str) -> VideoEntity:
+        ...
+
+    @abstractmethod
     def update_is_reported_field(self, video: VideoEntity, is_reported: bool) -> None:
         ...
 
@@ -182,6 +186,13 @@ class ORMVideoService(BaseVideoService):
 
         if not video:
             raise VideoNotFoundByVideoIdError(video.id)
+        return video
+
+    def get_video_by_id_or_404(self, video_id: str) -> VideoEntity:
+        video = self.video_repository.get_video_by_id_or_none(video_id=video_id)
+
+        if not video:
+            raise VideoNotFoundByVideoIdError(video_id=video_id)
         return video
 
     def update_is_reported_field(self, video: VideoEntity, is_reported: bool) -> None:

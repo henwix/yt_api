@@ -59,6 +59,7 @@ from core.apps.videos.services.videos import (
 )
 from core.apps.videos.signals import video_pre_delete
 from core.apps.videos.use_cases.comments.comment_create import CreateVideoCommentUseCase
+from core.apps.videos.use_cases.comments.get_comments_list import GetCommentsUseCase
 from core.apps.videos.use_cases.comments.like_create import CommentLikeCreateUseCase
 from core.apps.videos.use_cases.comments.like_delete import CommentLikeDeleteUseCase
 from core.project.containers import get_container
@@ -166,12 +167,6 @@ class VideoViewSet(
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(
-        request=inline_serializer(
-            name='VideoLikeDelete',
-            fields={
-                'is_like': drf_serializers.BooleanField(required=False),
-            },
-        ),
         responses={
             201: OpenApiResponse(
                 response=inline_serializer(
@@ -289,8 +284,6 @@ class VideoViewSet(
         return super().list(request, *args, **kwargs)
 
 
-#  TODO: Add permission validation by video author.
-#  Video's author can't check comments if the videos is PRIVATE just like others users
 class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
     serializer_class = VideoCommentSerializer
     pagination_class = CustomCursorPagination
@@ -342,8 +335,11 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
         summary="Get video's comments",
     )
     def list(self, request, *args, **kwargs):
+        use_case: GetCommentsUseCase = self.container.resolve(GetCommentsUseCase)
+
         try:
-            qs = self.service.get_comments_by_video_id(
+            qs = use_case.execute(
+                user=user_to_entity(request.user),
                 video_id=request.query_params.get('v'),
             )
         except ServiceException as error:

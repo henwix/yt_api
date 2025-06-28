@@ -8,7 +8,7 @@ from core.apps.users.entities import UserEntity
 
 
 @dataclass
-class CreatePostUseCase:
+class PostCreateUseCase:
     channel_service: BaseChannelService
     post_service: BasePostService
 

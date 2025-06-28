@@ -20,11 +20,6 @@ class VideoCommentSerializer(serializers.ModelSerializer):
         read_only=True,
     )
     author_slug = serializers.CharField(source='author.slug', read_only=True)
-    # update_link = serializers.HyperlinkedIdentityField(
-    #     view_name='v1:videos:videos-comments-detail',
-    #     many=False,
-    #     read_only=True,
-    # )
     likes_count = serializers.IntegerField(read_only=True)
     replies_count = serializers.IntegerField(read_only=True)
 
@@ -132,7 +127,6 @@ class VideoPreviewSerializer(serializers.ModelSerializer):
             'author_name',
             'author_link',
             'views_count',
-
             'upload_status',
             'status',
             's3_key',

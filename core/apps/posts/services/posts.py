@@ -10,8 +10,13 @@ from django.db.models import (
     Q,
 )
 
+from core.apps.channels.entities.channels import ChannelEntity
+from core.apps.posts.entities.likes import PostLikeEntity
 from core.apps.posts.entities.posts import PostEntity
-from core.apps.posts.exceptions import PostAuthorSlugNotProvidedError
+from core.apps.posts.exceptions import (
+    PostAuthorSlugNotProvidedError,
+    PostNotFoundError,
+)
 from core.apps.posts.models import Post
 from core.apps.posts.repositories.posts import BasePostRepository
 
@@ -46,6 +51,27 @@ class BasePostService(ABC):
 
     @abstractmethod
     def get_related_posts_by_author_slug(self, slug: str | None) -> Iterable[Post]:
+        ...
+
+    @abstractmethod
+    def get_post_by_id_or_404(self, post_id: str) -> PostEntity:
+        ...
+
+    @abstractmethod
+    def like_get_or_create(
+        self,
+        channel: ChannelEntity,
+        post: PostEntity,
+        is_like: bool,
+    ) -> tuple[PostLikeEntity, bool]:
+        ...
+
+    @abstractmethod
+    def like_delete(self, channel: ChannelEntity, post: PostEntity) -> bool:
+        ...
+
+    @abstractmethod
+    def update_is_like_field(self, like: PostLikeEntity, is_like: bool) -> None:
         ...
 
 
@@ -84,3 +110,34 @@ class PostService(BasePostService):
             query=self.post_repository.get_all_posts(),
         )
         return qs.filter(author__slug=slug)
+
+    def get_post_by_id_or_404(self, post_id: str) -> PostEntity:
+        post = self.post_repository.get_post_by_id(post_id=post_id)
+
+        if not post:
+            raise PostNotFoundError(post_id=post_id)
+        return post
+
+    def like_get_or_create(
+        self,
+        channel: ChannelEntity,
+        post: PostEntity,
+        is_like: bool,
+    ) -> tuple[PostLikeEntity, bool]:
+        return self.post_repository.like_get_or_create(
+            channel=channel,
+            post=post,
+            is_like=is_like,
+        )
+
+    def like_delete(self, channel: ChannelEntity, post: PostEntity) -> bool:
+        return self.post_repository.like_delete(
+            channel=channel,
+            post=post,
+        )
+
+    def update_is_like_field(self, like: PostLikeEntity, is_like: bool) -> None:
+        self.post_repository.update_is_like_field(
+            like=like,
+            is_like=is_like,
+        )

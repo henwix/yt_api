@@ -39,6 +39,7 @@ from core.apps.videos.services.videos import (
     VideoPrivatePermissionValidatorService,
 )
 from core.apps.videos.use_cases.comments.comment_create import CreateVideoCommentUseCase
+from core.apps.videos.use_cases.comments.get_comments_list import GetCommentsUseCase
 from core.apps.videos.use_cases.comments.like_create import CommentLikeCreateUseCase
 from core.apps.videos.use_cases.comments.like_delete import CommentLikeDeleteUseCase
 from core.apps.videos.use_cases.videos_upload.abort_upload_video import AbortVideoMultipartUploadUseCase
@@ -81,6 +82,7 @@ def init_videos(container: punq.Container) -> None:
     container.register(CommentLikeCreateUseCase)
     container.register(CommentLikeDeleteUseCase)
     container.register(CreateVideoCommentUseCase)
+    container.register(GetCommentsUseCase)
 
     container.register(CreateVideoMultipartUploadUseCase)
     container.register(AbortVideoMultipartUploadUseCase)

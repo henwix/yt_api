@@ -14,7 +14,6 @@ from core.apps.channels.entities.channels import ChannelEntity
 from core.apps.videos.entities.comments import VideoCommentEntity
 from core.apps.videos.entities.likes import VideoCommentLikeItemEntity
 from core.apps.videos.exceptions.comments import CommentNotFoundError
-from core.apps.videos.exceptions.videos import VideoNotFoundByVideoIdError
 from core.apps.videos.models import (
     Video,
     VideoComment,
@@ -83,9 +82,6 @@ class ORMCommentService(BaseVideoCommentService):
         )
 
     def get_comments_by_video_id(self, video_id: str) -> Iterable[VideoComment]:
-        if not video_id:
-            raise VideoNotFoundByVideoIdError(video_id=video_id)
-
         qs = self._build_query(queryset=self.repository.get_all_comments())
         return qs.filter(
             video__video_id=video_id,

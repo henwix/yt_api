@@ -105,17 +105,18 @@ class ChannelSubscribersView(generics.ListAPIView, CustomViewMixin):
     def list(self, request, *args, **kwargs):
         """Custom list method to cache the response for 2 minutes."""
 
-        cache_key = f"{settings.CACHE_KEYS.get('subs_list')}{request.user.pk}_{request.query_params.get('c', '1')}"
+        channel = self.channel_service.get_channel_by_user_or_404(user_to_entity(request.user))
+
+        cache_key = f"{settings.CACHE_KEYS.get('subs_list')}{channel.id}_{request.query_params.get('c', '1')}"
         cached_data = self.cache_service.get_cached_data(cache_key)
 
         if cached_data:
             return Response(cached_data, status.HTTP_200_OK)
 
-        channel = self.channel_service.get_channel_by_user_or_404(user_to_entity(request.user))
         return self.mixin_cache_and_response(
-            cache_key=cache_key,
-            timeout=60 * 2,
             queryset=self.sub_service.get_subscriber_list(channel=channel),
+            cache_key=cache_key,
+            timeout=60 * 15,
         )
 
 

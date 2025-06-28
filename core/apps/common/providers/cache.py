@@ -24,6 +24,10 @@ class BaseCacheProvider(ABC):
     def delete_keys(self, keys: list):
         ...
 
+    @abstractmethod
+    def delete_pattern(self, pattern: str) -> None:
+        ...
+
 
 class RedisCacheProvider(BaseCacheProvider):
     def get(self, key: str) -> Any:
@@ -37,3 +41,6 @@ class RedisCacheProvider(BaseCacheProvider):
 
     def delete_keys(self, keys: list):
         cache.delete_many(keys)
+
+    def delete_pattern(self, pattern: str) -> None:
+        cache.delete_pattern(pattern)

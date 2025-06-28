@@ -2,16 +2,22 @@ from logging import Logger
 
 from django.conf import settings
 from django.db.models.signals import (
+    post_delete,
     post_save,
     pre_delete,
 )
 from django.dispatch import receiver
 
+import orjson
 import punq
 
-from core.apps.channels.models import Channel
+from core.apps.channels.models import (
+    Channel,
+    SubscriptionItem,
+)
 from core.apps.common.providers.cache import BaseCacheProvider
 from core.apps.common.providers.files import BaseCeleryFileProvider
+from core.apps.posts.models import Post
 from core.apps.videos.models import Video
 from core.project.containers import get_container
 
@@ -26,11 +32,43 @@ def invalidate_channel_cache(instance, created, **kwargs):
     cache_provider: BaseCacheProvider = container.resolve(BaseCacheProvider)
 
     if not created:
-        cache_provider.delete(f'retrieve_channel_{instance.user.pk}')
-        logger.info('Cache for %s deleted', instance.name)
+        cache_provider.delete(f"{settings.CACHE_KEYS.get('retrieve_channel')}{instance.user.pk}")
+        logger.info(
+            'Cache for Channel deleted',
+            extra={'log_meta': orjson.dumps({'user_id': instance.user.pk}).decode()},
+        )
 
 
-# @receiver(signal=[post_save], sender= )
+@receiver(signal=[post_save, post_delete], sender=Post)
+def invalidate_posts_cache(instance, **kwargs):
+    """This signal will delete Posts cache by Channel's slug if Post instance
+    has been updated or created."""
+
+    container: punq.Container = get_container()
+    logger: Logger = container.resolve(Logger)
+    cache_provider: BaseCacheProvider = container.resolve(BaseCacheProvider)
+
+    cache_provider.delete_pattern(f"{settings.CACHE_KEYS.get('related_posts')}{instance.author.slug}*")
+    logger.info(
+        'Posts cache for listing deleted',
+        extra={'log_meta': orjson.dumps({'channel_slug': instance.author.slug}).decode()},
+    )
+
+
+@receiver(signal=[post_save, post_delete], sender=SubscriptionItem)
+def invalidate_subs_cache(instance, **kwargs):
+    """This signal will delete Subs cache by Channel's id if Post instance has
+    been updated or created."""
+
+    container: punq.Container = get_container()
+    logger: Logger = container.resolve(Logger)
+    cache_provider: BaseCacheProvider = container.resolve(BaseCacheProvider)
+
+    cache_provider.delete_pattern(f"{settings.CACHE_KEYS.get('subs_list')}{instance.subscribed_to.pk}*")
+    logger.info(
+        'Subs cache for listing deleted',
+        extra={'log_meta': orjson.dumps({'channel_pk': instance.subscribed_to.slug}).decode()},
+    )
 
 
 # FIXME: fix number of requests when deleting channel because of CASCADE field in model

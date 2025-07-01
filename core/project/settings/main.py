@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'django_celery_results',
     'corsheaders',
     'django_prometheus',
+    'social_django',
 ]
 
 MIDDLEWARE = [
@@ -139,6 +140,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
+    'social_core.backends.github.GithubOAuth2',
     'django.contrib.auth.backends.ModelBackend',
     'core.apps.common.auth_backends.EmailAuthBackend',
 ]
@@ -256,7 +258,7 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer',
 }
 
-LOGIN_REDIRECT_URL = 'v1:users:user-me'
+LOGIN_REDIRECT_URL = 'v1:users:customuser-me'
 
 LOGGING = {
     'version': 1,
@@ -380,3 +382,13 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
+
+
+#  oauth2-social
+
+SOCIAL_AUTH_JSONFIELD_ENABLED = True
+SOCIAL_AUTH_URL_NAMESPACE = 'v1:social'
+
+SOCIAL_AUTH_GITHUB_KEY = os.environ.get('SOCIAL_AUTH_GITHUB_KEY')
+SOCIAL_AUTH_GITHUB_SECRET = os.environ.get('SOCIAL_AUTH_GITHUB_SECRET')
+SOCIAL_AUTH_GITHUB_SCOPE = ['user:email']

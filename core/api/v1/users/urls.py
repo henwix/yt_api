@@ -11,7 +11,11 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 
-from core.api.v1.users.views import (
+from core.api.v1.users.views.social_auth_views import (
+    GenerateSocialAuthUrlView,
+    SocialAuthView,
+)
+from core.api.v1.users.views.user_views import (
     CodeVerifyView,
     CustomUserViewSet,
     UserLoginView,
@@ -33,4 +37,8 @@ urlpatterns = [
     path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path('users/login/', UserLoginView.as_view(), name='user_login'),
     path('users/verify_code/', CodeVerifyView.as_view(), name='user_verify_code'),
+
+    # Social auth endpoints
+    path('social_auth/<str:provider>/', SocialAuthView.as_view(), name='social_auth'),
+    path('social_url/<str:provider>/', GenerateSocialAuthUrlView.as_view(), name='social_url'),
 ]

@@ -1,5 +1,6 @@
 import punq
 
+from core.api.v1.users.views.social_auth_views import SocialAuthView
 from core.apps.common.clients.email_client import EmailClient
 from core.apps.users.providers.senders import (
     BaseSenderProvider,
@@ -40,6 +41,7 @@ def init_users(container: punq.Container) -> None:
     #  use cases
     container.register(AuthorizeUserUseCase)
     container.register(VerifyCodeUseCase)
+    container.register(SocialAuthView)
 
     #  clients
     container.register(EmailClient)

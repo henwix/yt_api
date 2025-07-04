@@ -53,7 +53,6 @@ class ORMUserService(BaseUserService):
         self.validator_service.validate(user=user)
         return user
 
-    # move JWT-generation to a separate service
     def generate_jwt(self, user: UserEntity) -> dict:
         refresh = RefreshToken.for_user(user_from_entity(user))
         access = refresh.access_token

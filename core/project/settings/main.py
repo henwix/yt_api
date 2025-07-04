@@ -141,6 +141,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTHENTICATION_BACKENDS = [
     'core.apps.users.oauth_backends.CustomGitHubOAuth2',
+    'core.apps.users.oauth_backends.CustomGoogleOAuth2',
     'django.contrib.auth.backends.ModelBackend',
     'core.apps.common.auth_backends.EmailAuthBackend',
 ]
@@ -392,6 +393,9 @@ SOCIAL_AUTH_SLUGIFY_USERNAMES = True
 SOCIAL_AUTH_GITHUB_KEY = os.environ.get('SOCIAL_AUTH_GITHUB_KEY')
 SOCIAL_AUTH_GITHUB_SECRET = os.environ.get('SOCIAL_AUTH_GITHUB_SECRET')
 SOCIAL_AUTH_GITHUB_SCOPE = ['user:email']
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
 
 SOCIAL_AUTH_PIPELINE = (
     # Get the information we can about the user and return it in a simple

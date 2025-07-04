@@ -24,3 +24,7 @@ def channel_to_entity(channel: Channel) -> ChannelEntity:
         country=channel.country,
         avatar_s3_key=channel.avatar_s3_key,
     )
+
+
+def data_to_channel_entity(data: dict) -> ChannelEntity:
+    return ChannelEntity(**data)

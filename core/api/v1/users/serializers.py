@@ -83,7 +83,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         serializer'."""
 
         fields = super().get_fields()
-        fields['channel'] = ChannelSerializer()
+        fields['channel'] = ChannelSerializer(required=False)
 
         return fields
 

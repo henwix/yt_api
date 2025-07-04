@@ -1,4 +1,5 @@
 from django.urls import reverse_lazy
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -6,7 +7,6 @@ from drf_spectacular.utils import (
     extend_schema,
     OpenApiParameter,
 )
-from rest_framework_simplejwt.tokens import RefreshToken
 from social_core.backends.oauth import BaseOAuth2
 from social_core.exceptions import SocialAuthBaseException
 from social_django.utils import (
@@ -14,17 +14,26 @@ from social_django.utils import (
     load_strategy,
 )
 
+from core.apps.users.converters.users import user_to_entity
+from core.apps.users.use_cases.social_auth import SocialAuthUseCase
+from core.project.containers import get_container
+
 
 class GenerateSocialAuthUrlView(APIView):
     def get(self, request, provider):
-        redirect_uri = reverse_lazy('v1:users:social_auth', kwargs={'provider': provider})
-        strategy = load_strategy(request)
-        backend = load_backend(strategy=strategy, name=provider, redirect_uri=redirect_uri)
-        if not backend:
-            return Response({'error': 'Invalid provider'}, status=400)
+        try:
+            redirect_uri = reverse_lazy('v1:users:social-auth', kwargs={'provider': provider})
+            strategy = load_strategy(request)
+            backend = load_backend(strategy=strategy, name=provider, redirect_uri=redirect_uri)
+            if not backend:
+                return Response({'error': 'Invalid provider'}, status=400)
 
-        #  Generate url(redirect_uri, state, scope, client_id in query-params) for auth
-        auth_url = backend.auth_url()
+            #  Generate url(query-params depends on backend) for auth
+            auth_url = backend.auth_url()
+
+        except SocialAuthBaseException as e:
+            return Response({'error': str(e)}, status=400)
+
         return Response({'auth_url': auth_url})
 
 
@@ -39,31 +48,46 @@ class GenerateSocialAuthUrlView(APIView):
     ],
     summary='Social OAuth2. Return JWT tokens in response',
 )
-class SocialAuthWithCookieRedirectionView(APIView):
+class SocialAuthVerifyView(APIView):
     def get(self, request, provider):
+        container = get_container()
+        use_case: SocialAuthUseCase = container.resolve(SocialAuthUseCase)
+
         try:
-            # Load the strategy for the Django request
-            strategy = load_strategy(request)
-
-            # Load the backend for the specified provider
+            # Load strategy and backend for the specified provider
             backend: BaseOAuth2 = load_backend(
-                strategy=strategy,
+                strategy=load_strategy(request),
                 name=provider,
-                redirect_uri=reverse_lazy('v1:users:social_auth', kwargs={'provider': provider}),
+                redirect_uri=reverse_lazy('v1:users:social-auth', kwargs={'provider': provider}),
             )
-
+            # Complete Social OAuth and retrieve or create user
             user = backend.auth_complete(
                 user=request.user if request.user.is_authenticated else None,
             )
 
+            # create a new channel if not exists and return JWT tokens
+            result = use_case.execute(user=user_to_entity(user))
+
         except SocialAuthBaseException as e:
             return Response({'error': str(e)}, status=400)
 
-        refresh = RefreshToken.for_user(user)
-        access = refresh.access_token
-        tokens = {
-            'refresh': str(refresh),
-            'access': str(access),
-        }
+        return Response(data=result)
 
-        return Response(data=tokens)
+
+class SocialAuthDisconnectView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, provider):
+        try:
+            backend: BaseOAuth2 = load_backend(
+                strategy=load_strategy(request),
+                name=provider,
+                redirect_uri=reverse_lazy('v1:users:social-auth', kwargs={'provider': provider}),
+            )
+
+            backend.disconnect(user=request.user)
+
+        except SocialAuthBaseException as e:
+            return Response({'error': str(e)}, status=400)
+
+        return Response({'status': 'ok'})

@@ -3,17 +3,13 @@ from dataclasses import (
     field,
 )
 
-from core.apps.common.enums import EntityStatus
-from core.apps.users.entities import UserEntity
-
 
 @dataclass
 class ChannelEntity:
-    id: int
+    id: int | None = field(default=None, kw_only=True)
     slug: str
     name: str
-    description: str
+    description: str | None = field(default=None, kw_only=True)
     user_id: int
-    user: UserEntity | EntityStatus = field(default=EntityStatus.NOT_LOADED, kw_only=True)
-    country: str
-    avatar_s3_key: str
+    country: str | None = None
+    avatar_s3_key: str | None = None

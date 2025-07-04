@@ -23,6 +23,7 @@ from core.apps.users.use_cases.auth import (
     AuthorizeUserUseCase,
     VerifyCodeUseCase,
 )
+from core.apps.users.use_cases.social_auth import SocialAuthUseCase
 
 
 def init_users(container: punq.Container) -> None:
@@ -40,6 +41,8 @@ def init_users(container: punq.Container) -> None:
     #  use cases
     container.register(AuthorizeUserUseCase)
     container.register(VerifyCodeUseCase)
+
+    container.register(SocialAuthUseCase)
 
     #  clients
     container.register(EmailClient)

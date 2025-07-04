@@ -1,4 +1,5 @@
 from social_core.backends.github import GithubOAuth2
+from social_core.backends.google import GoogleOAuth2
 from social_core.exceptions import (
     AuthMissingParameter,
     AuthStateForbidden,
@@ -10,10 +11,7 @@ from core.apps.users.exceptions.social_auth import CustomAuthStateMissing
 from core.project.containers import get_container
 
 
-class CustomGitHubOAuth2(GithubOAuth2):
-    """Custom GitHub OAuth2 backend with custom state handling via cache."""
-    STATE_PARAMETER = True
-
+class OAuth2Mixin:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.container = get_container()
@@ -59,3 +57,13 @@ class CustomGitHubOAuth2(GithubOAuth2):
             raise AuthStateForbidden(self)
         self.cache_service.delete_cached_data(f'oauth_state_{request_state}')
         return state
+
+
+class CustomGoogleOAuth2(OAuth2Mixin, GoogleOAuth2):
+    """Custom Google OAuth2 backend with custom state handling via cache."""
+    STATE_PARAMETER = True
+
+
+class CustomGitHubOAuth2(OAuth2Mixin, GithubOAuth2):
+    """Custom GitHub OAuth2 backend with custom state handling via cache."""
+    STATE_PARAMETER = True

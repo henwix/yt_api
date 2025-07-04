@@ -1,3 +1,4 @@
+import uuid
 from abc import (
     ABC,
     abstractmethod,
@@ -5,6 +6,7 @@ from abc import (
 from dataclasses import dataclass
 from typing import Iterable
 
+from core.apps.channels.converters.channels import data_to_channel_entity
 from core.apps.channels.entities.channels import ChannelEntity
 from core.apps.channels.exceptions.channels import (
     ChannelNotFoundError,
@@ -37,6 +39,10 @@ class BaseChannelService(ABC):
     repository: BaseChannelRepository
 
     @abstractmethod
+    def create_channel_by_user_info(self, user: UserEntity) -> ChannelEntity:
+        ...
+
+    @abstractmethod
     def get_channel_by_user_or_404(self, user: UserEntity) -> ChannelEntity:
         ...
 
@@ -54,6 +60,20 @@ class BaseChannelService(ABC):
 
 
 class ORMChannelService(BaseChannelService):
+    def create_channel_by_user_info(self, user: UserEntity) -> ChannelEntity:
+        channel_data = {}
+
+        channel_data['name'] = user.username
+        channel_data['user_id'] = user.id
+
+        slug = user.username
+        if self.repository.is_slug_exists(slug):
+            slug += '_' + uuid.uuid4()[:8]
+
+        channel_data['slug'] = slug
+
+        return self.repository.channel_create(channel_entity=data_to_channel_entity(channel_data))
+
     def get_channel_by_user_or_404(self, user: UserEntity) -> ChannelEntity:
         channel = self.repository.get_channel_by_user_or_none(user)
 

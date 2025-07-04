@@ -34,6 +34,14 @@ class BaseChannelRepository(ABC):
         ...
 
     @abstractmethod
+    def is_slug_exists(self, slug: str) -> bool:
+        ...
+
+    @abstractmethod
+    def channel_create(self, channel_entity: ChannelEntity) -> ChannelEntity:
+        ...
+
+    @abstractmethod
     def get_channel_by_user_or_none(self, user: UserEntity) -> ChannelEntity | None:
         ...
 
@@ -57,6 +65,13 @@ class BaseChannelRepository(ABC):
 class ORMChannelRepository(BaseChannelRepository):
     def channel_exists(self, id: int) -> bool:
         return Channel.objects.filter(pk=id).exists()
+
+    def is_slug_exists(self, slug: str) -> bool:
+        return Channel.objects.filter(slug=slug).exists()
+
+    def channel_create(self, channel_entity: ChannelEntity) -> ChannelEntity:
+        channel_dto = Channel.objects.create(**channel_entity.__dict__)
+        return channel_to_entity(channel_dto)
 
     def get_channel_by_user_or_none(self, user: UserEntity) -> ChannelEntity | None:
         channel_dto = Channel.objects.filter(user_id=user.id).first()

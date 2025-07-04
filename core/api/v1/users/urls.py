@@ -13,6 +13,7 @@ from rest_framework_simplejwt.views import (
 
 from core.api.v1.users.views.social_auth_views import (
     GenerateSocialAuthUrlView,
+    SocialAuthConnectedList,
     SocialAuthDisconnectView,
     SocialAuthVerifyView,
 )
@@ -41,18 +42,23 @@ urlpatterns = [
 
     # Social auth endpoints
     path(
-        'social_auth/convert_code/<str:provider>/',
+        'oauth2/convert_code/<str:provider>/',
         SocialAuthVerifyView.as_view(),
         name='social-auth',
     ),
     path(
-        'social_auth/url/<str:provider>/',
+        'oauth2/get_url/<str:provider>/',
         GenerateSocialAuthUrlView.as_view(),
         name='social-url',
     ),
     path(
-        'social_auth/disconnect/<str:provider>/',
+        'oauth2/disconnect/<str:provider>/',
         SocialAuthDisconnectView.as_view(),
         name='social-disconnect',
+    ),
+    path(
+        'oauth2/connected/',
+        SocialAuthConnectedList.as_view(),
+        name='social-connected',
     ),
 ]

@@ -387,6 +387,11 @@ SERVER_EMAIL = EMAIL_HOST_USER
 
 #  oauth2-social
 
+OAUTH2_ALLOWED_BACKENDS = {
+    'github': "github",
+    'google': 'google-oauth2',
+}
+
 SOCIAL_AUTH_JSONFIELD_ENABLED = True
 SOCIAL_AUTH_SLUGIFY_USERNAMES = True
 

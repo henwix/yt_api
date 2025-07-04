@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.urls import reverse_lazy
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -9,12 +10,14 @@ from drf_spectacular.utils import (
 )
 from social_core.backends.oauth import BaseOAuth2
 from social_core.exceptions import SocialAuthBaseException
+from social_django.models import UserSocialAuth
 from social_django.utils import (
     load_backend,
     load_strategy,
 )
 
 from core.apps.users.converters.users import user_to_entity
+from core.apps.users.throttles import OAuth2ThrottleClass
 from core.apps.users.use_cases.social_auth import SocialAuthUseCase
 from core.project.containers import get_container
 
@@ -49,6 +52,8 @@ class GenerateSocialAuthUrlView(APIView):
     summary='Social OAuth2. Return JWT tokens in response',
 )
 class SocialAuthVerifyView(APIView):
+    throttle_classes = [OAuth2ThrottleClass]
+
     def get(self, request, provider):
         container = get_container()
         use_case: SocialAuthUseCase = container.resolve(SocialAuthUseCase)
@@ -77,7 +82,7 @@ class SocialAuthVerifyView(APIView):
 class SocialAuthDisconnectView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, provider):
+    def delete(self, request, provider):
         try:
             backend: BaseOAuth2 = load_backend(
                 strategy=load_strategy(request),
@@ -90,4 +95,17 @@ class SocialAuthDisconnectView(APIView):
         except SocialAuthBaseException as e:
             return Response({'error': str(e)}, status=400)
 
-        return Response({'status': 'ok'})
+        return Response({'status': f'{provider} successfully disconnected'})
+
+
+class SocialAuthConnectedList(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_backends = UserSocialAuth.objects.filter(user=request.user)
+        names = [i.provider for i in user_backends]
+        response = {}
+        for i in settings.OAUTH2_ALLOWED_BACKENDS.keys():
+            response[i] = True if i in names else False
+
+        return Response({'connected': response})

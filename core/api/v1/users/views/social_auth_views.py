@@ -1,33 +1,39 @@
-from django.conf import settings
 from django.urls import reverse_lazy
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+import punq
 from drf_spectacular.utils import (
     extend_schema,
     OpenApiParameter,
 )
 from social_core.backends.oauth import BaseOAuth2
 from social_core.exceptions import SocialAuthBaseException
-from social_django.models import UserSocialAuth
 from social_django.utils import (
     load_backend,
     load_strategy,
 )
 
 from core.apps.users.converters.users import user_to_entity
-from core.apps.users.throttles import OAuth2ThrottleClass
-from core.apps.users.use_cases.social_auth import SocialAuthUseCase
+from core.apps.users.throttles import OAuth2ThrottleClass  # noqa
+from core.apps.users.use_cases.oauth2_complete import OAuth2CompleteUseCase
+from core.apps.users.use_cases.oauth2_connected_providers import OAuth2ConnectedProvidersUseCase
 from core.project.containers import get_container
 
 
-class GenerateSocialAuthUrlView(APIView):
+@extend_schema(summary='Get the provider and return the generated link for OAuth2.')
+class OAuth2GenerateUrlView(APIView):
+    # throttle_classes = [OAuth2ThrottleClass]
+
     def get(self, request, provider):
         try:
             redirect_uri = reverse_lazy('v1:users:social-auth', kwargs={'provider': provider})
-            strategy = load_strategy(request)
-            backend = load_backend(strategy=strategy, name=provider, redirect_uri=redirect_uri)
+            backend = load_backend(
+                strategy=load_strategy(request),
+                name=provider,
+                redirect_uri=redirect_uri,
+            )
             if not backend:
                 return Response({'error': 'Invalid provider'}, status=400)
 
@@ -48,15 +54,22 @@ class GenerateSocialAuthUrlView(APIView):
             required=True,
             type=str,
         ),
+        OpenApiParameter(
+            name='state',
+            description='State parameter',
+            required=True,
+            type=str,
+        ),
     ],
-    summary='Social OAuth2. Return JWT tokens in response',
+    summary='Verify SocialOAuth2 data and return JWT tokens as a response if the user is not authorized',
 )
-class SocialAuthVerifyView(APIView):
-    throttle_classes = [OAuth2ThrottleClass]
+class OAuth2ConnectView(APIView):
+    # throttle_classes = [OAuth2ThrottleClass]
 
     def get(self, request, provider):
         container = get_container()
-        use_case: SocialAuthUseCase = container.resolve(SocialAuthUseCase)
+        use_case: OAuth2CompleteUseCase = container.resolve(OAuth2CompleteUseCase)
+        request_user = request.user
 
         try:
             # Load strategy and backend for the specified provider
@@ -66,12 +79,16 @@ class SocialAuthVerifyView(APIView):
                 redirect_uri=reverse_lazy('v1:users:social-auth', kwargs={'provider': provider}),
             )
             # Complete Social OAuth and retrieve or create user
-            user = backend.auth_complete(
-                user=request.user if request.user.is_authenticated else None,
+            retrieved_user = backend.auth_complete(
+                user=request_user if request_user.is_authenticated else None,
             )
 
-            # create a new channel if not exists and return JWT tokens
-            result = use_case.execute(user=user_to_entity(user))
+            # Create a new channel if doesn't exists and return JWT tokens if the user is not authenticated
+            result = use_case.execute(
+                retrieved_user=user_to_entity(retrieved_user),
+                provider=provider,
+                is_authenticated=request_user.is_authenticated,
+            )
 
         except SocialAuthBaseException as e:
             return Response({'error': str(e)}, status=400)
@@ -79,7 +96,8 @@ class SocialAuthVerifyView(APIView):
         return Response(data=result)
 
 
-class SocialAuthDisconnectView(APIView):
+@extend_schema(summary='Disconnect OAuth2 provider')
+class OAuth2DisconnectView(APIView):
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, provider):
@@ -98,14 +116,13 @@ class SocialAuthDisconnectView(APIView):
         return Response({'status': f'{provider} successfully disconnected'})
 
 
-class SocialAuthConnectedList(APIView):
+@extend_schema(summary='Retrieve connected OAuth2 providers')
+class OAuth2ConnectedProvidersView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user_backends = UserSocialAuth.objects.filter(user=request.user)
-        names = [i.provider for i in user_backends]
-        response = {}
-        for i in settings.OAUTH2_ALLOWED_BACKENDS.keys():
-            response[i] = True if i in names else False
+        container: punq.Container = get_container()
+        use_case: OAuth2ConnectedProvidersUseCase = container.resolve(OAuth2ConnectedProvidersUseCase)
 
-        return Response({'connected': response})
+        result = use_case.execute(user=user_to_entity(request.user))
+        return Response(data=result)

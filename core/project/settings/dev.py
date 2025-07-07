@@ -3,6 +3,8 @@ from .main import *  # noqa
 
 DEBUG = True
 
+INSTALLED_APPS.append('silk')  # noqa
+
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',

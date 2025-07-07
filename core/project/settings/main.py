@@ -55,7 +55,6 @@ INSTALLED_APPS = [
     'django_extensions',
     'django_filters',
     'djoser',
-    'silk',
     'drf_spectacular',
     'django.contrib.postgres',
     'django_celery_beat',

@@ -387,10 +387,10 @@ SERVER_EMAIL = EMAIL_HOST_USER
 
 #  oauth2-social
 
-OAUTH2_ALLOWED_BACKENDS = {
-    'github': "github",
+OAUTH2_ALLOWED_PROVIDERS = {
+    'github': 'github',
     'google': 'google-oauth2',
-    'twitter': 'twitter-oauth2',
+    'x': 'twitter-oauth2',
 }
 
 SOCIAL_AUTH_JSONFIELD_ENABLED = True
@@ -417,4 +417,11 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.associate_user',
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',
+)
+
+SOCIAL_AUTH_DISCONNECT_PIPELINE = (
+    'social_core.pipeline.disconnect.allowed_to_disconnect',
+    'social_core.pipeline.disconnect.get_entries',
+    'social_core.pipeline.disconnect.revoke_tokens',
+    'social_core.pipeline.disconnect.disconnect',
 )

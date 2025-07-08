@@ -15,7 +15,7 @@ from core.api.v1.users.views.social_auth_views import (
     OAuth2ConnectedProvidersView,
     OAuth2ConnectView,
     OAuth2DisconnectView,
-    OAuth2GenerateUrlView,
+    OAuth2GenerateURLView,
 )
 from core.api.v1.users.views.user_views import (
     CodeVerifyView,
@@ -44,21 +44,21 @@ urlpatterns = [
     path(
         'oauth2/convert_code/<str:provider>/',
         OAuth2ConnectView.as_view(),
-        name='social-auth',
+        name='oauth2-connect',
     ),
     path(
         'oauth2/get_url/<str:provider>/',
-        OAuth2GenerateUrlView.as_view(),
-        name='social-url',
+        OAuth2GenerateURLView.as_view(),
+        name='oauth2-url',
     ),
     path(
         'oauth2/disconnect/<str:provider>/',
         OAuth2DisconnectView.as_view(),
-        name='social-disconnect',
+        name='oauth2-disconnect',
     ),
     path(
         'oauth2/connected/',
         OAuth2ConnectedProvidersView.as_view(),
-        name='social-connected',
+        name='oauth2-connected',
     ),
 ]

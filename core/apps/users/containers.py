@@ -18,7 +18,9 @@ from core.apps.users.services.codes import (
     EmailCodeService,
 )
 from core.apps.users.services.oauth2 import (
+    BaseOAuth2ProviderValidatorService,
     BaseOAuth2Service,
+    OAuth2ProviderValidatorService,
     OAuth2Service,
 )
 from core.apps.users.services.users import (
@@ -31,8 +33,10 @@ from core.apps.users.use_cases.auth import (
     AuthorizeUserUseCase,
     VerifyCodeUseCase,
 )
-from core.apps.users.use_cases.oauth2_complete import OAuth2CompleteUseCase
+from core.apps.users.use_cases.oauth2_connect import OAuth2ConnectUseCase
 from core.apps.users.use_cases.oauth2_connected_providers import OAuth2ConnectedProvidersUseCase
+from core.apps.users.use_cases.oauth2_disconnect import OAuth2DisconnectUseCase
+from core.apps.users.use_cases.oauth2_generate_url import OAuth2GenerateURLUseCase
 
 
 def init_users(container: punq.Container) -> None:
@@ -41,6 +45,7 @@ def init_users(container: punq.Container) -> None:
     container.register(BaseUserValidatorService, UserExistsValidatorService)
     container.register(BaseCodeService, EmailCodeService)
     container.register(BaseOAuth2Service, OAuth2Service)
+    container.register(BaseOAuth2ProviderValidatorService, OAuth2ProviderValidatorService)
 
     #  repositories
     container.register(BaseUserRepository, ORMUserRepository)
@@ -53,7 +58,9 @@ def init_users(container: punq.Container) -> None:
     container.register(AuthorizeUserUseCase)
     container.register(VerifyCodeUseCase)
 
-    container.register(OAuth2CompleteUseCase)
+    container.register(OAuth2GenerateURLUseCase)
+    container.register(OAuth2ConnectUseCase)
+    container.register(OAuth2DisconnectUseCase)
     container.register(OAuth2ConnectedProvidersUseCase)
 
     #  clients

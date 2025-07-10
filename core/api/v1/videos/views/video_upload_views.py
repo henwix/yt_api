@@ -30,18 +30,6 @@ from core.project.containers import get_container
 
 
 @extend_schema(
-    request={
-        'application/json': {
-            'type': 'object',
-            'properties': {
-                'name': {'type': 'string'},
-                'description': {'type': 'string'},
-                'status': {'type': 'string'},
-                'filename': {'type': 'string'},
-            },
-            'required': ['name', 'filename'],
-        },
-    },
     responses={
         201: {
             'type': 'object',
@@ -61,7 +49,7 @@ from core.project.containers import get_container
 )
 class CreateMultipartUploadView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = video_serializers.VideoSerializer
+    serializer_class = video_serializers.VideoCreateSerializer
 
     def post(self, request):
         container: punq.Container = get_container()
@@ -74,7 +62,7 @@ class CreateMultipartUploadView(generics.GenericAPIView):
         try:
             result = use_case.execute(
                 user=user_to_entity(request.user),
-                filename=request.data.get('filename'),
+                filename=serializer.validated_data.pop('filename'),
                 validated_data=serializer.validated_data,
             )
 

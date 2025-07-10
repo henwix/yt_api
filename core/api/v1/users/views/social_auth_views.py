@@ -25,7 +25,7 @@ from core.project.containers import get_container
 
 @extend_schema(summary='Generate URL for OAuth2 authorization')
 class OAuth2GenerateURLView(APIView):
-    # throttle_classes = [OAuth2ThrottleClass]
+    throttle_classes = [OAuth2ThrottleClass]
 
     def get(self, request, provider):
         container: punq.Container = get_container()
@@ -66,7 +66,7 @@ class OAuth2GenerateURLView(APIView):
     summary='Verify SocialOAuth2 data and connect service to user',
 )
 class OAuth2ConnectView(APIView):
-    # throttle_classes = [OAuth2ThrottleClass]
+    throttle_classes = [OAuth2ThrottleClass]
 
     def get(self, request, provider):
         container = get_container()

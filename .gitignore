@@ -5,6 +5,7 @@
 __pycache__/
 test.py
 test.html
+test2.html
 media
 api.http
 local.py

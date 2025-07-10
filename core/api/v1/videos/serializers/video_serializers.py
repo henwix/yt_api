@@ -50,6 +50,19 @@ class VideoCommentCreatedSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField()
 
 
+class VideoCreateSerializer(serializers.ModelSerializer):
+    filename = serializers.CharField()
+
+    class Meta:
+        model = Video
+        fields = [
+            'name',
+            'description',
+            'status',
+            'filename',
+        ]
+
+
 class VideoSerializer(serializers.ModelSerializer):
     """Video serializer for video creation, updating and retrieving."""
 

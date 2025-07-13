@@ -18,20 +18,17 @@ DATABASES = {
 }
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://api.henwix.space',
-    'https://api.henwix.space:443',
     f"https://{os.environ.get('ADMIN_DOMAIN')}",
     f"https://{os.environ.get('ADMIN_DOMAIN')}:443",
 ]
 
 ALLOWED_HOSTS = [
-    'api.henwix.space',
-    'admin.henwix.space',
+    os.environ.get('API_DOMAIN'),
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    'https://api.henwix.space',
-    'https://api.henwix.space:443',
+    f"https://{os.environ.get('API_DOMAIN')}",
+    f"https://{os.environ.get('API_DOMAIN')}:443",
     f"https://{os.environ.get('ADMIN_DOMAIN')}",
     f"https://{os.environ.get('ADMIN_DOMAIN')}:443",
 ]

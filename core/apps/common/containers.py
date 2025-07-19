@@ -18,8 +18,10 @@ from core.apps.common.services.cache import (
 )
 from core.apps.common.services.files import (
     BaseFileExistsInS3ValidatorService,
+    BaseMultipartUploadExistsInS3ValidatorService,
     BaseS3FileService,
     FileExistsInS3ValidatorService,
+    MultipartUploadExistsInS3ValidatorService,
     S3FileService,
 )
 
@@ -34,6 +36,7 @@ def init_common(container: punq.Container):
     container.register(BaseCacheService, CacheService)
     container.register(BaseS3FileService, S3FileService)
     container.register(BaseFileExistsInS3ValidatorService, FileExistsInS3ValidatorService)
+    container.register(BaseMultipartUploadExistsInS3ValidatorService, MultipartUploadExistsInS3ValidatorService)
 
     # clients
     container.register(BotoClient)

@@ -6,7 +6,10 @@ from dataclasses import dataclass
 
 from botocore.exceptions import ClientError
 
-from core.apps.common.exceptions import S3FileWithKeyNotExistsError
+from core.apps.common.exceptions import (
+    MultipartUploadExistsError,
+    S3FileWithKeyNotExistsError,
+)
 from core.apps.common.providers.files import (
     BaseBotoFileProvider,
     BaseCeleryFileProvider,
@@ -29,6 +32,23 @@ class FileExistsInS3ValidatorService(BaseFileExistsInS3ValidatorService):
             self.boto_provider.head_object(key=key)
         except ClientError:
             raise S3FileWithKeyNotExistsError(key=key)
+
+
+class BaseMultipartUploadExistsInS3ValidatorService(ABC):
+    @abstractmethod
+    def validate(self, key: str, upload_id: str) -> None:
+        ...
+
+
+@dataclass
+class MultipartUploadExistsInS3ValidatorService(BaseMultipartUploadExistsInS3ValidatorService):
+    boto_provider: BaseBotoFileProvider
+
+    def validate(self, key: str, upload_id: str) -> None:
+        try:
+            self.boto_provider.list_parts(key=key, upload_id=upload_id)
+        except ClientError:
+            raise MultipartUploadExistsError(key=key, upload_id=upload_id)
 
 
 @dataclass

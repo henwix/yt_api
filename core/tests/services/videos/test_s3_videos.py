@@ -1,5 +1,8 @@
 import pytest
+from punq import Container
 
+from core.apps.common.exceptions import MultipartUploadExistsError
+from core.apps.common.services.files import BaseMultipartUploadExistsInS3ValidatorService
 from core.apps.videos.exceptions.upload import (
     VideoFilenameFormatError,
     VideoFilenameNotProvidedError,
@@ -31,3 +34,12 @@ def test_video_filename_format_correct(
 ):
     """Test that the video filename format is correct."""
     video_filename_validator_service.validate(filename=filename)
+
+
+@pytest.mark.django_db
+def test_video_abort_not_exists_error(container: Container):
+    validator: BaseMultipartUploadExistsInS3ValidatorService = container.resolve(
+        BaseMultipartUploadExistsInS3ValidatorService,
+    )
+    with pytest.raises(MultipartUploadExistsError):
+        validator.validate(key='test_key_video.mp4', upload_id='test_upload_id_123')

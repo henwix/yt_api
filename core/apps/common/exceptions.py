@@ -30,3 +30,16 @@ class S3FileWithKeyNotExistsError(ServiceException):
     @property
     def message(self):
         return 'File with this key does not exist in S3'
+
+
+@dataclass
+class MultipartUploadExistsError(ServiceException):
+    status_code = status.HTTP_404_NOT_FOUND
+    default_detail = {'error': 'Multipart upload with this key and upload_id does not exist in S3'}
+
+    key: str
+    upload_id: str
+
+    @property
+    def message(self):
+        return 'Multipart upload with this key and upload_id does not exist in S3'

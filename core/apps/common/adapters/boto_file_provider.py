@@ -154,3 +154,8 @@ class BotoFileProvider(BaseBotoFileProvider):
         client, bucket = self._get_client_and_bucket()
 
         client.head_object(Bucket=bucket, Key=key)
+
+    def list_parts(self, key: str, upload_id: str) -> None:
+        client, bucket = self._get_client_and_bucket()
+
+        client.list_parts(Bucket=bucket, Key=key, UploadId=upload_id)

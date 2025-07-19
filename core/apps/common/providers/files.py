@@ -102,3 +102,8 @@ class BaseBotoFileProvider(ABC):
 
         """
         ...
+
+    @abstractmethod
+    def list_parts(self, key: str, upload_id: str) -> None:
+        """Check if the Multipart Upload has parts and exists is S3."""
+        ...

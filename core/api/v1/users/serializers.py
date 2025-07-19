@@ -3,9 +3,11 @@ import uuid
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 
+from djoser.conf import settings
 from djoser.serializers import (
     UserCreatePasswordRetypeSerializer,
     UserCreateSerializer,
+    UsernameResetConfirmSerializer,
     UserSerializer,
     ValidationError,
 )
@@ -105,3 +107,16 @@ class CustomUserSerializer(UserSerializer):
         fields['channel'] = ChannelSerializer(read_only=True)
 
         return fields
+
+
+class CustomUsernameResetConfirmSerializer(UsernameResetConfirmSerializer):
+    """Inherit from base UsernameResetConfirmSerializer from Djoser.
+
+    Add fields 'uid' and 'token' to fix Serializer error where they are
+    not displayed in Swagger schema
+
+    """
+
+    class Meta:
+        model = UsernameResetConfirmSerializer.Meta.model
+        fields = (settings.LOGIN_FIELD, 'uid', 'token')

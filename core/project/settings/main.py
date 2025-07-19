@@ -215,13 +215,15 @@ DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm?uid={uid}&token={token}',
     'USERNAME_RESET_CONFIRM_URL': 'username/reset/confirm?uid={uid}&token={token}',
     'ACTIVATION_URL': 'activate/?uid={uid}&token={token}',
-    'EMAIL_FRONTEND_DOMAIN': 'front-domain.com',
-    'EMAIL_FRONTEND_SITE_NAME': 'YT',
+    'EMAIL_FRONTEND_DOMAIN': 'api.henwix.space',
+    'EMAIL_FRONTEND_PROTOCOL': 'https',
+    'EMAIL_FRONTEND_SITE_NAME': 'YouTube-Like-API',
     'SERIALIZERS': {
         'user_create': 'core.api.v1.users.serializers.CustomUserCreateSerializer',
         'user_create_password_retype': 'core.api.v1.users.serializers.CustomUserCreatePasswordRetypeSerializer',
         'user': 'core.api.v1.users.serializers.CustomUserSerializer',
         'current_user': 'core.api.v1.users.serializers.CustomUserSerializer',
+        'username_reset_confirm': 'core.api.v1.users.serializers.CustomUsernameResetConfirmSerializer',
     },
 }
 

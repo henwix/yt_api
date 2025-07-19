@@ -204,7 +204,7 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
     'DISABLE_ERRORS_AND_WARNINGS': True,
     'SORT_OPERATIONS': False,
-    'SCHEMA_PATH_PREFIX': r'/api/v[1-2]/',
+    'SCHEMA_PATH_PREFIX': r'/v[1-2]/',
     'SWAGGER_UI_SETTINGS': {'deepLinking': True, 'persistAuthorization': True},
 }
 

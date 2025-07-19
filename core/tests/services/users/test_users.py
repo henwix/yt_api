@@ -65,8 +65,8 @@ def test_jwt_generated_for_user(user_service: BaseUserService, client: APIClient
     tokens = user_service.generate_jwt(user=user)
     client.credentials(HTTP_AUTHORIZATION=tokens.get('access'))
 
-    access_response = client.post('/api/v1/token/verify/', {'token': tokens.get('access')})
-    refresh_response = client.post('/api/v1/token/verify/', {'token': tokens.get('refresh')})
+    access_response = client.post('/v1/token/verify/', {'token': tokens.get('access')})
+    refresh_response = client.post('/v1/token/verify/', {'token': tokens.get('refresh')})
 
     assert access_response.status_code == 200
     assert refresh_response.status_code == 200

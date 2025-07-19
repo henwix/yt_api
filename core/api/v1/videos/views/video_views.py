@@ -77,7 +77,7 @@ class VideoViewSet(
 
     Supports searching by 'name', 'description', 'author__name', 'author__slug' fields.
     Returns nothing if 'search' query-param was not provided - '?search' param for listing is required.
-    Example: api/v1/video?search=airplane
+    Example: /v1/video?search=airplane
 
     """
 
@@ -443,7 +443,7 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
     """API endpoint to get list of watched videos.
 
     Supports cursor pagination.
-    Example: api/v1/history/
+    Example: /v1/history/
 
     """
 
@@ -650,7 +650,7 @@ class PlaylistAPIView(viewsets.ModelViewSet):
 
         Requires 'playlist id' in URL and 'v' query param which contains video_id.
 
-        Example: /api/v1/playlist/W9MghI-EVXdkfYzfuvUmCCWlJRcPm1FT/delete-video/?v=33CjPuGJsEZ
+        Example: /v1/playlist/W9MghI-EVXdkfYzfuvUmCCWlJRcPm1FT/delete-video/?v=33CjPuGJsEZ
 
         """
         try:

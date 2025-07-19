@@ -17,14 +17,14 @@ fake = Faker()
 
 @pytest.mark.django_db
 def test_channel_data_retrieved_correctly(client: APIClient, jwt_and_channel):
-    """Test channel data retrieved after GET request to endpoint: /api/v1/channel/"""
+    """Test channel data retrieved after GET request to endpoint: /v1/channel/"""
 
     cache.delete('retrieve_channel_1')  # delete cache with user_id 1
 
     jwt, channel = jwt_and_channel
     client.credentials(HTTP_AUTHORIZATION=jwt)
 
-    response = client.get('/api/v1/channel/')
+    response = client.get('/v1/channel/')
 
     assert response.status_code == 200
     assert response.data.get('name') == channel.name
@@ -35,9 +35,9 @@ def test_channel_data_retrieved_correctly(client: APIClient, jwt_and_channel):
 
 @pytest.mark.django_db
 def test_channel_data_changed_correctly(client: APIClient, jwt: str):
-    """Test channel data changed after PATCH request to endpoint: /api/v1/channel/."""
+    """Test channel data changed after PATCH request to endpoint: /v1/channel/."""
 
-    url = '/api/v1/channel/'
+    url = '/v1/channel/'
     payload = {
         'name': 'TestName123',
         'slug': 'TestSlug123',
@@ -68,7 +68,7 @@ def test_channel_about_data_retrieved_correctly(
     VideoViewModelFactory.create_batch(size=expected_views, video=v[0])  # create views
     SubscriptionItemModelFactory.create_batch(size=expected_subs, subscribed_to=channel)  # create subs
 
-    response = client.get(f'/api/v1/channels/{channel.slug}/about')
+    response = client.get(f'/v1/channels/{channel.slug}/about')
 
     print(response)
 

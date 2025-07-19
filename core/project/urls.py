@@ -19,7 +19,7 @@ urlpatterns = [
     path(os.environ.get('DJANGO_ADMIN_PATH') + "/", admin.site.urls),
 
     # API v1 endpoints
-    path('api/v1/', include('core.api.v1.urls')),
+    path('v1/', include('core.api.v1.urls')),
 
     # documentation
     path('schema/', SpectacularAPIView.as_view(), name='schema'),

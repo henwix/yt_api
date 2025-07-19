@@ -136,4 +136,4 @@ def abort_multipart_upload_task(self, key: str, upload_id: str) -> str:
         extra={'log_meta': orjson.dumps({'key': key, 'upload_id': upload_id}).decode()},
     )
 
-    return 'Multipart upload successfully aborted from AWS S3. Key: {key}, Upload ID: {upload_id}'
+    return f'Multipart upload successfully aborted from AWS S3. Key: {key}, Upload ID: {upload_id}'

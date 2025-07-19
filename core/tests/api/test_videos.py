@@ -30,7 +30,7 @@ def test_video_retrieved(
     VideoLikeModelFactory.create_batch(size=expected_likes, video=video)
     VideoCommentModelFactory.create_batch(size=expected_comments, video=video)
 
-    url = f'/api/v1/videos/{video.video_id}/'
+    url = f'/v1/videos/{video.video_id}/'
     response = client.get(url)
 
     assert response.status_code == 200
@@ -54,7 +54,7 @@ def test_video_deleted(client: APIClient, jwt_and_channel: tuple):
 
     assert Video.objects.filter(video_id=video.video_id).exists()
 
-    response = client.delete(f'/api/v1/videos/{video.video_id}/')
+    response = client.delete(f'/v1/videos/{video.video_id}/')
 
     assert response.status_code == 204
     assert not Video.objects.filter(video_id=video.video_id).exists()
@@ -73,7 +73,7 @@ def test_video_updated(client: APIClient, jwt_and_channel: tuple):
         'status': 'PRIVATE',
     }
 
-    response = client.patch(f'/api/v1/videos/{video.video_id}/', payload)
+    response = client.patch(f'/v1/videos/{video.video_id}/', payload)
 
     assert response.status_code == 200
     assert response.data.get('name') == payload.get('name')
@@ -87,7 +87,7 @@ def test_video_search(client: APIClient):
     VideoModelFactory.create(name='test')  # create video with name 'test'
     VideoModelFactory.create(description='test')  # create video with description 'test'
 
-    response = client.get('/api/v1/videos/?search=test')
+    response = client.get('/v1/videos/?search=test')
 
     assert response.status_code == 200
     assert len(response.data.get('results')) == 2

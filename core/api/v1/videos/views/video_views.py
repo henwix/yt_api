@@ -24,9 +24,9 @@ from drf_spectacular.utils import (
 )
 
 from core.api.v1.videos.serializers.video_serializers import (
+    CommentCreatedSerializer,
     PlaylistPreviewSerializer,
     PlaylistSerializer,
-    VideoCommentCreatedSerializer,
     VideoCommentSerializer,
     VideoHistorySerializer,
     VideoPreviewSerializer,
@@ -59,7 +59,7 @@ from core.apps.videos.services.videos import (
 )
 from core.apps.videos.signals import video_pre_delete
 from core.apps.videos.use_cases.comments.comment_create import CreateVideoCommentUseCase
-from core.apps.videos.use_cases.comments.get_comments_list import GetCommentsUseCase
+from core.apps.videos.use_cases.comments.get_comments_list import GetVideoCommentsUseCase
 from core.apps.videos.use_cases.comments.like_create import CommentLikeCreateUseCase
 from core.apps.videos.use_cases.comments.like_delete import CommentLikeDeleteUseCase
 from core.project.containers import get_container
@@ -303,7 +303,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
             return self.service.get_annotated_queryset()
         return self.service.get_related_queryset()
 
-    @extend_schema(responses=VideoCommentCreatedSerializer)
+    @extend_schema(responses=CommentCreatedSerializer)
     def create(self, request, *args, **kwargs):
         use_case: CreateVideoCommentUseCase = self.container.resolve(CreateVideoCommentUseCase)
 
@@ -321,7 +321,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
-        return Response(VideoCommentCreatedSerializer(result).data, status=status.HTTP_201_CREATED)
+        return Response(CommentCreatedSerializer(result).data, status=status.HTTP_201_CREATED)
 
     @extend_schema(
         parameters=[
@@ -335,7 +335,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
         summary="Get video's comments",
     )
     def list(self, request, *args, **kwargs):
-        use_case: GetCommentsUseCase = self.container.resolve(GetCommentsUseCase)
+        use_case: GetVideoCommentsUseCase = self.container.resolve(GetVideoCommentsUseCase)
 
         try:
             qs = use_case.execute(

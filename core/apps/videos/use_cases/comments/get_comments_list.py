@@ -12,7 +12,7 @@ from core.apps.videos.services.videos import (
 
 
 @dataclass
-class GetCommentsUseCase:
+class GetVideoCommentsUseCase:
     channel_service: BaseChannelService
     video_service: BaseVideoService
     comment_service: BaseVideoCommentService

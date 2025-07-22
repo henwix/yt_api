@@ -1,7 +1,10 @@
 from logging import Logger
 
 from django.conf import settings
-from rest_framework import status
+from rest_framework import (
+    filters,
+    status,
+)
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -13,6 +16,11 @@ from drf_spectacular.utils import (
     OpenApiParameter,
 )
 
+from core.api.v1.posts.serializers.post_comment_serializers import (
+    CommentCreateSerializer,
+    CommentRetrieveSerializer,
+    CommentUpdateSerializer,
+)
 from core.api.v1.posts.serializers.post_serializers import (
     PostDetailedSerializer,
     PostInSerializer,
@@ -22,16 +30,24 @@ from core.api.v1.posts.serializers.post_serializers import (
     PostOutSerializer,
     PostSerializer,
 )
+from core.api.v1.videos.serializers.video_serializers import CommentCreatedSerializer
 from core.apps.common.exceptions import ServiceException
 from core.apps.common.mixins import CustomViewMixin
 from core.apps.common.pagination import CustomCursorPagination
-from core.apps.common.permissions import IsAuthenticatedOrAuthorOrAdminOrReadOnly
+from core.apps.common.permissions import (
+    IsAuthenticatedOrAuthorOrAdminOrReadOnly,
+    IsAuthenticatedOrAuthorOrReadOnly,
+)
 from core.apps.common.services.cache import BaseCacheService
+from core.apps.posts.converters.posts import post_to_entity
+from core.apps.posts.services.comments import BasePostCommentService
 from core.apps.posts.services.posts import BasePostService
+from core.apps.posts.use_cases.create_comment import CreatePostCommentUseCase
 from core.apps.posts.use_cases.create_post import PostCreateUseCase
 from core.apps.posts.use_cases.create_post_like import PostLikeCreateUseCase
 from core.apps.posts.use_cases.delete_post_like import PostLikeDeleteUseCase
 from core.apps.posts.use_cases.get_channel_posts import GetChannelPostsUseCase
+from core.apps.posts.use_cases.get_list_comments import GetPostCommentsUseCase
 from core.apps.users.converters.users import user_to_entity
 from core.project.containers import get_container
 
@@ -91,6 +107,7 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
         summary="Get channel's posts",
     )
     def list(self, request, *args, **kwargs):
+        #  TODO: почему-то не отображается правильное кол-во постов при листинге
         use_case: GetChannelPostsUseCase = self.container.resolve(GetChannelPostsUseCase)
         slug = request.query_params.get('s')
         cache_key = f"{settings.CACHE_KEYS.get('related_posts')}{slug}_{request.query_params.get('c', '1')}"
@@ -153,3 +170,77 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
             raise
 
         return Response(result, status.HTTP_204_NO_CONTENT)
+
+
+class CommentPostAPIView(ModelViewSet, CustomViewMixin):
+    pagination_class = CustomCursorPagination
+    permission_classes = [IsAuthenticatedOrAuthorOrReadOnly]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['created_at', 'likes_count', 'replies_count']
+    ordering = ['-likes_count']
+
+    def __init__(self, **kwargs):
+        self.container: punq.Container = get_container()
+        self.logger: Logger = self.container.resolve(Logger)
+        self.post_service: BasePostCommentService = self.container.resolve(BasePostCommentService)
+        self.cache_service: BaseCacheService = self.container.resolve(BaseCacheService)
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return CommentCreateSerializer
+        if self.action in ['update', 'partial_update']:
+            return CommentUpdateSerializer
+        return CommentRetrieveSerializer
+
+    def get_queryset(self):
+        if self.action in ['destroy', 'update', 'partial_update']:
+            return self.post_service.get_all_comments()
+        return self.post_service.get_comments_for_retrieving()
+
+    @extend_schema(responses=CommentCreatedSerializer)
+    def create(self, request, *args, **kwargs):
+        use_case: CreatePostCommentUseCase = self.container.resolve(CreatePostCommentUseCase)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            result = use_case.execute(
+                user=user_to_entity(request.user),
+                post=post_to_entity(serializer.validated_data.get('post')),
+                text=serializer.validated_data.get('text'),
+                reply_comment_id=getattr(serializer.validated_data.get('reply_comment'), 'pk', None),
+            )
+
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+        return Response(CommentCreatedSerializer(result).data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        self.post_service.change_updated_status(comment_id=kwargs.get('pk'), is_updated=True)
+        return response
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='p',
+                description="Parameter identifying post to get related post's comment",
+                required=True,
+                type=str,
+            ),
+        ],
+        summary="Get post's comments",
+    )
+    def list(self, request, *args, **kwargs):
+        use_case: GetPostCommentsUseCase = self.container.resolve(GetPostCommentsUseCase)
+        try:
+            qs = use_case.execute(
+                post_id=request.query_params.get('p'),
+            )
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        result = self.mixin_filtration_and_pagination(qs)
+        return result

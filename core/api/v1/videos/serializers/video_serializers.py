@@ -43,7 +43,7 @@ class VideoCommentSerializer(serializers.ModelSerializer):
         read_only_fields = ['pk', 'is_updated', 'created_at', 'reply_level']
 
 
-class VideoCommentCreatedSerializer(serializers.Serializer):
+class CommentCreatedSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     text = serializers.CharField()
     reply_level = serializers.IntegerField()

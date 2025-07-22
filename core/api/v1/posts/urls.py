@@ -4,14 +4,18 @@ from django.urls import (
 )
 from rest_framework.routers import DefaultRouter
 
-from core.api.v1.posts.views import PostAPIViewset
+from core.api.v1.posts.views import (
+    CommentPostAPIView,
+    PostAPIViewset,
+)
 
 
 app_name = "posts"
 
 
 router = DefaultRouter()
-router.register("posts", PostAPIViewset, basename='videos')
+router.register("posts", PostAPIViewset, basename='posts')
+router.register("posts-comments", CommentPostAPIView, basename='posts-comments')
 
 
 urlpatterns = [

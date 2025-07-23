@@ -10,7 +10,10 @@ from django.db.models import (
     Q,
 )
 
+from core.apps.channels.entities.channels import ChannelEntity
+from core.apps.common.exceptions.comments import CommentNotFoundError
 from core.apps.posts.entities.comments import PostCommentEntity
+from core.apps.posts.entities.likes import PostCommentLikeItemEntity
 from core.apps.posts.models import PostCommentItem
 from core.apps.posts.repositories.comments import BasePostCommentRepository
 
@@ -24,6 +27,27 @@ class BasePostCommentService(ABC):
         ...
 
     @abstractmethod
+    def get_by_id_or_404(self, id: int) -> PostCommentEntity:
+        ...
+
+    @abstractmethod
+    def like_get_or_create(
+        self,
+        author: ChannelEntity,
+        comment: PostCommentEntity,
+        is_like: bool,
+    ) -> tuple[PostCommentLikeItemEntity, bool]:
+        ...
+
+    @abstractmethod
+    def like_delete(self, author: ChannelEntity, comment: PostCommentEntity) -> bool:
+        ...
+
+    @abstractmethod
+    def update_like_status(self, like_id: int, is_like: bool) -> None:
+        ...
+
+    @abstractmethod
     def get_all_comments(self) -> Iterable[PostCommentItem]:
         ...
 
@@ -32,7 +56,11 @@ class BasePostCommentService(ABC):
         ...
 
     @abstractmethod
-    def change_updated_status(self, comment_id: str, is_updated: bool) -> None:
+    def get_replies_by_comment_id(self, comment_id: int) -> Iterable[PostCommentItem]:
+        ...
+
+    @abstractmethod
+    def change_updated_status(self, comment_id: int, is_updated: bool) -> None:
         ...
 
     @abstractmethod
@@ -51,6 +79,37 @@ class PostCommentService(BasePostCommentService):
         comment_entity.update_reply_level()
         return self.repository.create_comment(comment_entity=comment_entity)
 
+    def get_by_id_or_404(self, id: int) -> PostCommentEntity:
+        comment = self.repository.get_by_id_or_none(id=id)
+
+        if comment is None:
+            raise CommentNotFoundError()
+
+        return comment
+
+    def like_get_or_create(
+        self,
+        author: ChannelEntity,
+        comment: PostCommentEntity,
+        is_like: bool,
+    ) -> tuple[PostCommentLikeItemEntity, bool]:
+        like, created = self.repository.like_get_or_create(
+            author=author,
+            comment=comment,
+            is_like=is_like,
+        )
+        return like, created
+
+    def like_delete(self, author: ChannelEntity, comment: PostCommentEntity) -> bool:
+        deleted = self.repository.like_delete(
+            author=author,
+            comment=comment,
+        )
+        return deleted
+
+    def update_like_status(self, like_id: int, is_like: bool) -> None:
+        self.repository.update_like_status(like_id=like_id, is_like=is_like)
+
     def get_all_comments(self) -> Iterable[PostCommentItem]:
         return self.repository.get_all_comments()
 
@@ -58,7 +117,11 @@ class PostCommentService(BasePostCommentService):
         qs = self.repository.get_all_comments()
         return self._build_query(qs=qs)
 
-    def change_updated_status(self, comment_id: str, is_updated: bool) -> None:
+    def get_replies_by_comment_id(self, comment_id: int) -> Iterable[PostCommentItem]:
+        qs = self._build_query(qs=self.repository.get_all_comments())
+        return qs.filter(reply_level=1, reply_comment_id=comment_id)
+
+    def change_updated_status(self, comment_id: int, is_updated: bool) -> None:
         self.repository.change_updated_status(comment_id=comment_id, is_updated=is_updated)
 
     def get_comments_by_post_id(self, post_id: str) -> Iterable[PostCommentItem]:

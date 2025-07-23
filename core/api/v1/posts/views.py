@@ -3,6 +3,7 @@ from logging import Logger
 from django.conf import settings
 from rest_framework import (
     filters,
+    serializers as drf_serializers,
     status,
 )
 from rest_framework.decorators import action
@@ -13,9 +14,21 @@ import orjson
 import punq
 from drf_spectacular.utils import (
     extend_schema,
+    inline_serializer,
+    OpenApiExample,
     OpenApiParameter,
+    OpenApiResponse,
 )
 
+from core.api.v1.common.serializers.comments import (
+    CommentIdParameterSerializer,
+    CommentLikeSerializer,
+    PostLikeSerializer,
+)
+from core.api.v1.common.serializers.serializers import (
+    LikeCreateInSerializer,
+    LikeCreateOutSerializer,
+)
 from core.api.v1.posts.serializers.post_comment_serializers import (
     CommentCreateSerializer,
     CommentRetrieveSerializer,
@@ -24,14 +37,12 @@ from core.api.v1.posts.serializers.post_comment_serializers import (
 from core.api.v1.posts.serializers.post_serializers import (
     PostDetailedSerializer,
     PostInSerializer,
-    PostLikeCreateInSerializer,
-    PostLikeCreateOutSerializer,
-    PostLikeDeleteOutSerializer,
     PostOutSerializer,
     PostSerializer,
+    PostUIDSerializer,
 )
 from core.api.v1.videos.serializers.video_serializers import CommentCreatedSerializer
-from core.apps.common.exceptions import ServiceException
+from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.common.mixins import CustomViewMixin
 from core.apps.common.pagination import CustomCursorPagination
 from core.apps.common.permissions import (
@@ -42,12 +53,15 @@ from core.apps.common.services.cache import BaseCacheService
 from core.apps.posts.converters.posts import post_to_entity
 from core.apps.posts.services.comments import BasePostCommentService
 from core.apps.posts.services.posts import BasePostService
-from core.apps.posts.use_cases.create_comment import CreatePostCommentUseCase
-from core.apps.posts.use_cases.create_post import PostCreateUseCase
-from core.apps.posts.use_cases.create_post_like import PostLikeCreateUseCase
-from core.apps.posts.use_cases.delete_post_like import PostLikeDeleteUseCase
-from core.apps.posts.use_cases.get_channel_posts import GetChannelPostsUseCase
-from core.apps.posts.use_cases.get_list_comments import GetPostCommentsUseCase
+from core.apps.posts.use_cases.posts.create_post import PostCreateUseCase
+from core.apps.posts.use_cases.posts.create_post_like import PostLikeCreateUseCase
+from core.apps.posts.use_cases.posts.delete_post_like import PostLikeDeleteUseCase
+from core.apps.posts.use_cases.posts.get_channel_posts import GetChannelPostsUseCase
+from core.apps.posts.use_cases.posts_comments.create_comment import CreatePostCommentUseCase
+from core.apps.posts.use_cases.posts_comments.get_list_comments import GetPostCommentsUseCase
+from core.apps.posts.use_cases.posts_comments.get_replies_list_comments import GetPostCommentRepliesUseCase
+from core.apps.posts.use_cases.posts_comments.like_create import PostCommentLikeCreateUseCase
+from core.apps.posts.use_cases.posts_comments.like_delete import PostCommentLikeDeleteUseCase
 from core.apps.users.converters.users import user_to_entity
 from core.project.containers import get_container
 
@@ -107,7 +121,6 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
         summary="Get channel's posts",
     )
     def list(self, request, *args, **kwargs):
-        #  TODO: почему-то не отображается правильное кол-во постов при листинге
         use_case: GetChannelPostsUseCase = self.container.resolve(GetChannelPostsUseCase)
         slug = request.query_params.get('s')
         cache_key = f"{settings.CACHE_KEYS.get('related_posts')}{slug}_{request.query_params.get('c', '1')}"
@@ -131,21 +144,21 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
         )
 
     @extend_schema(
-        request=PostLikeCreateInSerializer,
-        responses=PostLikeCreateOutSerializer,
+        request=LikeCreateInSerializer,
+        responses=LikeCreateOutSerializer,
         summary='Like or dislike post',
     )
     @action(methods=['post'], detail=True, url_path='like')
     def like_create(self, request, post_id):
         use_case: PostLikeCreateUseCase = self.container.resolve(PostLikeCreateUseCase)
 
-        serializer = PostLikeCreateInSerializer(data=request.data)
+        serializer = PostLikeSerializer(data={'is_like': request.data.get('is_like', True), 'post_id': post_id})
         serializer.is_valid(raise_exception=True)
 
         try:
             result = use_case.execute(
                 user=user_to_entity(request.user),
-                post_id=post_id,
+                post_id=serializer.validated_data.get('post_id'),
                 is_like=serializer.validated_data.get('is_like'),
             )
         except ServiceException as error:
@@ -155,15 +168,40 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
         return Response(result, status.HTTP_201_CREATED)
 
     @extend_schema(
-        responses=PostLikeDeleteOutSerializer,
-        summary="Delete Post's like or dislike",
+        responses={
+            201: OpenApiResponse(
+                response=inline_serializer(
+                    name='PostLikeDeleted',
+                    fields={
+                        'status': drf_serializers.CharField(),
+                    },
+                ),
+                description="Like deleted",
+                examples=[
+                    OpenApiExample(
+                        name="Deleted",
+                        value={
+                            "status": "success",
+                        },
+                        response_only=True,
+                    ),
+                ],
+            ),
+        },
+        summary='Delete like or dislike post',
     )
     @action(url_path='unlike', methods=['delete'], detail=True)
     def like_delete(self, request, post_id):
         use_case: PostLikeDeleteUseCase = self.container.resolve(PostLikeDeleteUseCase)
 
+        serializer = PostLikeSerializer(data={'post_id': post_id})
+        serializer.is_valid(raise_exception=True)
+
         try:
-            result = use_case.execute(user=user_to_entity(request.user), post_id=post_id)
+            result = use_case.execute(
+                user=user_to_entity(request.user),
+                post_id=serializer.validated_data.get('post_id'),
+            )
 
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -172,12 +210,15 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
         return Response(result, status.HTTP_204_NO_CONTENT)
 
 
-class CommentPostAPIView(ModelViewSet, CustomViewMixin):
+class CommentPostAPIView(
+    ModelViewSet,
+    CustomViewMixin,
+):
     pagination_class = CustomCursorPagination
-    permission_classes = [IsAuthenticatedOrAuthorOrReadOnly]
     filter_backends = [filters.OrderingFilter]
-    ordering_fields = ['created_at', 'likes_count', 'replies_count']
+    ordering_fields = ['created_at', 'likes_count']
     ordering = ['-likes_count']
+    permission_classes = [IsAuthenticatedOrAuthorOrReadOnly]
 
     def __init__(self, **kwargs):
         self.container: punq.Container = get_container()
@@ -196,6 +237,11 @@ class CommentPostAPIView(ModelViewSet, CustomViewMixin):
         if self.action in ['destroy', 'update', 'partial_update']:
             return self.post_service.get_all_comments()
         return self.post_service.get_comments_for_retrieving()
+
+    def filter_queryset(self, queryset):
+        if self.action in ['list']:
+            return super().filter_queryset(queryset)
+        return queryset
 
     @extend_schema(responses=CommentCreatedSerializer)
     def create(self, request, *args, **kwargs):
@@ -225,7 +271,7 @@ class CommentPostAPIView(ModelViewSet, CustomViewMixin):
         parameters=[
             OpenApiParameter(
                 name='p',
-                description="Parameter identifying post to get related post's comment",
+                description="Parameter identifying post to get related comment",
                 required=True,
                 type=str,
             ),
@@ -234,6 +280,10 @@ class CommentPostAPIView(ModelViewSet, CustomViewMixin):
     )
     def list(self, request, *args, **kwargs):
         use_case: GetPostCommentsUseCase = self.container.resolve(GetPostCommentsUseCase)
+
+        serializer = PostUIDSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+
         try:
             qs = use_case.execute(
                 post_id=request.query_params.get('p'),
@@ -244,3 +294,85 @@ class CommentPostAPIView(ModelViewSet, CustomViewMixin):
 
         result = self.mixin_filtration_and_pagination(qs)
         return result
+
+    @extend_schema(summary="Get post comment's replies")
+    @action(url_path='replies', url_name='replies', detail=True)
+    def get_replies_list(self, request, pk):
+        use_case: GetPostCommentRepliesUseCase = self.container.resolve(GetPostCommentRepliesUseCase)
+
+        serializer = CommentIdParameterSerializer(data={'pk': pk})
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            qs = use_case.execute(comment_id=pk)
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        result = self.mixin_filtration_and_pagination(qs)
+        return result
+
+    @extend_schema(
+        request=LikeCreateInSerializer,
+        responses=LikeCreateOutSerializer,
+        summary='Like or dislike comment',
+    )
+    @action(methods=['post'], url_path='like', detail=True)
+    def like_create(self, request, pk):
+        use_case: PostCommentLikeCreateUseCase = self.container.resolve(PostCommentLikeCreateUseCase)
+
+        serializer = CommentLikeSerializer(data={'is_like': request.data.get('is_like', True), 'pk': pk})
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            result = use_case.execute(
+                user=user_to_entity(request.user),
+                comment_id=pk,
+                is_like=serializer.validated_data.get('is_like'),
+            )
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        return Response(result, status.HTTP_201_CREATED)
+
+    @extend_schema(
+        responses={
+            201: OpenApiResponse(
+                response=inline_serializer(
+                    name='PostCommentLikeDeleted',
+                    fields={
+                        'status': drf_serializers.CharField(),
+                    },
+                ),
+                description="Like deleted",
+                examples=[
+                    OpenApiExample(
+                        name="Deleted",
+                        value={
+                            "status": "success",
+                        },
+                        response_only=True,
+                    ),
+                ],
+            ),
+        },
+        summary='Delete like or dislike comment',
+    )
+    @action(methods=['delete'], url_path='unlike', detail=True)
+    def like_delete(self, request, pk):
+        use_case: PostCommentLikeDeleteUseCase = self.container.resolve(PostCommentLikeDeleteUseCase)
+
+        serializer = CommentLikeSerializer(data={'pk': pk})
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            result = use_case.execute(
+                user=user_to_entity(request.user),
+                comment_id=pk,
+            )
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        return Response(result, status.HTTP_204_NO_CONTENT)

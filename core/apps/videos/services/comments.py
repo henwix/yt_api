@@ -11,9 +11,9 @@ from django.db.models import (
 )
 
 from core.apps.channels.entities.channels import ChannelEntity
+from core.apps.common.exceptions.comments import CommentNotFoundError
 from core.apps.videos.entities.comments import VideoCommentEntity
 from core.apps.videos.entities.likes import VideoCommentLikeItemEntity
-from core.apps.videos.exceptions.comments import CommentNotFoundError
 from core.apps.videos.models import (
     Video,
     VideoComment,
@@ -94,7 +94,7 @@ class ORMCommentService(BaseVideoCommentService):
             raise CommentNotFoundError()
 
         qs = self._build_query(queryset=self.repository.get_all_comments())
-        return qs.select_related("reply_comment").filter(reply_comment_id=comment_id)
+        return qs.filter(reply_comment_id=comment_id, reply_level=1)
 
     def change_updated_status(self, comment_id: str, is_updated: bool) -> None:
         self.repository.change_updated_status(comment_id=comment_id, is_updated=is_updated)

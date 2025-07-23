@@ -52,14 +52,5 @@ class PostDetailedSerializer(PostSerializer):
         read_only_fields = PostSerializer.Meta.read_only_fields
 
 
-class PostLikeCreateInSerializer(serializers.Serializer):
-    is_like = serializers.BooleanField(default=True)
-
-
-class PostLikeCreateOutSerializer(serializers.Serializer):
-    is_like = serializers.BooleanField()
-    status = serializers.CharField()
-
-
-class PostLikeDeleteOutSerializer(serializers.Serializer):
-    status = serializers.CharField()
+class PostUIDSerializer(serializers.Serializer):
+    p = serializers.UUIDField()

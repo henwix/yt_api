@@ -17,7 +17,7 @@ from core.apps.channels.use_cases.avatar_upload.complete_upload_avatar import Co
 from core.apps.channels.use_cases.avatar_upload.delete_avatar import DeleteChannelAvatarUseCase
 from core.apps.channels.use_cases.avatar_upload.download_avatar_url import GenerateUrlForAvatarDownloadUseCase
 from core.apps.channels.use_cases.avatar_upload.upload_avatar_url import GenerateUploadAvatarUrlUseCase
-from core.apps.common.exceptions import ServiceException
+from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.users.converters.users import user_to_entity
 from core.project.containers import get_container
 

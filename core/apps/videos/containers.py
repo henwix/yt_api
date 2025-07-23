@@ -40,8 +40,8 @@ from core.apps.videos.services.videos import (
 )
 from core.apps.videos.use_cases.comments.comment_create import CreateVideoCommentUseCase
 from core.apps.videos.use_cases.comments.get_comments_list import GetVideoCommentsUseCase
-from core.apps.videos.use_cases.comments.like_create import CommentLikeCreateUseCase
-from core.apps.videos.use_cases.comments.like_delete import CommentLikeDeleteUseCase
+from core.apps.videos.use_cases.comments.like_create import VideoCommentLikeCreateUseCase
+from core.apps.videos.use_cases.comments.like_delete import VideoCommentLikeDeleteUseCase
 from core.apps.videos.use_cases.videos_upload.abort_upload_video import AbortVideoMultipartUploadUseCase
 from core.apps.videos.use_cases.videos_upload.complete_upload_video import CompleteVideoMultipartUploadUseCase
 from core.apps.videos.use_cases.videos_upload.create_upload_video import CreateVideoMultipartUploadUseCase
@@ -79,8 +79,8 @@ def init_videos(container: punq.Container) -> None:
     container.register(BaseVideoPrivateOrUploadingValidatorService, VideoPrivateOrUploadingValidatorService)
 
     # init use cases
-    container.register(CommentLikeCreateUseCase)
-    container.register(CommentLikeDeleteUseCase)
+    container.register(VideoCommentLikeCreateUseCase)
+    container.register(VideoCommentLikeDeleteUseCase)
     container.register(CreateVideoCommentUseCase)
     container.register(GetVideoCommentsUseCase)
 

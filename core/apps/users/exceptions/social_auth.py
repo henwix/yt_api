@@ -4,7 +4,7 @@ from rest_framework import status
 
 from social_core.exceptions import AuthException
 
-from core.apps.common.exceptions import ServiceException
+from core.apps.common.exceptions.exceptions import ServiceException
 
 
 class CustomAuthStateMissing(AuthException):

@@ -1,16 +1,16 @@
 from dataclasses import dataclass
 
 from core.apps.channels.services.channels import BaseChannelService
+from core.apps.posts.services.comments import BasePostCommentService
 from core.apps.users.entities import UserEntity
-from core.apps.videos.services.comments import BaseVideoCommentService
 
 
 @dataclass
-class VideoCommentLikeCreateUseCase:
-    comment_service: BaseVideoCommentService
+class PostCommentLikeCreateUseCase:
+    comment_service: BasePostCommentService
     channel_service: BaseChannelService
 
-    def execute(self, user: UserEntity, comment_id: str, is_like: bool) -> dict:
+    def execute(self, user: UserEntity, comment_id: int, is_like: bool) -> dict:
         channel = self.channel_service.get_channel_by_user_or_404(user=user)
         comment = self.comment_service.get_by_id_or_404(id=comment_id)
 

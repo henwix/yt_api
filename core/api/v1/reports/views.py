@@ -11,7 +11,7 @@ import orjson
 import punq
 
 from core.api.v1.reports.serializers import VideoReportSerializer
-from core.apps.common.exceptions import ServiceException
+from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.common.pagination import CustomCursorPagination
 from core.apps.reports.permissions import IsStaffOrCreateOnly
 from core.apps.reports.services.reports import BaseVideoReportsService

@@ -18,12 +18,15 @@ from core.apps.posts.services.posts import (
     PostAuthorSlugValidatorService,
     PostService,
 )
-from core.apps.posts.use_cases.create_comment import CreatePostCommentUseCase
-from core.apps.posts.use_cases.create_post import PostCreateUseCase
-from core.apps.posts.use_cases.create_post_like import PostLikeCreateUseCase
-from core.apps.posts.use_cases.delete_post_like import PostLikeDeleteUseCase
-from core.apps.posts.use_cases.get_channel_posts import GetChannelPostsUseCase
-from core.apps.posts.use_cases.get_list_comments import GetPostCommentsUseCase
+from core.apps.posts.use_cases.posts.create_post import PostCreateUseCase
+from core.apps.posts.use_cases.posts.create_post_like import PostLikeCreateUseCase
+from core.apps.posts.use_cases.posts.delete_post_like import PostLikeDeleteUseCase
+from core.apps.posts.use_cases.posts.get_channel_posts import GetChannelPostsUseCase
+from core.apps.posts.use_cases.posts_comments.create_comment import CreatePostCommentUseCase
+from core.apps.posts.use_cases.posts_comments.get_list_comments import GetPostCommentsUseCase
+from core.apps.posts.use_cases.posts_comments.get_replies_list_comments import GetPostCommentRepliesUseCase
+from core.apps.posts.use_cases.posts_comments.like_create import PostCommentLikeCreateUseCase
+from core.apps.posts.use_cases.posts_comments.like_delete import PostCommentLikeDeleteUseCase
 
 
 def init_posts(container: punq.Container) -> None:
@@ -36,6 +39,9 @@ def init_posts(container: punq.Container) -> None:
 
     container.register(CreatePostCommentUseCase)
     container.register(GetPostCommentsUseCase)
+    container.register(GetPostCommentRepliesUseCase)
+    container.register(PostCommentLikeCreateUseCase)
+    container.register(PostCommentLikeDeleteUseCase)
 
     # services
     container.register(BasePostService, PostService)

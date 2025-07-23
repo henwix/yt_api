@@ -13,5 +13,5 @@ class VideoLikeEntity:
 class VideoCommentLikeItemEntity:
     id: int
     author_id: int
-    comment_id: str
+    comment_id: int
     is_like: bool

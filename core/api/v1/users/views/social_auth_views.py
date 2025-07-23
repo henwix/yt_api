@@ -13,7 +13,7 @@ from drf_spectacular.utils import (
 from social_core.exceptions import SocialAuthBaseException
 from social_django.utils import load_strategy
 
-from core.apps.common.exceptions import ServiceException
+from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.users.converters.users import user_to_entity
 from core.apps.users.throttles import OAuth2ThrottleClass  # noqa
 from core.apps.users.use_cases.oauth2_connect import OAuth2ConnectUseCase

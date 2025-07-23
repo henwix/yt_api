@@ -35,7 +35,7 @@ from core.apps.channels.services.channels import (
     BaseChannelSubsService,
     BaseSubscriptionService,
 )
-from core.apps.common.exceptions import ServiceException
+from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.common.mixins import CustomViewMixin
 from core.apps.common.pagination import CustomCursorPagination
 from core.apps.common.services.cache import BaseCacheService

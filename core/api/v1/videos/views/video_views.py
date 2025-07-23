@@ -23,6 +23,14 @@ from drf_spectacular.utils import (
     OpenApiResponse,
 )
 
+from core.api.v1.common.serializers.comments import (
+    CommentIdParameterSerializer,
+    CommentLikeSerializer,
+)
+from core.api.v1.common.serializers.serializers import (
+    LikeCreateInSerializer,
+    LikeCreateOutSerializer,
+)
 from core.api.v1.videos.serializers.video_serializers import (
     CommentCreatedSerializer,
     PlaylistPreviewSerializer,
@@ -32,7 +40,7 @@ from core.api.v1.videos.serializers.video_serializers import (
     VideoPreviewSerializer,
     VideoSerializer,
 )
-from core.apps.common.exceptions import ServiceException
+from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.common.mixins import CustomViewMixin
 from core.apps.common.pagination import (
     CustomCursorPagination,
@@ -60,8 +68,8 @@ from core.apps.videos.services.videos import (
 from core.apps.videos.signals import video_pre_delete
 from core.apps.videos.use_cases.comments.comment_create import CreateVideoCommentUseCase
 from core.apps.videos.use_cases.comments.get_comments_list import GetVideoCommentsUseCase
-from core.apps.videos.use_cases.comments.like_create import CommentLikeCreateUseCase
-from core.apps.videos.use_cases.comments.like_delete import CommentLikeDeleteUseCase
+from core.apps.videos.use_cases.comments.like_create import VideoCommentLikeCreateUseCase
+from core.apps.videos.use_cases.comments.like_delete import VideoCommentLikeDeleteUseCase
 from core.project.containers import get_container
 
 
@@ -102,42 +110,8 @@ class VideoViewSet(
         self.logger: Logger = container.resolve(Logger)
 
     @extend_schema(
-        request=inline_serializer(
-            name='VideoLikeCreate',
-            fields={
-                'is_like': drf_serializers.BooleanField(required=False),
-            },
-        ),
-        responses={
-            201: OpenApiResponse(
-                response=inline_serializer(
-                    name='VideoLikeCreated',
-                    fields={
-                        'status': drf_serializers.CharField(),
-                        'is_like': drf_serializers.BooleanField(),
-                    },
-                ),
-                description="Like created",
-                examples=[
-                    OpenApiExample(
-                        name="Like: True",
-                        value={
-                            "status": "success",
-                            "is_like": True,
-                        },
-                        response_only=True,
-                    ),
-                    OpenApiExample(
-                        name="Like: False",
-                        value={
-                            "status": "success",
-                            "is_like": False,
-                        },
-                        response_only=True,
-                    ),
-                ],
-            ),
-        },
+        request=LikeCreateInSerializer,
+        responses=LikeCreateOutSerializer,
         summary='Like or dislike video',
     )
     @action(url_path='like', methods=['post'], detail=True)
@@ -357,6 +331,9 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
     @extend_schema(summary="Get comment's replies")
     @action(url_path='replies', url_name='replies', detail=True)
     def get_replies_list(self, request, pk):
+        serializer = CommentIdParameterSerializer(data={'pk': pk})
+        serializer.is_valid(raise_exception=True)
+
         try:
             qs = self.service.get_replies_by_comment_id(comment_id=pk)
         except ServiceException as error:
@@ -367,53 +344,23 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
         return result
 
     @extend_schema(
-        request=inline_serializer(
-            name='VideoCommentLikeCreate',
-            fields={
-                'is_like': drf_serializers.BooleanField(required=False),
-            },
-        ),
-        responses={
-            201: OpenApiResponse(
-                response=inline_serializer(
-                    name='CommentLikeCreate',
-                    fields={
-                        'status': drf_serializers.CharField(),
-                        'is_like': drf_serializers.BooleanField(),
-                    },
-                ),
-                description="Like created",
-                examples=[
-                    OpenApiExample(
-                        name="Like: True",
-                        value={
-                            "status": "success",
-                            "is_like": True,
-                        },
-                        response_only=True,
-                    ),
-                    OpenApiExample(
-                        name="Like: False",
-                        value={
-                            "status": "success",
-                            "is_like": False,
-                        },
-                        response_only=True,
-                    ),
-                ],
-            ),
-        },
+        request=LikeCreateInSerializer,
+        responses=LikeCreateOutSerializer,
         summary='Like or dislike comment',
     )
     @action(methods=['post'], url_path='like', detail=True)
     def like_create(self, request, pk):
-        use_case: CommentLikeCreateUseCase = self.container.resolve(CommentLikeCreateUseCase)
+        use_case: VideoCommentLikeCreateUseCase = self.container.resolve(VideoCommentLikeCreateUseCase)
+        is_like = request.data.get('is_like', True)
+
+        serializer = CommentLikeSerializer(data={'is_like': is_like, 'pk': pk})
+        serializer.is_valid(raise_exception=True)
 
         try:
             result = use_case.execute(
                 user=user_to_entity(request.user),
                 comment_id=pk,
-                is_like=request.data.get('is_like', True),
+                is_like=is_like,
             )
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -421,10 +368,35 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
 
         return Response(result, status.HTTP_201_CREATED)
 
-    @extend_schema(summary='Delete like or dislike comment')
+    @extend_schema(
+        responses={
+            201: OpenApiResponse(
+                response=inline_serializer(
+                    name='VideoCommentLikeDeleted',
+                    fields={
+                        'status': drf_serializers.CharField(),
+                    },
+                ),
+                description="Like deleted",
+                examples=[
+                    OpenApiExample(
+                        name="Deleted",
+                        value={
+                            "status": "success",
+                        },
+                        response_only=True,
+                    ),
+                ],
+            ),
+        },
+        summary='Delete like or dislike comment',
+    )
     @action(methods=['delete'], url_path='unlike', detail=True)
     def like_delete(self, request, pk):
-        use_case: CommentLikeDeleteUseCase = self.container.resolve(CommentLikeDeleteUseCase)
+        use_case: VideoCommentLikeDeleteUseCase = self.container.resolve(VideoCommentLikeDeleteUseCase)
+
+        serializer = CommentLikeSerializer(data={'pk': pk})
+        serializer.is_valid(raise_exception=True)
 
         try:
             result = use_case.execute(

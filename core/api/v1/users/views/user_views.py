@@ -16,7 +16,7 @@ from djoser.views import UserViewSet
 from drf_spectacular.utils import extend_schema
 from rest_framework_simplejwt.tokens import RefreshToken  # noqa
 
-from core.apps.common.exceptions import ServiceException
+from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.common.pagination import CustomPageNumberPagination
 from core.apps.users.tasks import (
     send_activation_email,

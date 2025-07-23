@@ -29,7 +29,7 @@ class BaseVideoCommentRepository(ABC):
         ...
 
     @abstractmethod
-    def get_by_id_or_none(self, id: str) -> VideoCommentEntity | None:
+    def get_by_id_or_none(self, id: int) -> VideoCommentEntity | None:
         ...
 
     @abstractmethod
@@ -62,7 +62,7 @@ class ORMVideoCommentRepository(BaseVideoCommentRepository):
     def change_updated_status(self, comment_id: str, is_updated: bool) -> None:
         VideoComment.objects.filter(id=comment_id).update(is_updated=is_updated)
 
-    def get_by_id_or_none(self, id: str) -> VideoCommentEntity | None:
+    def get_by_id_or_none(self, id: int) -> VideoCommentEntity | None:
         comment_dto = VideoComment.objects.filter(id=id).first()
         return video_comment_to_entity(comment_dto) if comment_dto else None
 

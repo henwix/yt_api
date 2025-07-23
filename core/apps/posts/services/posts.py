@@ -82,7 +82,7 @@ class PostService(BasePostService):
 
         return query.select_related('author').annotate(
             likes_count=Count('likes', distinct=True, filter=Q(likes_items__is_like=True)),
-            comments_count=Count('comments', distinct=True),
+            comments_count=Count('comments_items', distinct=True),
         )
 
     def create_post(self, post_entity: PostEntity) -> PostEntity:

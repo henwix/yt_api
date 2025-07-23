@@ -1,7 +1,7 @@
 import pytest
 from punq import Container
 
-from core.apps.common.exceptions import MultipartUploadExistsError
+from core.apps.common.exceptions.exceptions import MultipartUploadExistsError
 from core.apps.common.services.files import BaseMultipartUploadExistsInS3ValidatorService
 from core.apps.videos.exceptions.upload import (
     VideoFilenameFormatError,

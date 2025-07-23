@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from botocore.exceptions import ClientError
 
-from core.apps.common.exceptions import (
+from core.apps.common.exceptions.exceptions import (
     MultipartUploadExistsError,
     S3FileWithKeyNotExistsError,
 )

@@ -19,7 +19,7 @@ from core.api.v1.common.serializers.upload_serializers import (
     KeySerializer,
 )
 from core.api.v1.videos.serializers import video_serializers
-from core.apps.common.exceptions import ServiceException
+from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.users.converters.users import user_to_entity
 from core.apps.videos.use_cases.videos_upload.abort_upload_video import AbortVideoMultipartUploadUseCase
 from core.apps.videos.use_cases.videos_upload.complete_upload_video import CompleteVideoMultipartUploadUseCase

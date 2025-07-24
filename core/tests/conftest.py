@@ -6,12 +6,14 @@ from punq import Container
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.apps.channels.models import Channel
+from core.apps.posts.models import Post
 from core.apps.videos.models import Video
 from core.project.containers import get_container
 from core.tests.factories.channels import (
     ChannelModelFactory,
     UserModelFactory,
 )
+from core.tests.factories.posts import PostModelFactory
 from core.tests.factories.videos import VideoModelFactory
 
 
@@ -67,3 +69,8 @@ def video() -> Video:
 @pytest.fixture
 def user() -> User:
     return UserModelFactory()
+
+
+@pytest.fixture
+def post() -> Post:
+    return PostModelFactory()

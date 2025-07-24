@@ -2,7 +2,6 @@ from django.core.cache import cache
 from rest_framework.test import APIClient
 
 import pytest
-from faker import Faker
 
 from core.apps.channels.models import Channel
 from core.tests.factories.channels import SubscriptionItemModelFactory
@@ -10,9 +9,6 @@ from core.tests.factories.videos import (
     VideoModelFactory,
     VideoViewModelFactory,
 )
-
-
-fake = Faker()
 
 
 @pytest.mark.django_db

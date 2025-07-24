@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
 
 import pytest
-from faker import Faker
 
 from core.apps.channels.converters.channels import (
     channel_from_entity,
@@ -32,7 +31,6 @@ from core.tests.factories.channels import (
 from core.tests.factories.videos import VideoModelFactory
 
 
-fake = Faker()
 User = get_user_model()
 
 

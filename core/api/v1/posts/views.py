@@ -130,9 +130,8 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
             return Response(cached_data, status=status.HTTP_200_OK)
 
         try:
-            qs = use_case.execute(
-                slug=slug,
-            )
+            qs = use_case.execute(slug=slug)
+
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise

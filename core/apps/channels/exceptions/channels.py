@@ -10,7 +10,7 @@ class ChannelNotFoundError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
     default_detail = {'error': 'Channel not found'}
 
-    user_id: int
+    user_id: int | str
 
     @property
     def message(self):

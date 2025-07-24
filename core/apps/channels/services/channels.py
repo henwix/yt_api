@@ -43,7 +43,7 @@ class BaseChannelService(ABC):
         ...
 
     @abstractmethod
-    def get_channel_by_user_or_404(self, user: UserEntity) -> ChannelEntity:
+    def get_channel_by_user_or_404(self, user: UserEntity | AnonymousUserEntity) -> ChannelEntity:
         ...
 
     @abstractmethod
@@ -74,7 +74,10 @@ class ORMChannelService(BaseChannelService):
 
         return self.repository.channel_create(channel_entity=data_to_channel_entity(channel_data))
 
-    def get_channel_by_user_or_404(self, user: UserEntity) -> ChannelEntity:
+    def get_channel_by_user_or_404(self, user: UserEntity | AnonymousUserEntity) -> ChannelEntity:
+        if user.is_anonymous:
+            raise ChannelNotFoundError('Anonymous')
+
         channel = self.repository.get_channel_by_user_or_none(user)
 
         if channel is None:

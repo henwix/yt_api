@@ -114,8 +114,7 @@ def test_post_create_like_duplicates(
     post: Post,
     is_like: bool,
 ):
-    """Test that 'is_like' status is the same and duplicated are not
-    created."""
+    """Test that 'is_like' status is the same and duplicate are not created."""
 
     PostLikeModelFactory.create(channel=channel, post=post, is_like=is_like)
 

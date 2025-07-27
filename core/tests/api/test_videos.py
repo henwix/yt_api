@@ -14,7 +14,9 @@ from core.tests.factories.videos import (
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    'expected_views, expected_subs, expected_likes, expected_comments', ([7, 4, 11, 6], [2, 7, 1, 3]),
+    'expected_views, expected_subs, expected_likes, expected_comments', (
+        [7, 4, 11, 6], [2, 7, 1, 3], [3, 2, 8, 7], [8, 12, 5, 9],
+    ),
 )
 def test_video_retrieved(
     client: APIClient,

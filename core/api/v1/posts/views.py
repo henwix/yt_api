@@ -66,7 +66,6 @@ from core.apps.users.converters.users import user_to_entity
 from core.project.containers import get_container
 
 
-# TODO: tests, comments and likes for them
 class PostAPIViewset(ModelViewSet, CustomViewMixin):
     lookup_field = 'post_id'
     lookup_url_kwarg = 'post_id'

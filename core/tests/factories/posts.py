@@ -6,6 +6,7 @@ from faker import Faker
 from core.apps.posts.models import (
     Post,
     PostCommentItem,
+    PostCommentLikeItem,
     PostLikeItem,
 )
 from core.tests.factories.channels import ChannelModelFactory
@@ -38,3 +39,12 @@ class PostCommentModelFactory(DjangoModelFactory):
     author = factory.SubFactory(ChannelModelFactory)
     post = factory.SubFactory(PostModelFactory)
     text = factory.Faker('text')
+
+
+class PostCommentLikeModelFactory(DjangoModelFactory):
+    class Meta:
+        model = PostCommentLikeItem
+
+    author = factory.SubFactory(ChannelModelFactory)
+    comment = factory.SubFactory(PostCommentModelFactory)
+    is_like = factory.fuzzy.FuzzyChoice([True, False])

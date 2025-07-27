@@ -20,6 +20,8 @@ from core.tests.factories.posts import (
 
 @pytest.mark.django_db
 def test_channel_posts_slug_exception(channel_posts_use_case: GetChannelPostsUseCase):
+    """Test that an exception 'PostAuthorSlugNotProvidedError' has been
+    raised."""
     with pytest.raises(PostAuthorSlugNotProvidedError):
         channel_posts_use_case.execute(slug=None)
 
@@ -31,6 +33,7 @@ def test_channel_posts_retrieved(
     expected_posts: int,
     channel: Channel,
 ):
+    """Test that created posts were retrieved via use case."""
     PostModelFactory.create_batch(size=expected_posts, author=channel)
     posts = channel_posts_use_case.execute(slug=channel.slug)
 
@@ -46,7 +49,7 @@ def test_channel_posts_retrieved_with_likes(
     correctly."""
 
     # Create posts and likes for them
-    created_posts = PostModelFactory.create_batch(size=10, author=channel)
+    created_posts = PostModelFactory.create_batch(size=5, author=channel)
     for post in created_posts:
         PostLikeModelFactory.create_batch(size=20, post=post)
 

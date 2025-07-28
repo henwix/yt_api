@@ -6,6 +6,7 @@ from core.apps.common.services.cache import BaseCacheService
 @pytest.mark.django_db
 def test_cache_set_and_retrieve_data(cache_service: BaseCacheService):
     """Test that the cache has been set and the data has been retrieved."""
+
     key = 'test_key'
     expected_data = 'test_data'
 
@@ -17,6 +18,7 @@ def test_cache_set_and_retrieve_data(cache_service: BaseCacheService):
 @pytest.mark.django_db
 def test_cache_delete_data(cache_service: BaseCacheService):
     """Test that the data has been deleted from the cache."""
+
     key = 'test_key'
     expected_data = 'test_data'
 

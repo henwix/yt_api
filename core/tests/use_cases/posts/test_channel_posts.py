@@ -22,6 +22,7 @@ from core.tests.factories.posts import (
 def test_channel_posts_slug_exception(channel_posts_use_case: GetChannelPostsUseCase):
     """Test that an exception 'PostAuthorSlugNotProvidedError' has been
     raised."""
+
     with pytest.raises(PostAuthorSlugNotProvidedError):
         channel_posts_use_case.execute(slug=None)
 
@@ -34,6 +35,7 @@ def test_channel_posts_retrieved(
     channel: Channel,
 ):
     """Test that created posts were retrieved via use case."""
+
     PostModelFactory.create_batch(size=expected_posts, author=channel)
     posts = channel_posts_use_case.execute(slug=channel.slug)
 

@@ -12,6 +12,7 @@ from core.tests.factories.reports import VideoReportModelFactory
 @pytest.mark.django_db
 def test_get_reports_list_empty(report_service: BaseVideoReportsService):
     """Test that the report list is empty and the count equals 0."""
+
     qs = report_service.get_report_list()
     assert qs.count() == 0
 
@@ -19,6 +20,7 @@ def test_get_reports_list_empty(report_service: BaseVideoReportsService):
 @pytest.mark.django_db
 def test_get_reports_list_exists(report_service: BaseVideoReportsService):
     """Test that all reports were retrieved from the database."""
+
     expected_value = 5
     VideoReportModelFactory.create_batch(size=expected_value)
 
@@ -29,6 +31,7 @@ def test_get_reports_list_exists(report_service: BaseVideoReportsService):
 @pytest.mark.django_db
 def test_reports_created(report_service: BaseVideoReportsService, video: Video, channel: Channel):
     """Test that created report exists in database."""
+
     assert not VideoReport.objects.filter(video=video, author=channel).exists()
 
     report_service.create_report(

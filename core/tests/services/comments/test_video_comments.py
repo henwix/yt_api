@@ -20,6 +20,7 @@ from core.tests.factories.video_comments import VideoCommentModelFactory
 @pytest.mark.django_db
 def test_comment_created(video: Video, channel: Channel, comment_service: BaseVideoCommentService):
     """Test that the VideoComment has been created."""
+
     entity = data_to_video_comment_entity(
         {
             'text': 'test_comment',
@@ -45,6 +46,7 @@ def test_comment_created_with_reply(
     comment_service: BaseVideoCommentService,
 ):
     """Test that a VideoComment has been created as a reply to a comment."""
+
     entity = data_to_video_comment_entity(
         {
             'text': 'test_comment',
@@ -68,6 +70,7 @@ def test_comment_created_with_reply(
 def test_comments_retrieved_by_video_id(video: Video, comment_service: BaseVideoCommentService):
     """Test that the comment's were retrieved by 'video_id' from the
     database."""
+
     expected_value = 7
     VideoCommentModelFactory.create_batch(
         size=expected_value,
@@ -81,6 +84,7 @@ def test_comments_retrieved_by_video_id(video: Video, comment_service: BaseVideo
 @pytest.mark.django_db
 def test_comment_retrieved_by_id(comment_service: BaseVideoCommentService):
     """Test that the comment has been retrieved by 'id' from the database."""
+
     expected_comment = VideoCommentModelFactory()
     comment_dto = video_comment_from_entity(comment_service.get_by_id_or_404(id=expected_comment.pk))
 
@@ -90,6 +94,7 @@ def test_comment_retrieved_by_id(comment_service: BaseVideoCommentService):
 @pytest.mark.django_db
 def test_replies_retrieved_by_comment_id(comment: VideoComment, comment_service: BaseVideoCommentService):
     """Test that the comment's replies were retrieved from database."""
+
     expected_value = 6
     VideoCommentModelFactory.create_batch(
         size=expected_value,
@@ -104,6 +109,7 @@ def test_replies_retrieved_by_comment_id(comment: VideoComment, comment_service:
 @pytest.mark.django_db
 def test_comment_updated_status_changed(comment: VideoComment, comment_service: BaseVideoCommentService):
     """Test that the comment's 'is_updated' status has been changed."""
+
     assert comment.is_updated is False
     comment_service.change_updated_status(comment_id=comment.pk, is_updated=True)
     assert VideoComment.objects.filter(id=comment.pk, is_updated=True).exists()
@@ -112,6 +118,7 @@ def test_comment_updated_status_changed(comment: VideoComment, comment_service: 
 @pytest.mark.django_db
 def test_like_status_changed(comment_service: BaseVideoCommentService, like: VideoCommentLikeItem):
     """Test that the like status has been changed."""
+
     assert like.is_like is True
     comment_service.update_like_status(
         like_id=like.pk,
@@ -129,6 +136,7 @@ def test_like_created(
     is_like: bool,
 ):
     """Test that the like has been created."""
+
     retrieved_like, created = comment_service.like_get_or_create(
         author=channel_to_entity(channel),
         comment=video_comment_to_entity(comment),
@@ -144,6 +152,7 @@ def test_like_created(
 @pytest.mark.django_db
 def test_like_retrieved(comment_service: BaseVideoCommentService, like: VideoCommentLikeItem):
     """Test that the like has been retrieved from the database."""
+
     retrieved_like, created = comment_service.like_get_or_create(
         author=channel_to_entity(like.author),
         comment=video_comment_to_entity(like.comment),
@@ -159,6 +168,7 @@ def test_like_retrieved(comment_service: BaseVideoCommentService, like: VideoCom
 @pytest.mark.django_db
 def test_like_deleted(comment_service: BaseVideoCommentService, like: VideoCommentLikeItem):
     """Test that the like has been deleted from the database."""
+
     assert VideoCommentLikeItem.objects.filter(author=like.author, comment=like.comment).exists()
 
     comment_service.like_delete(

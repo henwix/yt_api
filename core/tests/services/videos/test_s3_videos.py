@@ -14,6 +14,7 @@ from core.apps.videos.services.s3_videos import BaseVideoFilenameValidatorServic
 def test_video_filename_not_provided_error(video_filename_validator_service: BaseVideoFilenameValidatorService):
     """Test that an error has been raised when the video filename is not
     provided."""
+
     with pytest.raises(VideoFilenameNotProvidedError):
         video_filename_validator_service.validate(filename=None)
 
@@ -22,6 +23,7 @@ def test_video_filename_not_provided_error(video_filename_validator_service: Bas
 def test_video_filename_format_error(video_filename_validator_service: BaseVideoFilenameValidatorService):
     """Test that an error has been raised when the video filename format is
     incorrect."""
+
     with pytest.raises(VideoFilenameFormatError):
         video_filename_validator_service.validate(filename='test.txt')
 
@@ -33,11 +35,15 @@ def test_video_filename_format_correct(
     filename: str,
 ):
     """Test that the video filename format is correct."""
+
     video_filename_validator_service.validate(filename=filename)
 
 
 @pytest.mark.django_db
 def test_video_abort_not_exists_error(container: Container):
+    """Test that an error has been raised when the Multipart upload does not
+    exist in S3."""
+
     validator: BaseMultipartUploadExistsInS3ValidatorService = container.resolve(
         BaseMultipartUploadExistsInS3ValidatorService,
     )

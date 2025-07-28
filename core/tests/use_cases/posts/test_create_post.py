@@ -14,6 +14,8 @@ User = get_user_model()
 
 @pytest.mark.django_db
 def test_create_post_channel_not_found_error(create_post_use_case: PostCreateUseCase, user: User):
+    """Test that an error has been raised when the channel is not found."""
+
     with pytest.raises(ChannelNotFoundError):
         create_post_use_case.execute(
             user=user_to_entity(user),
@@ -23,6 +25,8 @@ def test_create_post_channel_not_found_error(create_post_use_case: PostCreateUse
 
 @pytest.mark.django_db
 def test_create_post(create_post_use_case: PostCreateUseCase, channel: Channel):
+    """Test that the post has been created."""
+
     expected_post_text = 'test text 1234567'
 
     assert Post.objects.all().count() == 0

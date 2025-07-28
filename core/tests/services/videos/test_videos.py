@@ -17,6 +17,7 @@ from core.tests.factories.videos import VideoModelFactory
 @pytest.mark.django_db
 def test_video_created(video_service: BaseVideoService, channel: Channel):
     """Test that the video has been created by provided data."""
+
     data = {
         'name': 'Test video',
         'description': 'Test video description',
@@ -38,6 +39,7 @@ def test_video_created(video_service: BaseVideoService, channel: Channel):
 @pytest.mark.django_db
 def test_video_retrieved_by_upload_id(video_service: BaseVideoService):
     """Test that the video has been retrieved by upload_id."""
+
     expected_upload_id = '7581294982749kdsjgsd'
     video = VideoModelFactory.create(upload_id=expected_upload_id)
 
@@ -49,6 +51,7 @@ def test_video_retrieved_by_upload_id(video_service: BaseVideoService):
 def test_video_not_found_by_upload_id(video_service: BaseVideoService):
     """Test that an error has been raised when the video is not found by upload
     id."""
+
     expected_upload_id = '11hfhgjhtytsdfg'
 
     with pytest.raises(VideoNotFoundByUploadIdError):
@@ -58,6 +61,7 @@ def test_video_not_found_by_upload_id(video_service: BaseVideoService):
 @pytest.mark.django_db
 def test_video_retrieved_by_key(video_service: BaseVideoService):
     """Test that the video has been retrieved by key."""
+
     expected_key = 'videos/1lj10nas_test_video.mp4'
     video = VideoModelFactory.create(s3_key=expected_key)
 
@@ -70,6 +74,7 @@ def test_video_retrieved_by_key(video_service: BaseVideoService):
 def test_video_not_found_by_key(video_service: BaseVideoService):
     """Test that an error has been raised when the video is not found by
     key."""
+
     expected_key = 'videos/123dsg34_test_video.mp4'
 
     with pytest.raises(VideoNotFoundByKeyError):
@@ -79,6 +84,7 @@ def test_video_not_found_by_key(video_service: BaseVideoService):
 @pytest.mark.django_db
 def test_video_updated_after_upload(video_service: BaseVideoService):
     """Test that the video has been updated after upload."""
+
     expected_upload_id = 'kgsfasfbnas'
     expected_s3_key = 'videos/asg3au010124_test_video.mp4'
 
@@ -104,6 +110,7 @@ def test_video_updated_after_upload(video_service: BaseVideoService):
 @pytest.mark.django_db
 def test_video_deleted_by_id(video_service: BaseVideoService):
     """Test that the video has been deleted by id."""
+
     video = VideoModelFactory.create(upload_id='129847aoshfoa')
 
     assert Video.objects.filter(video_id=video.video_id).exists()

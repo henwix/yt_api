@@ -10,6 +10,8 @@ from core.tests.factories.reports import VideoReportModelFactory
 
 @pytest.mark.django_db
 def test_reports_limit_error(create_report_use_case: CreateReportUseCase, video: Video, channel: Channel):
+    """Test that an error has been raised when the report limit is exceeded."""
+
     VideoReportModelFactory.create_batch(
         size=3,
         video=video,

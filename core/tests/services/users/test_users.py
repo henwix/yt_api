@@ -20,6 +20,7 @@ User = get_user_model()
 @pytest.mark.django_db
 def test_user_authentication(user_service: BaseUserService):
     """Test that the user is authenticated and has been retrieved correctly."""
+
     password = '1234q1234q'
     user = UserModelFactory()
     user.set_password(password)
@@ -44,6 +45,7 @@ def test_user_authentication(user_service: BaseUserService):
 
 def test_user_not_found():
     """Test that an error has been raised when user is not found."""
+
     container: punq.Container = get_container()
     validator_service: BaseUserValidatorService = container.resolve(BaseUserValidatorService)
 
@@ -54,6 +56,7 @@ def test_user_not_found():
 @pytest.mark.django_db
 def test_get_user_by_email(user_service: BaseUserService, user: User):
     """Test that the user has been retrieved by email from database."""
+
     user_dto = user_from_entity(user_service.get_by_email(user.email))
 
     assert user == user_dto
@@ -62,6 +65,7 @@ def test_get_user_by_email(user_service: BaseUserService, user: User):
 @pytest.mark.django_db
 def test_jwt_generated_for_user(user_service: BaseUserService, client: APIClient, user: User):
     """Test that JWT token is correctly generated for user."""
+
     tokens = user_service.generate_jwt(user=user)
     client.credentials(HTTP_AUTHORIZATION=tokens.get('access'))
 

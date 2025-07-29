@@ -161,7 +161,7 @@ class VideoViewSet(
                 ],
             ),
         },
-        summary='Delete like or dislike video',
+        summary='Delete like or dislike for video',
     )
     @action(url_path='unlike', methods=['delete'], detail=True)
     def like_delete(self, request, video_id):
@@ -346,7 +346,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
     @extend_schema(
         request=LikeCreateInSerializer,
         responses=LikeCreateOutSerializer,
-        summary='Like or dislike comment',
+        summary='Create like or dislike for comment',
     )
     @action(methods=['post'], url_path='like', detail=True)
     def like_create(self, request, pk):
@@ -389,7 +389,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
                 ],
             ),
         },
-        summary='Delete like or dislike comment',
+        summary='Delete like or dislike for comment',
     )
     @action(methods=['delete'], url_path='unlike', detail=True)
     def like_delete(self, request, pk):
@@ -478,7 +478,7 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
         parameters=[
             OpenApiParameter(
                 name='v',
-                description='Parameter identifying video to add in playlist.',
+                description='Parameter identifying video to delete from history.',
                 required=True,
                 type=str,
             ),

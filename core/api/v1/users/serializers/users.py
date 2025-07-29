@@ -2,6 +2,7 @@ import uuid
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
+from rest_framework import serializers
 
 from djoser.conf import settings
 from djoser.serializers import (
@@ -34,6 +35,12 @@ class CustomUserCreateSerializer(UserCreateSerializer):
     instance creation in create() method.
 
     """
+
+    email = serializers.EmailField(required=True)
+
+    class Meta:
+        model = UserCreateSerializer.Meta.model
+        fields = UserCreateSerializer.Meta.fields
 
     def create(self, validated_data):
         channel_data = validated_data.pop('channel', {})

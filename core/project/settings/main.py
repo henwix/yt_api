@@ -218,11 +218,11 @@ DJOSER = {
     'EMAIL_FRONTEND_PROTOCOL': 'https',
     'EMAIL_FRONTEND_SITE_NAME': 'YouTube-Like-API',
     'SERIALIZERS': {
-        'user_create': 'core.api.v1.users.serializers.CustomUserCreateSerializer',
-        'user_create_password_retype': 'core.api.v1.users.serializers.CustomUserCreatePasswordRetypeSerializer',
-        'user': 'core.api.v1.users.serializers.CustomUserSerializer',
-        'current_user': 'core.api.v1.users.serializers.CustomUserSerializer',
-        'username_reset_confirm': 'core.api.v1.users.serializers.CustomUsernameResetConfirmSerializer',
+        'user_create': 'core.api.v1.users.serializers.users.CustomUserCreateSerializer',
+        'user_create_password_retype': 'core.api.v1.users.serializers.users.CustomUserCreatePasswordRetypeSerializer',
+        'user': 'core.api.v1.users.serializers.users.CustomUserSerializer',
+        'current_user': 'core.api.v1.users.serializers.users.CustomUserSerializer',
+        'username_reset_confirm': 'core.api.v1.users.serializers.users.CustomUsernameResetConfirmSerializer',
     },
 }
 

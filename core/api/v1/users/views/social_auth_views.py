@@ -8,11 +8,16 @@ import orjson
 import punq
 from drf_spectacular.utils import (
     extend_schema,
-    OpenApiParameter,
+    PolymorphicProxySerializer,
 )
 from social_core.exceptions import SocialAuthBaseException
 from social_django.utils import load_strategy
 
+from core.api.v1.users.serializers.oauth2 import (
+    OAuth2ConnectAuthorizedSerializer,
+    OAuth2ConnectJWTSerializer,
+    OAuth2ConnectSerializer,
+)
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.users.converters.users import user_to_entity
 from core.apps.users.throttles import OAuth2ThrottleClass  # noqa
@@ -23,7 +28,20 @@ from core.apps.users.use_cases.oauth2_generate_url import OAuth2GenerateURLUseCa
 from core.project.containers import get_container
 
 
-@extend_schema(summary='Generate URL for OAuth2 authorization')
+@extend_schema(
+    responses={
+        201: {
+            'type': 'object',
+            'properties': {
+                'auth_url': {
+                    'type': 'string',
+                    'example': 'https://example.com/oauth2/authorize/?client_id=123',
+                },
+            },
+        },
+    },
+    summary='Generate URL for OAuth2 authorization',
+)
 class OAuth2GenerateURLView(APIView):
     throttle_classes = [OAuth2ThrottleClass]
 
@@ -49,20 +67,12 @@ class OAuth2GenerateURLView(APIView):
 
 
 @extend_schema(
-    parameters=[
-        OpenApiParameter(
-            name='code',
-            description='Code parameter',
-            required=True,
-            type=str,
-        ),
-        OpenApiParameter(
-            name='state',
-            description='State parameter',
-            required=True,
-            type=str,
-        ),
-    ],
+    parameters=[OAuth2ConnectSerializer],
+    responses=PolymorphicProxySerializer(
+        component_name='OAuth2ConnectResponse',
+        serializers=[OAuth2ConnectJWTSerializer, OAuth2ConnectAuthorizedSerializer],
+        resource_type_field_name=None,
+    ),
     summary='Verify SocialOAuth2 data and connect service to user',
 )
 class OAuth2ConnectView(APIView):
@@ -90,7 +100,20 @@ class OAuth2ConnectView(APIView):
         return Response(data=result)
 
 
-@extend_schema(summary='Disconnect OAuth2 provider')
+@extend_schema(
+    responses={
+        200: {
+            'type': 'object',
+            'properties': {
+                'status': {
+                    'type': 'string',
+                    'example': 'github successfully disconnected',
+                },
+            },
+        },
+    },
+    summary='Disconnect OAuth2 provider',
+)
 class OAuth2DisconnectView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -116,7 +139,20 @@ class OAuth2DisconnectView(APIView):
         return Response(data=result)
 
 
-@extend_schema(summary='Retrieve connected OAuth2 providers')
+@extend_schema(
+    responses={
+        200: {
+            'type': 'object',
+            'properties': {
+                'connected': {
+                    'type': 'dict',
+                    'example': {'github': True, 'google': False, 'x': True},
+                },
+            },
+        },
+    },
+    summary='Retrieve connected OAuth2 providers',
+)
 class OAuth2ConnectedProvidersView(APIView):
     permission_classes = [IsAuthenticated]
 

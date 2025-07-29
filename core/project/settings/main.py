@@ -74,7 +74,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'silk.middleware.SilkyMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
@@ -316,9 +315,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
 
 
-# Files Storages
-
-
 CACHE_KEYS = {
     's3_video_url': 's3_video_url_',
     's3_avatar_url': 's3_avatar_url_',
@@ -326,6 +322,9 @@ CACHE_KEYS = {
     'subs_list': 'subs_',
     'retrieve_channel': 'retrieve_channel_',
 }
+
+
+# Files Storages
 
 
 STORAGES = {
@@ -373,7 +372,7 @@ CELERY_TASK_QUEUES = (
 )
 
 
-# SMTP
+# Email SMTP
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

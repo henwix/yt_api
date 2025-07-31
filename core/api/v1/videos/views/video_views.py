@@ -35,6 +35,7 @@ from core.api.v1.videos.serializers.video_serializers import (
     CommentCreatedSerializer,
     PlaylistPreviewSerializer,
     PlaylistSerializer,
+    UpdatePlaylistSerializer,
     VideoCommentSerializer,
     VideoHistorySerializer,
     VideoPreviewSerializer,
@@ -50,10 +51,7 @@ from core.apps.common.permissions import IsAuthenticatedOrAuthorOrReadOnly
 from core.apps.users.converters.users import user_to_entity
 from core.apps.videos.converters.videos import video_to_entity
 from core.apps.videos.filters import VideoFilter
-from core.apps.videos.models import (
-    Video,
-    VideoHistory,
-)
+from core.apps.videos.models import Video
 from core.apps.videos.pagination import HistoryCursorPagination
 from core.apps.videos.permissions import (
     IsAuthorOrReadOnlyPlaylist,
@@ -229,7 +227,7 @@ class VideoViewSet(
         If action is list - return VideoPreviewSerializer else VideoSerializer
 
         """
-        if action == 'list':
+        if self.action == 'list':
             return VideoPreviewSerializer
         return VideoSerializer
 
@@ -432,8 +430,8 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     def get_queryset(self):
         if self.action == 'delete':
-            return VideoHistory.objects.filter(channel=self.request.user.channel)
-        return VideoHistory.objects.filter(channel=self.request.user.channel).select_related('video__author')
+            return self.service.get_channel_history(user=user_to_entity(self.request.user))
+        return self.service.get_history_for_retrieve(user=user_to_entity(self.request.user))
 
     @extend_schema(
         request=None,
@@ -546,6 +544,8 @@ class PlaylistAPIView(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'list':
             return PlaylistPreviewSerializer
+        if self.request.method in ['PUT', 'PATCH']:
+            return UpdatePlaylistSerializer
         return PlaylistSerializer
 
     def get_queryset(self):

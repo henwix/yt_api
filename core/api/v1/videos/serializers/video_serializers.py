@@ -151,7 +151,7 @@ class VideoHistorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VideoHistory
-        fields = ['video', 'watched_at']
+        fields = ['watched_at', 'video']
 
     def create(self, validated_data):
         request = self.context.get('request')
@@ -217,3 +217,17 @@ class PlaylistSerializer(PlaylistPreviewSerializer):
         validated_data['channel'] = request.user.channel
 
         return super().create(validated_data)
+
+
+class UpdatePlaylistSerializer(PlaylistSerializer):
+    class Meta:
+        model = PlaylistSerializer.Meta.model
+        fields = [
+            'title',
+            'description',
+            'playlist_link',
+            'status',
+            'channel_name',
+            'channel_link',
+            'videos_count',
+        ]

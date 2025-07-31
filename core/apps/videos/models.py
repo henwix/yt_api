@@ -103,7 +103,7 @@ class VideoView(models.Model):
 
 class VideoComment(Comment):
     author = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='video_comments', db_index=True)
-    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='comments', db_index=True)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='comments', db_index=True, editable=False)
     likes = models.ManyToManyField(Channel, through='VideoCommentLikeItem', db_index=True)
 
     def __str__(self):

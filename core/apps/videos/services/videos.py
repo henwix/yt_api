@@ -39,6 +39,7 @@ from core.apps.videos.exceptions.videos import (
 from core.apps.videos.models import (
     Playlist,
     Video,
+    VideoHistory,
 )
 from core.apps.videos.repositories.videos import (
     BasePlaylistRepository,
@@ -286,6 +287,14 @@ class BaseVideoHistoryService(ABC):
     def delete_video_from_history(self, user: UserEntity, video_id: str) -> dict:
         ...
 
+    @abstractmethod
+    def get_channel_history(self, user: UserEntity) -> Iterable[VideoHistory]:
+        ...
+
+    @abstractmethod
+    def get_history_for_retrieve(self, user: UserEntity) -> Iterable[VideoHistory]:
+        ...
+
 
 class ORMVideoHistoryService(BaseVideoHistoryService):
     def _validate_video_id_and_get_objects(self, video_id: str, user: UserEntity) -> tuple[ChannelEntity, VideoEntity]:
@@ -323,6 +332,15 @@ class ORMVideoHistoryService(BaseVideoHistoryService):
             raise VideoNotFoundInHistoryError(video_id=video_id, channel_slug=channel.slug)
 
         return {'status': 'Video successfully deleted from history'}
+
+    def get_channel_history(self, user: UserEntity) -> Iterable[VideoHistory]:
+        channel = self.channel_repository.get_channel_by_user_or_none(user=user)
+        return self.history_repository.get_channel_history(channel=channel)
+
+    def get_history_for_retrieve(self, user: UserEntity) -> Iterable[VideoHistory]:
+        channel = self.channel_repository.get_channel_by_user_or_none(user=user)
+        qs = self.history_repository.get_channel_history(channel=channel)
+        return qs.select_related('video__author')
 
 
 @dataclass

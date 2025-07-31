@@ -202,6 +202,10 @@ class BaseVideoHistoryRepository(ABC):
     def update_watch_time(self, video_history: VideoHistoryEntity) -> None:
         ...
 
+    @abstractmethod
+    def get_channel_history(self, channel: ChannelEntity) -> Iterable[VideoHistory]:
+        ...
+
 
 class ORMVideoHistoryRepository(BaseVideoHistoryRepository):
     def get_or_create_history_item(self, video: VideoEntity, channel: ChannelEntity) -> tuple[VideoHistoryEntity, bool]:
@@ -216,6 +220,9 @@ class ORMVideoHistoryRepository(BaseVideoHistoryRepository):
         video_history_dto = video_history_from_entity(video_history)
         video_history_dto.watched_at = timezone.now()
         video_history_dto.save(update_fields=['watched_at'])
+
+    def get_channel_history(self, channel: ChannelEntity) -> Iterable[VideoHistory]:
+        return VideoHistory.objects.filter(channel_id=channel.id)
 
 
 class BasePlaylistRepository(ABC):

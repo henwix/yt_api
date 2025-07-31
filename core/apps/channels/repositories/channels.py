@@ -46,7 +46,7 @@ class BaseChannelRepository(ABC):
         ...
 
     @abstractmethod
-    def get_channel_by_user_id(self, user_id: int) -> ChannelEntity | None:
+    def get_channel_by_user_id_or_none(self, user_id: int) -> ChannelEntity | None:
         ...
 
     @abstractmethod
@@ -77,7 +77,7 @@ class ORMChannelRepository(BaseChannelRepository):
         channel_dto = Channel.objects.filter(user_id=user.id).first()
         return channel_to_entity(channel_dto) if channel_dto else None
 
-    def get_channel_by_user_id(self, user_id: int) -> ChannelEntity | None:
+    def get_channel_by_user_id_or_none(self, user_id: int) -> ChannelEntity | None:
         channel_dto = Channel.objects.filter(user_id=user_id).first()
         return channel_to_entity(channel_dto) if channel_dto else None
 

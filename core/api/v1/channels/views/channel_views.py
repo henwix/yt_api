@@ -230,7 +230,7 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
             },
         },
         responses={
-            201: {
+            200: {
                 'type': 'object',
                 'properties': {
                     'status': {

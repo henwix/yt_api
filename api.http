@@ -1,12 +1,11 @@
-POST http://127.0.0.1:8001/api/v1/auth/users/reset_username_confirm/ HTTP/1.1
+
+POST http://localhost/v1/token/ HTTP/1.1
 Content-Type: application/json
 
 {
-    "uid": "Mjg",
-    "token": "cmlsrb-5369d85ef4be0f2ea255ff7e50976d6c",
-    "new_username": "FinkHenwix"
+  "username": "henwix",
+  "password": "1234q1234q"
 }
 
 ###
-
 

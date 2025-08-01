@@ -9,7 +9,7 @@ class VideoReportSerializer(serializers.ModelSerializer):
         view_name='v1:reports:videos-reports-detail',
         many=False,
     )
-    video = serializers.SlugRelatedField(queryset=Video.objects.all(), slug_field='video_id', write_only=True)
+    video_slug = serializers.SlugRelatedField(queryset=Video.objects.all(), slug_field='video_id', write_only=True)
     video_link = serializers.HyperlinkedRelatedField(
         view_name='v1:videos:videos-detail',
         read_only=True,
@@ -29,4 +29,4 @@ class VideoReportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VideoReport
-        fields = ['report_link', 'video', 'video_link', 'author_link', 'reason', 'description']
+        fields = ['report_link', 'video_slug', 'video_link', 'author_link', 'reason', 'description']

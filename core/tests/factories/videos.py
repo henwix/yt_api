@@ -6,6 +6,7 @@ from core.apps.videos.models import (
     Playlist,
     PlaylistItem,
     Video,
+    VideoHistory,
     VideoLike,
     VideoView,
 )
@@ -57,4 +58,12 @@ class PlaylistItemModelFactory(DjangoModelFactory):
         model = PlaylistItem
 
     playlist = factory.SubFactory(PlaylistModelFactory)
+    video = factory.SubFactory(VideoModelFactory)
+
+
+class VideoHistoryModelFactory(DjangoModelFactory):
+    class Meta:
+        model = VideoHistory
+
+    channel = factory.SubFactory(ChannelModelFactory)
     video = factory.SubFactory(VideoModelFactory)

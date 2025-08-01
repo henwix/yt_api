@@ -6,8 +6,8 @@ class LikeCreateInSerializer(serializers.Serializer):
 
 
 class LikeCreateOutSerializer(serializers.Serializer):
-    is_like = serializers.BooleanField()
     status = serializers.CharField()
+    is_like = serializers.BooleanField()
 
 
 class LikeDeleteOutSerializer(serializers.Serializer):

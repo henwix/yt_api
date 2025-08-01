@@ -10,9 +10,15 @@ from rest_framework.response import Response
 import orjson
 import punq
 from botocore.exceptions import ClientError
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiExample,
+)
 
-from core.api.v1.common.serializers.upload_serializers import KeySerializer
+from core.api.v1.common.serializers.upload_serializers import (
+    FilenameSerializer,
+    KeySerializer,
+)
 from core.apps.channels.use_cases.avatar_upload.complete_upload_avatar import CompleteUploadAvatarUseCase
 from core.apps.channels.use_cases.avatar_upload.delete_avatar import DeleteChannelAvatarUseCase
 from core.apps.channels.use_cases.avatar_upload.download_avatar_url import GenerateUrlForAvatarDownloadUseCase
@@ -27,7 +33,7 @@ from core.project.containers import get_container
         'application/json': {
             'type': 'object',
             'properties': {
-                'filename': {'type': 'string'},
+                'filename': {'type': 'string', 'example': 'avatar.jpg'},
             },
             'required': ['filename'],
         },
@@ -44,19 +50,40 @@ from core.project.containers import get_container
                 },
             },
         },
+        400: {
+            'type': 'object',
+            'properties': {
+                'error': {
+                    'type': 'string',
+                    'example': 'Unsupported avatar file format',
+                },
+            },
+        },
+        500: {
+            'type': 'object',
+            'properties': {
+                'error': {
+                    'type': 'string',
+                },
+            },
+        },
     },
     summary='Generate presigned url for avatar upload',
 )
 class GenerateUploadAvatarUrlView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = FilenameSerializer
 
     def post(self, request):
         container: punq.Container = get_container()
         use_case: GenerateUploadAvatarUrlUseCase = container.resolve(GenerateUploadAvatarUrlUseCase)
         logger: Logger = container.resolve(Logger)
 
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         try:
-            result = use_case.execute(filename=request.data.get('filename'))
+            result = use_case.execute(filename=serializer.validated_data.get('filename'))
 
         except ClientError as error:
             logger.error(
@@ -81,6 +108,23 @@ class GenerateUploadAvatarUrlView(generics.GenericAPIView):
             'type': 'object',
             'properties': {
                 'url': {
+                    'type': 'string',
+                },
+            },
+        },
+        404: {
+            'type': 'object',
+            'properties': {
+                'error': {
+                    'type': 'string',
+                    'example': 'File with this key does not exist in S3',
+                },
+            },
+        },
+        500: {
+            'type': 'object',
+            'properties': {
+                'error': {
                     'type': 'string',
                 },
             },
@@ -128,11 +172,38 @@ class GenerateDownloadAvatarUrlView(generics.GenericAPIView):
             'properties': {
                 'status': {
                     'type': 'string',
-                    'example': 'success',
+                },
+            },
+        },
+        404: {
+            'type': 'object',
+            'properties': {
+                'error': {
+                    'type': 'string',
                 },
             },
         },
     },
+    examples=[
+        OpenApiExample(
+            name='Avatar deleted',
+            value={'status': 'success'},
+            response_only=True,
+            status_codes=[200],
+        ),
+        OpenApiExample(
+            name='Channel not found',
+            value={'error': 'Channel not found'},
+            response_only=True,
+            status_codes=[404],
+        ),
+        OpenApiExample(
+            name='Avatar does not exists',
+            value={'error': 'Avatar does not exists'},
+            response_only=True,
+            status_codes=[404],
+        ),
+    ],
     summary='Delete channel avatar',
 )
 class DeleteChannelAvatarView(generics.GenericAPIView):
@@ -160,11 +231,46 @@ class DeleteChannelAvatarView(generics.GenericAPIView):
             'properties': {
                 'status': {
                     'type': 'string',
-                    'example': 'success',
+                },
+            },
+        },
+        404: {
+            'type': 'object',
+            'properties': {
+                'error': {
+                    'type': 'string',
+                },
+            },
+        },
+        500: {
+            'type': 'object',
+            'properties': {
+                'error': {
+                    'type': 'string',
                 },
             },
         },
     },
+    examples=[
+        OpenApiExample(
+            name='Avatar deleted',
+            value={'status': 'success'},
+            response_only=True,
+            status_codes=[200],
+        ),
+        OpenApiExample(
+            name='Channel not found',
+            value={'error': 'Channel not found'},
+            response_only=True,
+            status_codes=[404],
+        ),
+        OpenApiExample(
+            name='File does not exists',
+            value={'error': 'File with this key does not exist in S3'},
+            response_only=True,
+            status_codes=[404],
+        ),
+    ],
     summary='Complete avatar uploading',
 )
 class CompleteUploadAvatarView(generics.GenericAPIView):

@@ -115,6 +115,13 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
                 description="Parameter identifying channel's slug to get related 'Posts'",
                 required=True,
                 type=str,
+                examples=[
+                    OpenApiExample(
+                        name='ChannelSlugExample',
+                        value='henwix',
+                        summary="Channel's slug",
+                    ),
+                ],
             ),
         ],
         summary="Get channel's posts",
@@ -167,7 +174,7 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
 
     @extend_schema(
         responses={
-            201: OpenApiResponse(
+            200: OpenApiResponse(
                 response=inline_serializer(
                     name='PostLikeDeleted',
                     fields={
@@ -205,7 +212,7 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
 
-        return Response(result, status.HTTP_204_NO_CONTENT)
+        return Response(result, status.HTTP_200_OK)
 
 
 class CommentPostAPIView(
@@ -336,7 +343,7 @@ class CommentPostAPIView(
 
     @extend_schema(
         responses={
-            201: OpenApiResponse(
+            200: OpenApiResponse(
                 response=inline_serializer(
                     name='PostCommentLikeDeleted',
                     fields={
@@ -373,4 +380,4 @@ class CommentPostAPIView(
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
 
-        return Response(result, status.HTTP_204_NO_CONTENT)
+        return Response(result, status.HTTP_200_OK)

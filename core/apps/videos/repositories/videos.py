@@ -206,6 +206,10 @@ class BaseVideoHistoryRepository(ABC):
     def get_channel_history(self, channel: ChannelEntity) -> Iterable[VideoHistory]:
         ...
 
+    @abstractmethod
+    def clear_history(self, channel: ChannelEntity) -> bool:
+        ...
+
 
 class ORMVideoHistoryRepository(BaseVideoHistoryRepository):
     def get_or_create_history_item(self, video: VideoEntity, channel: ChannelEntity) -> tuple[VideoHistoryEntity, bool]:
@@ -223,6 +227,10 @@ class ORMVideoHistoryRepository(BaseVideoHistoryRepository):
 
     def get_channel_history(self, channel: ChannelEntity) -> Iterable[VideoHistory]:
         return VideoHistory.objects.filter(channel_id=channel.id)
+
+    def clear_history(self, channel: ChannelEntity) -> bool:
+        deleted, _ = VideoHistory.objects.filter(channel_id=channel.id).delete()
+        return deleted > 0
 
 
 class BasePlaylistRepository(ABC):

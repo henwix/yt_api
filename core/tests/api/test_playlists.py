@@ -103,5 +103,5 @@ def test_video_deleted_from_playlist(client: APIClient, jwt_and_channel: str):
 
     response = client.delete(f'/v1/playlists/{playlist.id}/delete-video/?v={video.video_id}')
 
-    assert response.status_code == 204
+    assert response.status_code == 200
     assert not PlaylistItem.objects.filter(playlist=playlist, video=video).exists()

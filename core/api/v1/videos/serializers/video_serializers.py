@@ -4,7 +4,6 @@ from core.apps.videos.models import (
     Playlist,
     Video,
     VideoComment,
-    VideoHistory,
 )
 
 
@@ -144,20 +143,6 @@ class VideoPreviewSerializer(serializers.ModelSerializer):
             'status',
             's3_key',
         ]
-
-
-class VideoHistorySerializer(serializers.ModelSerializer):
-    video = VideoPreviewSerializer(many=False, read_only=True)
-
-    class Meta:
-        model = VideoHistory
-        fields = ['watched_at', 'video']
-
-    def create(self, validated_data):
-        request = self.context.get('request')
-        validated_data['channel'] = request.user.channel
-
-        return super().create(validated_data)
 
 
 class PlaylistPreviewSerializer(serializers.ModelSerializer):

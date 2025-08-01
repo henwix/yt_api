@@ -32,5 +32,5 @@ def test_video_like_deleted(client: APIClient, jwt_and_channel: str, video: Vide
 
     response = client.delete(f'/v1/videos/{video.video_id}/unlike/')
 
-    assert response.status_code == 204
+    assert response.status_code == 200
     assert not VideoLike.objects.filter(video=video).exists()

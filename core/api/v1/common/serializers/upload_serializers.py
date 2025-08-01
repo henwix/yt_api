@@ -15,3 +15,7 @@ class GenerateUploadPartUrlSerializer(AbortUploadSerializer):
 
 class CompleteUploadSerializer(AbortUploadSerializer):
     parts = serializers.ListField(min_length=1, max_length=10000)
+
+
+class FilenameSerializer(serializers.Serializer):
+    filename = serializers.CharField(max_length=256)

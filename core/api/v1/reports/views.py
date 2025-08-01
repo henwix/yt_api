@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 import orjson
 import punq
+from drf_spectacular.utils import extend_schema
 
 from core.api.v1.reports.serializers import VideoReportSerializer
 from core.apps.common.exceptions.exceptions import ServiceException
@@ -36,6 +37,19 @@ class VideoReportsView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIVi
             return self.service.get_report_list_related()
         return self.service.get_report_list()
 
+    @extend_schema(
+        responses={
+            201: {
+                'type': 'object',
+                'properties': {
+                    'status': {
+                        'type': 'string',
+                        'example': 'successfully created',
+                    },
+                },
+            },
+        },
+    )
     def create(self, request, *args, **kwargs):
         use_case: CreateReportUseCase = self.container.resolve(CreateReportUseCase)
         serializer = self.get_serializer(data=request.data)
@@ -43,8 +57,9 @@ class VideoReportsView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIVi
 
         try:
             result = use_case.execute(
-                video_id=request.data.get('video'),
                 user=user_to_entity(request.user),
+                # video_id=request.data.get('video_slug'),
+                video_id=serializer.validated_data.get('video_slug').pk,
                 reason=serializer.validated_data.get('reason'),
                 description=serializer.validated_data.get('description'),
             )

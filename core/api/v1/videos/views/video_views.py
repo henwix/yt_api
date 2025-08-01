@@ -31,13 +31,13 @@ from core.api.v1.common.serializers.serializers import (
     LikeCreateInSerializer,
     LikeCreateOutSerializer,
 )
+from core.api.v1.videos.serializers.history import VideoHistorySerializer
 from core.api.v1.videos.serializers.video_serializers import (
     CommentCreatedSerializer,
     PlaylistPreviewSerializer,
     PlaylistSerializer,
     UpdatePlaylistSerializer,
     VideoCommentSerializer,
-    VideoHistorySerializer,
     VideoPreviewSerializer,
     VideoSerializer,
 )
@@ -68,6 +68,7 @@ from core.apps.videos.use_cases.comments.comment_create import CreateVideoCommen
 from core.apps.videos.use_cases.comments.get_comments_list import GetVideoCommentsUseCase
 from core.apps.videos.use_cases.comments.like_create import VideoCommentLikeCreateUseCase
 from core.apps.videos.use_cases.comments.like_delete import VideoCommentLikeDeleteUseCase
+from core.apps.videos.use_cases.history.clear_history import ClearVideoHistoryUseCase
 from core.project.containers import get_container
 
 
@@ -140,7 +141,7 @@ class VideoViewSet(
 
     @extend_schema(
         responses={
-            201: OpenApiResponse(
+            200: OpenApiResponse(
                 response=inline_serializer(
                     name='VideoLikeDeleted',
                     fields={
@@ -175,7 +176,7 @@ class VideoViewSet(
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
 
-        return Response(result, status.HTTP_204_NO_CONTENT)
+        return Response(result, status.HTTP_200_OK)
 
     @extend_schema(
         request=None,
@@ -368,7 +369,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
 
     @extend_schema(
         responses={
-            201: OpenApiResponse(
+            200: OpenApiResponse(
                 response=inline_serializer(
                     name='VideoCommentLikeDeleted',
                     fields={
@@ -405,10 +406,9 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
 
-        return Response(result, status.HTTP_204_NO_CONTENT)
+        return Response(result, status.HTTP_200_OK)
 
 
-#  FIXME: fix all extra fields in serializers for docs
 class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
     """API endpoint to get list of watched videos.
 
@@ -424,14 +424,53 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        container: punq.Container = get_container()
-        self.service: BaseVideoHistoryService = container.resolve(BaseVideoHistoryService)
-        self.logger: Logger = container.resolve(Logger)
+        self.container: punq.Container = get_container()
+        self.service: BaseVideoHistoryService = self.container.resolve(BaseVideoHistoryService)
+        self.logger: Logger = self.container.resolve(Logger)
 
     def get_queryset(self):
         if self.action == 'delete':
             return self.service.get_channel_history(user=user_to_entity(self.request.user))
         return self.service.get_history_for_retrieve(user=user_to_entity(self.request.user))
+
+    @extend_schema(
+        examples=[
+            OpenApiExample(
+                name='History cleared',
+                value={'status': 'history cleared'},
+                response_only=True,
+            ),
+            OpenApiExample(
+                name='History is empty',
+                value={'status': 'history is empty'},
+                response_only=True,
+            ),
+        ],
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'status': {
+                        'type': 'string',
+                    },
+                },
+            },
+        },
+        summary='Clear video history',
+    )
+    @action(methods=['delete'], detail=False, url_path='clear')
+    def clear_history(self, request):
+        use_case: ClearVideoHistoryUseCase = self.container.resolve(ClearVideoHistoryUseCase)
+
+        try:
+            result = use_case.execute(
+                user=user_to_entity(request.user),
+            )
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        return Response(result, status.HTTP_200_OK)
 
     @extend_schema(
         request=None,
@@ -482,7 +521,7 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
             ),
         ],
         responses={
-            201: {
+            200: {
                 'type': 'object',
                 'properties': {
                     'status': {
@@ -634,4 +673,4 @@ class PlaylistAPIView(viewsets.ModelViewSet):
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
 
-        return Response(result, status.HTTP_204_NO_CONTENT)
+        return Response(result, status.HTTP_200_OK)

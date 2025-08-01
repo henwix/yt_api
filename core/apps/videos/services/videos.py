@@ -186,7 +186,7 @@ class ORMVideoService(BaseVideoService):
         video = self.video_repository.get_video_by_id_with_reports_count(video_id)
 
         if not video:
-            raise VideoNotFoundByVideoIdError(video.id)
+            raise VideoNotFoundByVideoIdError(video_id)
         return video
 
     def get_video_by_id_or_404(self, video_id: str) -> VideoEntity:
@@ -295,6 +295,10 @@ class BaseVideoHistoryService(ABC):
     def get_history_for_retrieve(self, user: UserEntity) -> Iterable[VideoHistory]:
         ...
 
+    @abstractmethod
+    def clear_history(self, channel: ChannelEntity) -> bool:
+        ...
+
 
 class ORMVideoHistoryService(BaseVideoHistoryService):
     def _validate_video_id_and_get_objects(self, video_id: str, user: UserEntity) -> tuple[ChannelEntity, VideoEntity]:
@@ -341,6 +345,9 @@ class ORMVideoHistoryService(BaseVideoHistoryService):
         channel = self.channel_repository.get_channel_by_user_or_none(user=user)
         qs = self.history_repository.get_channel_history(channel=channel)
         return qs.select_related('video__author')
+
+    def clear_history(self, channel: ChannelEntity) -> bool:
+        return self.history_repository.clear_history(channel=channel)
 
 
 @dataclass

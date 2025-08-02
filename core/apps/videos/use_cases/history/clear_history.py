@@ -10,10 +10,10 @@ class ClearVideoHistoryUseCase:
     channel_service: BaseChannelService
     history_service: BaseVideoHistoryService
 
-    def execute(self, user: UserEntity) -> dict:
+    def execute(self, user: UserEntity) -> tuple[bool, dict]:
         channel = self.channel_service.get_channel_by_user_or_404(user=user)
 
         deleted = self.history_service.clear_history(channel=channel)
         if deleted:
-            return {'status': 'history cleared'}
-        return {'status': 'history is empty'}
+            return deleted, {'status': 'history cleared'}
+        return deleted, {'error': 'history is empty'}

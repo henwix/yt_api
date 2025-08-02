@@ -13,9 +13,18 @@ from djoser import signals
 from djoser.compat import get_user_email
 from djoser.conf import settings
 from djoser.views import UserViewSet
-from drf_spectacular.utils import extend_schema
-from rest_framework_simplejwt.tokens import RefreshToken  # noqa
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiExample,
+    PolymorphicProxySerializer,
+)
 
+from core.api.v1.common.serializers.serializers import (
+    ErrorSerializer,
+    JWTSerializer,
+    StatusSerializer,
+)
+from core.api.v1.users.serializers.auth import AuthSerializer
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.common.pagination import CustomPageNumberPagination
 from core.apps.users.tasks import (
@@ -32,31 +41,39 @@ from core.project.containers import get_container  # noqa
 
 
 @extend_schema(
-    request={
-        'application/json': {
-            'type': 'object',
-            'properties': {
-                'login': {'type': 'string'},
-                'password': {'type': 'string'},
-            },
-            'required': ['login', 'password'],
-        },
-    },
+    request=AuthSerializer,
     responses={
-        200: {
-            'type': 'object',
-            'properties': {
-                'access': {
-                    'type': 'string',
-                    'example': 'string',
-                },
-                'refresh': {
-                    'type': 'string',
-                    'example': 'string',
-                },
-            },
-        },
+        200: PolymorphicProxySerializer(
+            component_name='OAuth2ConnectResponse',
+            serializers=[JWTSerializer, StatusSerializer],
+            resource_type_field_name=None,
+        ),
+        404: ErrorSerializer,
     },
+    examples=[
+        OpenApiExample(
+            name='Auth success',
+            value={
+                'access': 'string',
+                'refresh': 'string',
+            },
+            response_only=True,
+            status_codes=[200],
+        ),
+        OpenApiExample(
+            name='Email sent',
+            description='Sends an email with a code to verify OTP',
+            value={'status': 'email successfully sent'},
+            response_only=True,
+            status_codes=[200],
+        ),
+        OpenApiExample(
+            name='User not found error',
+            value={'error': 'user not found'},
+            response_only=True,
+            status_codes=[404],
+        ),
+    ],
     summary='Login user and get JWT tokens or send OTP code',
 )
 class UserLoginView(APIView):
@@ -65,11 +82,19 @@ class UserLoginView(APIView):
     def post(self, request):
         container: punq.Container = get_container()
         use_case: AuthorizeUserUseCase = container.resolve(AuthorizeUserUseCase)
+        logger: Logger = container.resolve(Logger)
 
-        result = use_case.execute(
-            login=request.data.get('login'),
-            password=request.data.get('password'),
-        )
+        serializer = AuthSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            result = use_case.execute(
+                login=serializer.validated_data.get('login'),
+                password=serializer.validated_data.get('password'),
+            )
+        except ServiceException as error:
+            logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
 
         return Response(result, status=status.HTTP_200_OK)
 

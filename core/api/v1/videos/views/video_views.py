@@ -434,18 +434,6 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
         return self.service.get_history_for_retrieve(user=user_to_entity(self.request.user))
 
     @extend_schema(
-        examples=[
-            OpenApiExample(
-                name='History cleared',
-                value={'status': 'history cleared'},
-                response_only=True,
-            ),
-            OpenApiExample(
-                name='History is empty',
-                value={'status': 'history is empty'},
-                response_only=True,
-            ),
-        ],
         responses={
             200: {
                 'type': 'object',
@@ -455,7 +443,29 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
                     },
                 },
             },
+            400: {
+                'type': 'object',
+                'properties': {
+                    'error': {
+                        'type': 'string',
+                    },
+                },
+            },
         },
+        examples=[
+            OpenApiExample(
+                name='History cleared',
+                value={'status': 'history cleared'},
+                response_only=True,
+                status_codes=[200],
+            ),
+            OpenApiExample(
+                name='History is empty',
+                value={'error': 'history is empty'},
+                response_only=True,
+                status_codes=[400],
+            ),
+        ],
         summary='Clear video history',
     )
     @action(methods=['delete'], detail=False, url_path='clear')
@@ -463,14 +473,14 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
         use_case: ClearVideoHistoryUseCase = self.container.resolve(ClearVideoHistoryUseCase)
 
         try:
-            result = use_case.execute(
+            deleted, result = use_case.execute(
                 user=user_to_entity(request.user),
             )
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
 
-        return Response(result, status.HTTP_200_OK)
+        return Response(result, status=status.HTTP_200_OK if deleted else status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
         request=None,

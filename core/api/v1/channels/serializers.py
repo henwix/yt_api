@@ -70,5 +70,5 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         fields = ['sub_slug', 'sub_link', 'created_at']
 
 
-class CreateSubscriptionInSerializer(serializers.Serializer):
+class SubscriptionInSerializer(serializers.Serializer):
     channel_slug = serializers.SlugField(max_length=40)

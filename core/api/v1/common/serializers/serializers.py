@@ -12,3 +12,16 @@ class LikeCreateOutSerializer(serializers.Serializer):
 
 class LikeDeleteOutSerializer(serializers.Serializer):
     status = serializers.CharField()
+
+
+class JWTSerializer(serializers.Serializer):
+    access = serializers.CharField()
+    refresh = serializers.CharField()
+
+
+class StatusSerializer(serializers.Serializer):
+    status = serializers.CharField()
+
+
+class ErrorSerializer(serializers.Serializer):
+    error = serializers.CharField()

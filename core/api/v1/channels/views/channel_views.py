@@ -14,13 +14,16 @@ from rest_framework.response import Response
 
 import orjson
 import punq
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiExample,
+)
 
 from core.api.v1.channels.serializers import (
     ChannelAboutSerializer,
     ChannelAndVideosSerializer,
     ChannelSerializer,
-    CreateSubscriptionInSerializer,
+    SubscriptionInSerializer,
     SubscriptionSerializer,
 )
 from core.apps.channels.converters.channels import channel_from_entity
@@ -163,7 +166,7 @@ class ChannelAboutView(generics.RetrieveAPIView):
 
 class SubscriptionAPIView(viewsets.GenericViewSet):
     queryset = SubscriptionItem.objects.all()
-    serializer_class = CreateSubscriptionInSerializer
+    serializer_class = SubscriptionInSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def __init__(self, **kwargs):
@@ -173,30 +176,60 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
         self.logger: Logger = container.resolve(Logger)
 
     @extend_schema(
-        request={
-            'application/json': {
-                'type': 'object',
-                'properties': {
-                    'channel_slug': {
-                        'type': 'string',
-                        'description': "'slug' field from channel instance to subscribe",
-                        'example': 'henwix',
-                    },
-                },
-                'required': ['channel_slug'],
-            },
-        },
+        request=SubscriptionInSerializer,
         responses={
             201: {
                 'type': 'object',
                 'properties': {
                     'status': {
                         'type': 'string',
-                        'example': 'Subscription created',
+                    },
+                },
+            },
+            400: {
+                'type': 'object',
+                'properties': {
+                    'error': {
+                        'type': 'string',
+                    },
+                },
+            },
+            404: {
+                'type': 'object',
+                'properties': {
+                    'error': {
+                        'type': 'string',
                     },
                 },
             },
         },
+        examples=[
+            OpenApiExample(
+                name='Subscription created',
+                response_only=True,
+                value={'status': 'subscription created'},
+                status_codes=[201],
+            ),
+            OpenApiExample(
+                name='Channel is not found error',
+                response_only=True,
+                value={'error': 'channel with this slug not found'},
+                status_codes=[404],
+            ),
+            OpenApiExample(
+                name='Self-subscription error',
+                response_only=True,
+                value={'error': "you can't subscribe/unsubscribe to/from yourself"},
+                status_codes=[400],
+            ),
+            OpenApiExample(
+                name='Subscription already exists error',
+                response_only=True,
+                value={'error': 'subscription already exists'},
+                status_codes=[400],
+            ),
+
+        ],
         summary='Subscribe to channel',
     )
     @action(methods=['post'], url_path='subscribe', detail=False)
@@ -216,30 +249,60 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
             return Response(result, status.HTTP_201_CREATED)
 
     @extend_schema(
-        request={
-            'application/json': {
-                'type': 'object',
-                'properties': {
-                    'channel_slug': {
-                        'type': 'string',
-                        'description': "'slug' field from channel's instance to unsubscribe",
-                        'example': 'henwix',
-                    },
-                },
-                'required': ['channel_slug'],
-            },
-        },
+        request=SubscriptionInSerializer,
         responses={
             200: {
                 'type': 'object',
                 'properties': {
                     'status': {
                         'type': 'string',
-                        'example': 'Subscription deleted',
+                    },
+                },
+            },
+            400: {
+                'type': 'object',
+                'properties': {
+                    'error': {
+                        'type': 'string',
+                    },
+                },
+            },
+            404: {
+                'type': 'object',
+                'properties': {
+                    'error': {
+                        'type': 'string',
                     },
                 },
             },
         },
+        examples=[
+            OpenApiExample(
+                name='Subscription deleted',
+                response_only=True,
+                value={'status': 'subscription deleted'},
+                status_codes=[200],
+            ),
+            OpenApiExample(
+                name='Self-subscription error',
+                response_only=True,
+                value={'error': "you can't subscribe/unsubscribe to/from yourself"},
+                status_codes=[400],
+            ),
+            OpenApiExample(
+                name='Channel is not found error',
+                response_only=True,
+                value={'error': 'channel with this slug not found'},
+                status_codes=[404],
+            ),
+            OpenApiExample(
+                name='Subscription does not exists error',
+                response_only=True,
+                value={'error': 'subscription does not exists'},
+                status_codes=[404],
+            ),
+
+        ],
         summary='Unsubscribe from channel',
     )
     @action(methods=['post'], url_path='unsubscribe', detail=False)

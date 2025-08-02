@@ -8,7 +8,7 @@ from core.apps.common.exceptions.exceptions import ServiceException
 @dataclass
 class UserNotFoundError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
-    default_detail = {'error': 'User not found'}
+    default_detail = {'error': 'user not found'}
 
     @property
     def message(self):

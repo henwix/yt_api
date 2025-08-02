@@ -58,7 +58,6 @@ class VideoReportsView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIVi
         try:
             result = use_case.execute(
                 user=user_to_entity(request.user),
-                # video_id=request.data.get('video_slug'),
                 video_id=serializer.validated_data.get('video_slug').pk,
                 reason=serializer.validated_data.get('reason'),
                 description=serializer.validated_data.get('description'),

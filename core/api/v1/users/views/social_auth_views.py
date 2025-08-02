@@ -13,11 +13,11 @@ from drf_spectacular.utils import (
 from social_core.exceptions import SocialAuthBaseException
 from social_django.utils import load_strategy
 
-from core.api.v1.users.serializers.oauth2 import (
-    OAuth2ConnectAuthorizedSerializer,
-    OAuth2ConnectJWTSerializer,
-    OAuth2ConnectSerializer,
+from core.api.v1.common.serializers.serializers import (
+    JWTSerializer,
+    StatusSerializer,
 )
+from core.api.v1.users.serializers.oauth2 import OAuth2ConnectSerializer
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.users.converters.users import user_to_entity
 from core.apps.users.throttles import OAuth2ThrottleClass  # noqa
@@ -70,7 +70,7 @@ class OAuth2GenerateURLView(APIView):
     parameters=[OAuth2ConnectSerializer],
     responses=PolymorphicProxySerializer(
         component_name='OAuth2ConnectResponse',
-        serializers=[OAuth2ConnectJWTSerializer, OAuth2ConnectAuthorizedSerializer],
+        serializers=[JWTSerializer, StatusSerializer],
         resource_type_field_name=None,
     ),
     summary='Verify SocialOAuth2 data and connect service to user',

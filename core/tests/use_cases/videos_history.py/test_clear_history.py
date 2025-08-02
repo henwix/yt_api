@@ -32,4 +32,4 @@ def test_history_empty(
     assert not VideoHistory.objects.filter(channel=channel).exists()
     response = clear_video_history_use_case.execute(user=user_to_entity(channel.user))
 
-    assert response['status'] == 'history is empty'
+    assert response['error'] == 'history is empty'

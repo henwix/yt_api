@@ -23,4 +23,4 @@ class PostCommentLikeCreateUseCase:
         if not created and like.is_like != is_like:
             self.comment_service.update_like_status(like_id=like.id, is_like=is_like)
 
-        return {'status': 'success', 'is_like': is_like}
+        return {'detail': 'Success', 'is_like': is_like}

@@ -7,7 +7,7 @@ from rest_framework.exceptions import APIException
 @dataclass
 class ServiceException(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = {'error': 'Application exception occurred'}
+    default_detail = {'detail': 'Application exception occurred'}
 
     def __post_init__(self):
         super().__init__()
@@ -23,7 +23,7 @@ class ServiceException(APIException):
 @dataclass
 class S3FileWithKeyNotExistsError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
-    default_detail = {'error': 'File with this key does not exist in S3'}
+    default_detail = {'detail': 'File with this key does not exist in S3'}
 
     key: str
 
@@ -35,7 +35,7 @@ class S3FileWithKeyNotExistsError(ServiceException):
 @dataclass
 class MultipartUploadExistsError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
-    default_detail = {'error': 'Multipart upload with this key and upload_id does not exist in S3'}
+    default_detail = {'detail': 'Multipart upload with this key and upload_id does not exist in S3'}
 
     key: str
     upload_id: str

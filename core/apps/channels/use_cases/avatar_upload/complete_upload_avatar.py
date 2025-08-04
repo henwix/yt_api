@@ -24,4 +24,4 @@ class CompleteUploadAvatarUseCase:
             avatar_s3_key=key,
         )
 
-        return {'status': 'success'}
+        return {'detail': 'Success'}

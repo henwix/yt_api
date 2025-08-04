@@ -6,3 +6,11 @@ class OAuth2ConnectSerializer(serializers.Serializer):
     state = serializers.CharField(required=True, help_text='OAuth2 state')
     scope = serializers.CharField(required=False, help_text='OAuth2 scope')
     prompt = serializers.CharField(required=False, help_text='OAuth2 prompt')
+
+
+class AuthUrlSerializer(serializers.Serializer):
+    auth_url = serializers.URLField()
+
+
+class OAuth2ConnectedProvidersSerializer(serializers.Serializer):
+    connected = serializers.DictField()

@@ -15,10 +15,16 @@ from drf_spectacular.utils import (
     OpenApiExample,
 )
 
+from core.api.v1.common.serializers.serializers import (
+    DetailOutSerializer,
+    UrlSerializer,
+)
 from core.api.v1.common.serializers.upload_serializers import (
     FilenameSerializer,
+    GenerateUploadUrlOutSerializer,
     KeySerializer,
 )
+from core.api.v1.schema.response_examples.common import detail_response_example
 from core.apps.channels.use_cases.avatar_upload.complete_upload_avatar import CompleteUploadAvatarUseCase
 from core.apps.channels.use_cases.avatar_upload.delete_avatar import DeleteChannelAvatarUseCase
 from core.apps.channels.use_cases.avatar_upload.download_avatar_url import GenerateUrlForAvatarDownloadUseCase
@@ -29,46 +35,24 @@ from core.project.containers import get_container
 
 
 @extend_schema(
-    request={
-        'application/json': {
-            'type': 'object',
-            'properties': {
-                'filename': {'type': 'string', 'example': 'avatar.jpg'},
-            },
-            'required': ['filename'],
-        },
-    },
     responses={
-        201: {
-            'type': 'object',
-            'properties': {
-                'upload_url': {
-                    'type': 'string',
-                },
-                'key': {
-                    'type': 'string',
-                },
-            },
-        },
-        400: {
-            'type': 'object',
-            'properties': {
-                'error': {
-                    'type': 'string',
-                    'example': 'Unsupported avatar file format',
-                },
-            },
-        },
-        500: {
-            'type': 'object',
-            'properties': {
-                'error': {
-                    'type': 'string',
-                },
-            },
-        },
+        201: GenerateUploadUrlOutSerializer,
+        400: DetailOutSerializer,
+        500: DetailOutSerializer,
     },
-    summary='Generate presigned url for avatar upload',
+    examples=[
+        OpenApiExample(
+            name='Filename',
+            value={'filename': 'avatar.png'},
+            request_only=True,
+        ),
+        detail_response_example(
+            name='Unsupported avatar file format',
+            value='Unsupported avatar file format',
+            status_code=400,
+        ),
+    ],
+    summary='Generate presigned url to upload avatar file in S3',
 )
 class GenerateUploadAvatarUrlView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -91,7 +75,7 @@ class GenerateUploadAvatarUrlView(generics.GenericAPIView):
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
-                {'error': error.response.get('Error', {}).get('Message')},
+                {'detail': error.response.get('Error', {}).get('Message')},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -104,33 +88,18 @@ class GenerateUploadAvatarUrlView(generics.GenericAPIView):
 
 @extend_schema(
     responses={
-        201: {
-            'type': 'object',
-            'properties': {
-                'url': {
-                    'type': 'string',
-                },
-            },
-        },
-        404: {
-            'type': 'object',
-            'properties': {
-                'error': {
-                    'type': 'string',
-                    'example': 'File with this key does not exist in S3',
-                },
-            },
-        },
-        500: {
-            'type': 'object',
-            'properties': {
-                'error': {
-                    'type': 'string',
-                },
-            },
-        },
+        201: UrlSerializer,
+        404: DetailOutSerializer,
+        500: DetailOutSerializer,
     },
-    summary='Generate presigned url for avatar download',
+    examples=[
+        detail_response_example(
+            name='File does not exist in S3',
+            value='File with this key does not exist in S3',
+            status_code=404,
+        ),
+    ],
+    summary='Generate presigned url to download avatar file from S3',
 )
 class GenerateDownloadAvatarUrlView(generics.GenericAPIView):
     serializer_class = KeySerializer
@@ -154,7 +123,7 @@ class GenerateDownloadAvatarUrlView(generics.GenericAPIView):
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
-                {'error': error.response.get('Error', {}).get('Message')},
+                {'detail': error.response.get('Error', {}).get('Message')},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -167,42 +136,26 @@ class GenerateDownloadAvatarUrlView(generics.GenericAPIView):
 
 @extend_schema(
     responses={
-        200: {
-            'type': 'object',
-            'properties': {
-                'status': {
-                    'type': 'string',
-                },
-            },
-        },
-        404: {
-            'type': 'object',
-            'properties': {
-                'error': {
-                    'type': 'string',
-                },
-            },
-        },
+        200: DetailOutSerializer,
+        404: DetailOutSerializer,
     },
     examples=[
-        OpenApiExample(
+        detail_response_example(
             name='Avatar deleted',
-            value={'status': 'success'},
-            response_only=True,
-            status_codes=[200],
+            value='Success',
+            status_code=200,
         ),
-        OpenApiExample(
+        detail_response_example(
             name='Channel not found',
-            value={'error': 'Channel not found'},
-            response_only=True,
-            status_codes=[404],
+            value='Channel not found',
+            status_code=404,
         ),
-        OpenApiExample(
+        detail_response_example(
             name='Avatar does not exists',
-            value={'error': 'Avatar does not exists'},
-            response_only=True,
-            status_codes=[404],
+            value='Avatar does not exists',
+            status_code=404,
         ),
+
     ],
     summary='Delete channel avatar',
 )
@@ -226,52 +179,28 @@ class DeleteChannelAvatarView(generics.GenericAPIView):
 
 @extend_schema(
     responses={
-        200: {
-            'type': 'object',
-            'properties': {
-                'status': {
-                    'type': 'string',
-                },
-            },
-        },
-        404: {
-            'type': 'object',
-            'properties': {
-                'error': {
-                    'type': 'string',
-                },
-            },
-        },
-        500: {
-            'type': 'object',
-            'properties': {
-                'error': {
-                    'type': 'string',
-                },
-            },
-        },
+        200: DetailOutSerializer,
+        404: DetailOutSerializer,
+        500: DetailOutSerializer,
     },
     examples=[
-        OpenApiExample(
+        detail_response_example(
             name='Avatar deleted',
-            value={'status': 'success'},
-            response_only=True,
-            status_codes=[200],
+            value='Success',
+            status_code=200,
         ),
-        OpenApiExample(
+        detail_response_example(
             name='Channel not found',
-            value={'error': 'Channel not found'},
-            response_only=True,
-            status_codes=[404],
+            value='Channel not found',
+            status_code=404,
         ),
-        OpenApiExample(
+        detail_response_example(
             name='File does not exists',
-            value={'error': 'File with this key does not exist in S3'},
-            response_only=True,
-            status_codes=[404],
+            value='File with this key does not exist in S3',
+            status_code=404,
         ),
     ],
-    summary='Complete avatar uploading',
+    summary='Complete avatar file uploading',
 )
 class CompleteUploadAvatarView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]

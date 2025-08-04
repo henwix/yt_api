@@ -3,7 +3,6 @@ from logging import Logger
 from django.conf import settings
 from rest_framework import (
     filters,
-    serializers as drf_serializers,
     status,
 )
 from rest_framework.decorators import action
@@ -14,10 +13,8 @@ import orjson
 import punq
 from drf_spectacular.utils import (
     extend_schema,
-    inline_serializer,
     OpenApiExample,
     OpenApiParameter,
-    OpenApiResponse,
 )
 
 from core.api.v1.common.serializers.comments import (
@@ -26,8 +23,10 @@ from core.api.v1.common.serializers.comments import (
     PostLikeSerializer,
 )
 from core.api.v1.common.serializers.serializers import (
+    DetailOutSerializer,
     LikeCreateInSerializer,
     LikeCreateOutSerializer,
+    SParameterSerializer,
 )
 from core.api.v1.posts.serializers.post_comment_serializers import (
     CommentCreateSerializer,
@@ -40,6 +39,10 @@ from core.api.v1.posts.serializers.post_serializers import (
     PostOutSerializer,
     PostSerializer,
     PostUIDSerializer,
+)
+from core.api.v1.schema.response_examples.common import (
+    detail_response_example,
+    like_created_response_example,
 )
 from core.api.v1.videos.serializers.video_serializers import CommentCreatedSerializer
 from core.apps.common.exceptions.exceptions import ServiceException
@@ -89,7 +92,22 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
             return self.post_service.get_posts_for_retrieving()
         return self.post_service.get_all_posts()
 
-    @extend_schema(request=PostInSerializer, responses=PostOutSerializer)
+    @extend_schema(
+        request=PostInSerializer,
+        responses={
+            200: PostOutSerializer,
+            404: DetailOutSerializer,
+
+        },
+        examples=[
+            detail_response_example(
+                name='Channel not found error',
+                value='Channel not found',
+                status_code=404,
+            ),
+        ],
+        summary='Create a new post',
+    )
     def create(self, request):
         use_case: PostCreateUseCase = self.container.resolve(PostCreateUseCase)
 
@@ -112,7 +130,7 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
         parameters=[
             OpenApiParameter(
                 name='s',
-                description="Parameter identifying channel's slug to get related 'Posts'",
+                description="Parameter identifying channel's slug",
                 required=True,
                 type=str,
                 examples=[
@@ -128,7 +146,11 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
     )
     def list(self, request, *args, **kwargs):
         use_case: GetChannelPostsUseCase = self.container.resolve(GetChannelPostsUseCase)
-        slug = request.query_params.get('s')
+
+        serializer = SParameterSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+
+        slug = serializer.validated_data.get('s')
         cache_key = f"{settings.CACHE_KEYS.get('related_posts')}{slug}_{request.query_params.get('c', '1')}"
 
         cached_data = self.cache_service.get_cached_data(cache_key)
@@ -150,7 +172,23 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
 
     @extend_schema(
         request=LikeCreateInSerializer,
-        responses=LikeCreateOutSerializer,
+        responses={
+            201: LikeCreateOutSerializer,
+            404: DetailOutSerializer,
+        },
+        examples=[
+            like_created_response_example(),
+            detail_response_example(
+                name='Channel not found error',
+                value='Channel not found',
+                status_code=404,
+            ),
+            detail_response_example(
+                name='Post not found error',
+                value='Post not found',
+                status_code=404,
+            ),
+        ],
         summary='Like or dislike post',
     )
     @action(methods=['post'], detail=True, url_path='like')
@@ -174,25 +212,31 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
 
     @extend_schema(
         responses={
-            200: OpenApiResponse(
-                response=inline_serializer(
-                    name='PostLikeDeleted',
-                    fields={
-                        'status': drf_serializers.CharField(),
-                    },
-                ),
-                description="Like deleted",
-                examples=[
-                    OpenApiExample(
-                        name="Deleted",
-                        value={
-                            "status": "success",
-                        },
-                        response_only=True,
-                    ),
-                ],
-            ),
+            200: DetailOutSerializer,
+            404: DetailOutSerializer,
         },
+        examples=[
+            detail_response_example(
+                name='Deleted',
+                value='Success',
+                status_code=200,
+            ),
+            detail_response_example(
+                name='Channel not found error',
+                value='Channel not found',
+                status_code=404,
+            ),
+            detail_response_example(
+                name='Post not found error',
+                value='Post not found',
+                status_code=404,
+            ),
+            detail_response_example(
+                name='Post like not found error',
+                value='Post like not found',
+                status_code=404,
+            ),
+        ],
         summary='Delete like or dislike post',
     )
     @action(url_path='unlike', methods=['delete'], detail=True)
@@ -248,7 +292,20 @@ class CommentPostAPIView(
             return super().filter_queryset(queryset)
         return queryset
 
-    @extend_schema(responses=CommentCreatedSerializer)
+    @extend_schema(
+        responses={
+            201: CommentCreatedSerializer,
+            404: DetailOutSerializer,
+        },
+        examples=[
+            detail_response_example(
+                name='Channel not found error',
+                value='Channel not found',
+                status_code=404,
+            ),
+        ],
+        summary='Create a new comment',
+    )
     def create(self, request, *args, **kwargs):
         use_case: CreatePostCommentUseCase = self.container.resolve(CreatePostCommentUseCase)
         serializer = self.get_serializer(data=request.data)
@@ -276,9 +333,20 @@ class CommentPostAPIView(
         parameters=[
             OpenApiParameter(
                 name='p',
-                description="Parameter identifying post to get related comment",
+                description="Parameter identifying post id",
                 required=True,
                 type=str,
+            ),
+        ],
+        responses={
+            200: CommentRetrieveSerializer,
+            404: DetailOutSerializer,
+        },
+        examples=[
+            detail_response_example(
+                name='Post not found error',
+                value='Post not found',
+                status_code=404,
             ),
         ],
         summary="Get post's comments",
@@ -291,7 +359,7 @@ class CommentPostAPIView(
 
         try:
             qs = use_case.execute(
-                post_id=request.query_params.get('p'),
+                post_id=serializer.validated_data.get('p'),
             )
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -309,7 +377,7 @@ class CommentPostAPIView(
         serializer.is_valid(raise_exception=True)
 
         try:
-            qs = use_case.execute(comment_id=pk)
+            qs = use_case.execute(comment_id=serializer.validated_data.get('pk'))
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
@@ -319,7 +387,23 @@ class CommentPostAPIView(
 
     @extend_schema(
         request=LikeCreateInSerializer,
-        responses=LikeCreateOutSerializer,
+        responses={
+            201: LikeCreateOutSerializer,
+            404: DetailOutSerializer,
+        },
+        examples=[
+            like_created_response_example(),
+            detail_response_example(
+                name='Channel not found error',
+                value='Channel not found',
+                status_code=404,
+            ),
+            detail_response_example(
+                name='Comment not found error',
+                value='Comment not found',
+                status_code=404,
+            ),
+        ],
         summary='Like or dislike comment',
     )
     @action(methods=['post'], url_path='like', detail=True)
@@ -343,25 +427,31 @@ class CommentPostAPIView(
 
     @extend_schema(
         responses={
-            200: OpenApiResponse(
-                response=inline_serializer(
-                    name='PostCommentLikeDeleted',
-                    fields={
-                        'status': drf_serializers.CharField(),
-                    },
-                ),
-                description="Like deleted",
-                examples=[
-                    OpenApiExample(
-                        name="Deleted",
-                        value={
-                            "status": "success",
-                        },
-                        response_only=True,
-                    ),
-                ],
-            ),
+            200: DetailOutSerializer,
+            404: DetailOutSerializer,
         },
+        examples=[
+            detail_response_example(
+                name='Deleted',
+                value='Success',
+                status_code=200,
+            ),
+            detail_response_example(
+                name='Channel not found error',
+                value='Channel not found',
+                status_code=404,
+            ),
+            detail_response_example(
+                name='Comment not found error',
+                value='Comment not found',
+                status_code=404,
+            ),
+            detail_response_example(
+                name='Comment like or dislike not found error',
+                value='Comment like or dislike not found',
+                status_code=404,
+            ),
+        ],
         summary='Delete like or dislike comment',
     )
     @action(methods=['delete'], url_path='unlike', detail=True)

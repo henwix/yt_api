@@ -6,22 +6,22 @@ class LikeCreateInSerializer(serializers.Serializer):
 
 
 class LikeCreateOutSerializer(serializers.Serializer):
-    status = serializers.CharField()
+    detail = serializers.CharField()
     is_like = serializers.BooleanField()
 
 
-class LikeDeleteOutSerializer(serializers.Serializer):
-    status = serializers.CharField()
-
-
-class JWTSerializer(serializers.Serializer):
+class JWTOutSerializer(serializers.Serializer):
     access = serializers.CharField()
     refresh = serializers.CharField()
 
 
-class StatusSerializer(serializers.Serializer):
-    status = serializers.CharField()
+class DetailOutSerializer(serializers.Serializer):
+    detail = serializers.CharField()
 
 
-class ErrorSerializer(serializers.Serializer):
-    error = serializers.CharField()
+class UrlSerializer(serializers.Serializer):
+    url = serializers.CharField()
+
+
+class SParameterSerializer(serializers.Serializer):
+    s = serializers.CharField(max_length=40, error_messages={'required': 'This query parameter is required.'})

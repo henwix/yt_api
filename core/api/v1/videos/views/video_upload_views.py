@@ -12,12 +12,16 @@ import punq
 from botocore.exceptions import ClientError
 from drf_spectacular.utils import extend_schema
 
+from core.api.v1.common.serializers.serializers import DetailOutSerializer
 from core.api.v1.common.serializers.upload_serializers import (
-    AbortUploadSerializer,
-    CompleteUploadSerializer,
-    GenerateUploadPartUrlSerializer,
+    AbortMultipartUploadInSerializer,
+    CompleteMultipartUploadInSerializer,
+    CreateMultipartUploadOutSerializer,
+    GenerateMultipartUploadPartUrlInSerializer,
     KeySerializer,
 )
+from core.api.v1.schema.response_examples.common import detail_response_example
+from core.api.v1.schema.response_examples.files_upload import multipart_upload_created_response_example
 from core.api.v1.videos.serializers import video_serializers
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.users.converters.users import user_to_entity
@@ -31,20 +35,34 @@ from core.project.containers import get_container
 
 @extend_schema(
     responses={
-        201: {
-            'type': 'object',
-            'properties': {
-                'upload_id': {
-                    'type': 'string',
-                    'example': 'test_upload_id',
-                },
-                'key': {
-                    'type': 'string',
-                    'example': 'videos/test_key.mp4',
-                },
-            },
-        },
+        201: CreateMultipartUploadOutSerializer,
+        400: DetailOutSerializer,
+        404: DetailOutSerializer,
+        500: DetailOutSerializer,
     },
+    examples=[
+        multipart_upload_created_response_example(),
+        detail_response_example(
+            name='Video filename not provided error',
+            value='Video filename not provided',
+            status_code=400,
+        ),
+        detail_response_example(
+            name='Unsupported video file format error',
+            value='Unsupported video file format',
+            status_code=400,
+        ),
+        detail_response_example(
+            name='Channel not found error',
+            value='Channel not found',
+            status_code=404,
+        ),
+        detail_response_example(
+            name='S3 error',
+            value='string',
+            status_code=500,
+        ),
+    ],
     summary='Create multipart upload',
 )
 class CreateMultipartUploadView(generics.GenericAPIView):
@@ -72,7 +90,7 @@ class CreateMultipartUploadView(generics.GenericAPIView):
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
-                {'error': error.response.get('Error', {}).get('Message')},
+                {'detail': error.response.get('Error', {}).get('Message')},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -83,6 +101,7 @@ class CreateMultipartUploadView(generics.GenericAPIView):
         return Response(result, status=status.HTTP_201_CREATED)
 
 
+#  TODO: stop
 @extend_schema(
     responses={
         201: {
@@ -98,7 +117,7 @@ class CreateMultipartUploadView(generics.GenericAPIView):
     summary='Generate upload url for video',
 )
 class GenerateUploadPartUrlView(generics.GenericAPIView):
-    serializer_class = GenerateUploadPartUrlSerializer
+    serializer_class = GenerateMultipartUploadPartUrlInSerializer
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -123,7 +142,7 @@ class GenerateUploadPartUrlView(generics.GenericAPIView):
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
-                {'error': error.response.get('Error', {}).get('Message')},
+                {'detail': error.response.get('Error', {}).get('Message')},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -171,7 +190,7 @@ class GenerateDownloadVideoUrlView(generics.GenericAPIView):
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
-                {'error': error.response.get('Error', {}).get('Message')},
+                {'detail': error.response.get('Error', {}).get('Message')},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -197,7 +216,7 @@ class GenerateDownloadVideoUrlView(generics.GenericAPIView):
     summary='Abort multipart upload',
 )
 class AbortMultipartUploadView(generics.GenericAPIView):
-    serializer_class = AbortUploadSerializer
+    serializer_class = AbortMultipartUploadInSerializer
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -221,7 +240,7 @@ class AbortMultipartUploadView(generics.GenericAPIView):
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
-                {'error': error.response.get('Error', {}).get('Message')},
+                {'detail': error.response.get('Error', {}).get('Message')},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -252,7 +271,7 @@ class AbortMultipartUploadView(generics.GenericAPIView):
 )
 class CompleteMultipartUploadView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = CompleteUploadSerializer
+    serializer_class = CompleteMultipartUploadInSerializer
 
     def post(self, request):
         container: punq.Container = get_container()
@@ -276,7 +295,7 @@ class CompleteMultipartUploadView(generics.GenericAPIView):
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
-                {'error': error.response.get('Error', {}).get('Message')},
+                {'detail': error.response.get('Error', {}).get('Message')},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 

@@ -44,4 +44,4 @@ class AbortVideoMultipartUploadUseCase:
         # delete video associated with 'upload_id'
         self.video_service.delete_video_by_id(video_id=video.id)
 
-        return {'status': 'success'}
+        return {'detail': 'Success'}

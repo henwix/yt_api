@@ -28,4 +28,4 @@ class DeleteChannelAvatarUseCase:
             avatar_s3_key=None,
         )
 
-        return {'status': 'success'}
+        return {'detail': 'Success'}

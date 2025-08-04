@@ -22,7 +22,7 @@ class CreateReportUseCase:
 
     def execute(self, video_id: str, user: UserEntity, reason: str, description: str) -> dict[str, str]:
         video = self.video_service.get_video_by_id_with_reports_count(video_id=video_id)
-        channel = self.channel_service.get_channel_by_user_or_none(user=user)
+        channel = self.channel_service.get_channel_by_user_or_404(user=user)
 
         self.video_validator.validate(video=video, channel=channel)
         self.report_validator.validate(video=video, channel=channel)
@@ -34,11 +34,11 @@ class CreateReportUseCase:
             description=description,
         )
 
-        #  here we check if the video has >= 3 reports including the new one we just created
+        #  here we check if the video has >= 3 reports, including the new one we just created
         if video.reports_count + 1 >= 3 and not video.is_reported:
             self.video_service.update_is_reported_field(
                 video=video,
                 is_reported=True,
             )
 
-        return {'status': 'successfully created'}
+        return {'detail': 'Successfully created'}

@@ -25,4 +25,4 @@ class VideoCommentLikeDeleteUseCase:
                 channel_slug=channel.slug,
                 comment_id=comment_id,
             )
-        return {'status': 'success'}
+        return {'detail': 'Success'}

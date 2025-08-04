@@ -8,7 +8,7 @@ from core.apps.common.exceptions.exceptions import ServiceException
 @dataclass
 class AvatarFilenameNotProvidedError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = {'error': 'Avatar filename not provided'}
+    default_detail = {'detail': 'Avatar filename not provided'}
 
     @property
     def message(self):
@@ -18,7 +18,7 @@ class AvatarFilenameNotProvidedError(ServiceException):
 @dataclass
 class AvatarFilenameFormatError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = {'error': 'Unsupported avatar file format'}
+    default_detail = {'detail': 'Unsupported avatar file format'}
 
     filename: str
 

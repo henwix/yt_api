@@ -8,7 +8,7 @@ from django.conf import settings
 from django.urls import reverse_lazy
 
 from core.apps.users.entities import UserEntity
-from core.apps.users.exceptions.social_auth import OAuth2NotImplementedProvider
+from core.apps.users.exceptions.oauth2 import OAuth2NotImplementedProvider
 from core.apps.users.repositories.oauth2 import BaseOAuth2Repository
 
 
@@ -50,7 +50,7 @@ class OAuth2Service(BaseOAuth2Service):
         for k, v in settings.OAUTH2_ALLOWED_PROVIDERS.items():
             response[k] = True if v in connected_providers_names else False
 
-        return {'connected': response}
+        return response
 
     def get_provider_by_name(self, provider: str) -> str:
         return settings.OAUTH2_ALLOWED_PROVIDERS.get(provider)

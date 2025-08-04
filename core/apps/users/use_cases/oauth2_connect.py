@@ -46,4 +46,4 @@ class OAuth2ConnectUseCase:
 
             return self.user_service.generate_jwt(user=retrieved_user)
 
-        return {'status': f'{provider} successfully connected'}
+        return {'detail': f'{provider} successfully connected'}

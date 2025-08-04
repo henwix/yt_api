@@ -56,4 +56,4 @@ class ORMUserService(BaseUserService):
     def generate_jwt(self, user: UserEntity) -> dict:
         refresh = RefreshToken.for_user(user_from_entity(user))
         access = refresh.access_token
-        return {'refresh': str(refresh), 'access': str(access)}
+        return {'access': str(access), 'refresh': str(refresh)}

@@ -22,7 +22,7 @@ class AuthorizeUserUseCase:
         code = self.code_service.generate_code(email=user.email)
         self.sender_provider.send_code(email=user.email, code=code)
 
-        return {'status': 'email successfully sent'}
+        return {'detail': 'Email successfully sent'}
 
 
 @dataclass

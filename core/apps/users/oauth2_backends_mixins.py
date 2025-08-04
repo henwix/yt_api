@@ -6,7 +6,7 @@ from social_core.exceptions import (
 from social_core.utils import constant_time_compare
 
 from core.apps.common.services.cache import BaseCacheService
-from core.apps.users.exceptions.social_auth import CustomAuthStateMissing
+from core.apps.users.exceptions.oauth2 import CustomAuthStateMissing
 from core.project.containers import get_container
 
 

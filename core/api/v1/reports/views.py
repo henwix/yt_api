@@ -11,7 +11,9 @@ import orjson
 import punq
 from drf_spectacular.utils import extend_schema
 
+from core.api.v1.common.serializers.serializers import DetailOutSerializer
 from core.api.v1.reports.serializers import VideoReportSerializer
+from core.api.v1.schema.response_examples.common import detail_response_example
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.common.pagination import CustomCursorPagination
 from core.apps.reports.permissions import IsStaffOrCreateOnly
@@ -39,16 +41,39 @@ class VideoReportsView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIVi
 
     @extend_schema(
         responses={
-            201: {
-                'type': 'object',
-                'properties': {
-                    'status': {
-                        'type': 'string',
-                        'example': 'successfully created',
-                    },
-                },
-            },
+            201: DetailOutSerializer,
+            400: DetailOutSerializer,
+            403: DetailOutSerializer,
+            404: DetailOutSerializer,
         },
+        examples=[
+            detail_response_example(
+                name='Created',
+                value='Successfully created',
+                status_code=201,
+            ),
+            detail_response_example(
+                name='Report limit error',
+                value='You have reached limit of reports to this video. 3 reports by 1 user',
+                status_code=400,
+            ),
+            detail_response_example(
+                name='Private or uploading video error',
+                value="You can't perform actions if the video is private or still uploading",
+                status_code=403,
+            ),
+            detail_response_example(
+                name='Video not found by "video_id" error',
+                value="Video not found by video_id",
+                status_code=404,
+            ),
+            detail_response_example(
+                name='Channel not found error',
+                value='Channel not found',
+                status_code=404,
+            ),
+        ],
+        summary='Create a new video report',
     )
     def create(self, request, *args, **kwargs):
         use_case: CreateReportUseCase = self.container.resolve(CreateReportUseCase)

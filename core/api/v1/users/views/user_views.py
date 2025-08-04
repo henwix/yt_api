@@ -15,16 +15,21 @@ from djoser.conf import settings
 from djoser.views import UserViewSet
 from drf_spectacular.utils import (
     extend_schema,
-    OpenApiExample,
     PolymorphicProxySerializer,
 )
 
 from core.api.v1.common.serializers.serializers import (
-    ErrorSerializer,
-    JWTSerializer,
-    StatusSerializer,
+    DetailOutSerializer,
+    JWTOutSerializer,
 )
-from core.api.v1.users.serializers.auth import AuthSerializer
+from core.api.v1.schema.response_examples.common import (
+    detail_response_example,
+    jwt_response_example,
+)
+from core.api.v1.users.serializers.auth import (
+    AuthCodeVerifyInSerializer,
+    AuthInSerializer,
+)
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.common.pagination import CustomPageNumberPagination
 from core.apps.users.tasks import (
@@ -41,37 +46,27 @@ from core.project.containers import get_container  # noqa
 
 
 @extend_schema(
-    request=AuthSerializer,
+    request=AuthInSerializer,
     responses={
         200: PolymorphicProxySerializer(
             component_name='OAuth2ConnectResponse',
-            serializers=[JWTSerializer, StatusSerializer],
+            serializers=[JWTOutSerializer, DetailOutSerializer],
             resource_type_field_name=None,
         ),
-        404: ErrorSerializer,
+        404: DetailOutSerializer,
     },
     examples=[
-        OpenApiExample(
-            name='Auth success',
-            value={
-                'access': 'string',
-                'refresh': 'string',
-            },
-            response_only=True,
-            status_codes=[200],
-        ),
-        OpenApiExample(
+        jwt_response_example(),
+        detail_response_example(
             name='Email sent',
             description='Sends an email with a code to verify OTP',
-            value={'status': 'email successfully sent'},
-            response_only=True,
-            status_codes=[200],
+            value='Email successfully sent',
+            status_code=200,
         ),
-        OpenApiExample(
+        detail_response_example(
             name='User not found error',
-            value={'error': 'user not found'},
-            response_only=True,
-            status_codes=[404],
+            value='User not found',
+            status_code=404,
         ),
     ],
     summary='Login user and get JWT tokens or send OTP code',
@@ -84,7 +79,7 @@ class UserLoginView(APIView):
         use_case: AuthorizeUserUseCase = container.resolve(AuthorizeUserUseCase)
         logger: Logger = container.resolve(Logger)
 
-        serializer = AuthSerializer(data=request.data)
+        serializer = AuthInSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         try:
@@ -100,31 +95,30 @@ class UserLoginView(APIView):
 
 
 @extend_schema(
-    request={
-        'application/json': {
-            'type': 'object',
-            'properties': {
-                'email': {'type': 'string'},
-                'code': {'type': 'string'},
-            },
-            'required': ['email', 'code'],
-        },
-    },
+    request=AuthCodeVerifyInSerializer,
     responses={
-        200: {
-            'type': 'object',
-            'properties': {
-                'access': {
-                    'type': 'string',
-                    'example': 'string',
-                },
-                'refresh': {
-                    'type': 'string',
-                    'example': 'string',
-                },
-            },
-        },
+        200: JWTOutSerializer,
+        400: DetailOutSerializer,
+        404: DetailOutSerializer,
     },
+    examples=[
+        jwt_response_example(),
+        detail_response_example(
+            name='Code not equal error',
+            value='Code not equal',
+            status_code=400,
+        ),
+        detail_response_example(
+            name='Code not provided error',
+            value='Code not provided',
+            status_code=404,
+        ),
+        detail_response_example(
+            name='User not found error',
+            value='User not found',
+            status_code=404,
+        ),
+    ],
     summary='Verify OTP code and get JWT tokens',
 )
 class CodeVerifyView(APIView):
@@ -133,16 +127,19 @@ class CodeVerifyView(APIView):
         use_case: VerifyCodeUseCase = container.resolve(VerifyCodeUseCase)
         logger: Logger = container.resolve(Logger)
 
+        serializer = AuthCodeVerifyInSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         try:
             result = use_case.execute(
-                email=request.data.get('email'),
-                code=request.data.get('code'),
+                email=serializer.validated_data.get('email'),
+                code=serializer.validated_data.get('code'),
             )
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
 
-        return Response(result, status=status.HTTP_201_CREATED)
+        return Response(result, status=status.HTTP_200_OK)
 
 
 # TODO: refactor

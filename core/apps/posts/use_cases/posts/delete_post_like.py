@@ -20,4 +20,4 @@ class PostLikeDeleteUseCase:
         if not deleted:
             raise PostLikeNotFoundError(channel_slug=channel.slug, post_id=post.pk)
 
-        return {'status': 'success'}
+        return {'detail': 'Success'}

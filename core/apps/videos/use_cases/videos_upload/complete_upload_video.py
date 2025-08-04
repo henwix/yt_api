@@ -36,4 +36,4 @@ class CompleteVideoMultipartUploadUseCase:
             s3_key=response.get('Key'),
         )
 
-        return {'status': 'success', 'message': 'Video upload completed successfully'}
+        return {'detail': 'Success', 'message': 'Video upload completed successfully'}

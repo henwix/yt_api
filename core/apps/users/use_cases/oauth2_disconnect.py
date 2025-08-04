@@ -26,4 +26,4 @@ class OAuth2DisconnectUseCase:
 
         backend.disconnect(user=user)
 
-        return {'status': f'{provider} successfully disconnected'}
+        return {'detail': f'{provider} successfully disconnected'}

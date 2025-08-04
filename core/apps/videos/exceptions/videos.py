@@ -8,7 +8,7 @@ from core.apps.common.exceptions.exceptions import ServiceException
 @dataclass
 class VideoNotFoundByVideoIdError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
-    default_detail = {'error': 'Video not found by video_id'}
+    default_detail = {'detail': 'Video not found by video_id'}
 
     video_id: str
 
@@ -20,7 +20,7 @@ class VideoNotFoundByVideoIdError(ServiceException):
 @dataclass
 class VideoIdNotProvidedError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = {'error': 'To add or delete video from history you need to provide "video_id"'}
+    default_detail = {'detail': '"video_id" not provided'}
 
     @property
     def message(self):
@@ -30,20 +30,20 @@ class VideoIdNotProvidedError(ServiceException):
 @dataclass
 class VideoNotFoundInHistoryError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
-    default_detail = {'error': 'Video does not exists or never been in history'}
+    default_detail = {'detail': 'Video does not exist in history'}
 
     video_id: str
     channel_slug: str
 
     @property
     def message(self):
-        return 'Video does not exists or never been in history'
+        return 'Video does not exist in history'
 
 
 @dataclass
 class VideoLikeNotFoundError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
-    default_detail = {'error': 'Video like/dislike not found'}
+    default_detail = {'detail': 'Video like/dislike not found'}
 
     channel_slug: str
     video_id: str
@@ -56,7 +56,7 @@ class VideoLikeNotFoundError(ServiceException):
 @dataclass
 class ViewExistsError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = {'error': 'View already exists. You can add 1 view per 24h.'}
+    default_detail = {'detail': 'View already exists, you can add 1 view per 24h'}
 
     channel_slug: str
     video_id: str
@@ -69,7 +69,7 @@ class ViewExistsError(ServiceException):
 @dataclass
 class VideoAuthorNotMatchError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = {'error': 'Video author does not match the current user'}
+    default_detail = {'detail': 'Video author does not match the current user'}
 
     video_id: str
     author_id: str
@@ -82,7 +82,7 @@ class VideoAuthorNotMatchError(ServiceException):
 @dataclass
 class PrivateVideoPermissionError(ServiceException):
     status_code = status.HTTP_403_FORBIDDEN
-    default_detail = {'error': 'You do not have permission to access this video'}
+    default_detail = {'detail': 'You do not have permission to access this video'}
 
     video_id: str
     channel_id: str | None
@@ -95,7 +95,7 @@ class PrivateVideoPermissionError(ServiceException):
 @dataclass
 class PrivateVideoOrUploadingError(ServiceException):
     status_code = status.HTTP_403_FORBIDDEN
-    default_detail = {'error': "You can't perform actions if the video is private or is still uploading"}
+    default_detail = {'detail': "You can't perform actions if the video is private or still uploading"}
 
     video_id: str
     channel_id: int

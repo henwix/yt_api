@@ -14,10 +14,19 @@ from social_core.exceptions import SocialAuthBaseException
 from social_django.utils import load_strategy
 
 from core.api.v1.common.serializers.serializers import (
-    JWTSerializer,
-    StatusSerializer,
+    DetailOutSerializer,
+    JWTOutSerializer,
 )
-from core.api.v1.users.serializers.oauth2 import OAuth2ConnectSerializer
+from core.api.v1.schema.response_examples.common import (
+    detail_response_example,
+    jwt_response_example,
+)
+from core.api.v1.schema.response_examples.oauth2 import oauth2_connected_providers_response_example
+from core.api.v1.users.serializers.oauth2 import (
+    AuthUrlSerializer,
+    OAuth2ConnectedProvidersSerializer,
+    OAuth2ConnectSerializer,
+)
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.users.converters.users import user_to_entity
 from core.apps.users.throttles import OAuth2ThrottleClass  # noqa
@@ -30,16 +39,21 @@ from core.project.containers import get_container
 
 @extend_schema(
     responses={
-        201: {
-            'type': 'object',
-            'properties': {
-                'auth_url': {
-                    'type': 'string',
-                    'example': 'https://example.com/oauth2/authorize/?client_id=123',
-                },
-            },
-        },
+        201: AuthUrlSerializer,
+        400: DetailOutSerializer,
     },
+    examples=[
+        detail_response_example(
+            name='Provider not implemented error',
+            value='This provider is not implemented for OAuth2 authorization',
+            status_code=400,
+        ),
+        detail_response_example(
+            name='Social Auth Error',
+            value='string',
+            status_code=400,
+        ),
+    ],
     summary='Generate URL for OAuth2 authorization',
 )
 class OAuth2GenerateURLView(APIView):
@@ -57,7 +71,7 @@ class OAuth2GenerateURLView(APIView):
             )
 
         except SocialAuthBaseException as e:
-            return Response({'error': str(e)}, status=400)
+            return Response({'detail': str(e)}, status=400)
 
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -68,11 +82,32 @@ class OAuth2GenerateURLView(APIView):
 
 @extend_schema(
     parameters=[OAuth2ConnectSerializer],
-    responses=PolymorphicProxySerializer(
-        component_name='OAuth2ConnectResponse',
-        serializers=[JWTSerializer, StatusSerializer],
-        resource_type_field_name=None,
-    ),
+    responses={
+        200: PolymorphicProxySerializer(
+            component_name='OAuth2ConnectResponse',
+            serializers=[JWTOutSerializer, DetailOutSerializer],
+            resource_type_field_name=None,
+        ),
+        400: DetailOutSerializer,
+    },
+    examples=[
+        jwt_response_example(),
+        detail_response_example(
+            name='Connected',
+            value='github successfully connected',
+            status_code=200,
+        ),
+        detail_response_example(
+            name='Provider not implemented error',
+            value='This provider is not implemented for OAuth2 authorization',
+            status_code=400,
+        ),
+        detail_response_example(
+            name='Social Auth Error',
+            value='string',
+            status_code=400,
+        ),
+    ],
     summary='Verify SocialOAuth2 data and connect service to user',
 )
 class OAuth2ConnectView(APIView):
@@ -91,7 +126,7 @@ class OAuth2ConnectView(APIView):
             )
 
         except SocialAuthBaseException as e:
-            return Response({'error': str(e)}, status=400)
+            return Response({'detail': str(e)}, status=400)
 
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -102,16 +137,26 @@ class OAuth2ConnectView(APIView):
 
 @extend_schema(
     responses={
-        200: {
-            'type': 'object',
-            'properties': {
-                'status': {
-                    'type': 'string',
-                    'example': 'github successfully disconnected',
-                },
-            },
-        },
+        200: DetailOutSerializer,
+        400: DetailOutSerializer,
     },
+    examples=[
+        detail_response_example(
+            name='Connected',
+            value='github successfully disconnected',
+            status_code=200,
+        ),
+        detail_response_example(
+            name='Provider not implemented error',
+            value='This provider is not implemented for OAuth2 authorization',
+            status_code=400,
+        ),
+        detail_response_example(
+            name='Social Auth Error',
+            value='string',
+            status_code=400,
+        ),
+    ],
     summary='Disconnect OAuth2 provider',
 )
 class OAuth2DisconnectView(APIView):
@@ -130,7 +175,7 @@ class OAuth2DisconnectView(APIView):
             )
 
         except SocialAuthBaseException as e:
-            return Response({'error': str(e)}, status=400)
+            return Response({'detail': str(e)}, status=400)
 
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -141,16 +186,9 @@ class OAuth2DisconnectView(APIView):
 
 @extend_schema(
     responses={
-        200: {
-            'type': 'object',
-            'properties': {
-                'connected': {
-                    'type': 'dict',
-                    'example': {'github': True, 'google': False, 'x': True},
-                },
-            },
-        },
+        200: OAuth2ConnectedProvidersSerializer,
     },
+    examples=[oauth2_connected_providers_response_example()],
     summary='Retrieve connected OAuth2 providers',
 )
 class OAuth2ConnectedProvidersView(APIView):

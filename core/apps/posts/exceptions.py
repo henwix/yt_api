@@ -8,7 +8,7 @@ from core.apps.common.exceptions.exceptions import ServiceException
 @dataclass
 class PostAuthorSlugNotProvidedError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = {'error': "to get Posts by author 'slug' you need to provide 's' query-parameter"}
+    default_detail = {'detail': "'s' query-parameter was not provided"}
 
     @property
     def message(self):
@@ -18,7 +18,7 @@ class PostAuthorSlugNotProvidedError(ServiceException):
 @dataclass
 class PostNotFoundError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
-    default_detail = {'error': 'Post not found'}
+    default_detail = {'detail': 'Post not found'}
 
     post_id: str | None = None
 
@@ -30,7 +30,7 @@ class PostNotFoundError(ServiceException):
 @dataclass
 class PostLikeNotFoundError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
-    default_detail = {'error': 'Post like not found'}
+    default_detail = {'detail': 'Post like not found'}
 
     channel_slug: str | None = None
     post_id: str | None = None

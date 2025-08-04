@@ -19,4 +19,4 @@ class PostLikeCreateUseCase:
         if not created and like.is_like != is_like:
             self.post_service.update_is_like_field(like, is_like)
 
-        return {'status': 'success', 'is_like': is_like}
+        return {'detail': 'Success', 'is_like': is_like}

@@ -9,4 +9,5 @@ class OAuth2ConnectedProvidersUseCase:
     oauth2_service: BaseOAuth2Service
 
     def execute(self, user: UserEntity) -> dict:
-        return self.oauth2_service.get_connected_providers_as_dict(user=user)
+        response = self.oauth2_service.get_connected_providers_as_dict(user=user)
+        return {'connected': response}

@@ -11,7 +11,7 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 
-from core.api.v1.users.views.social_auth_views import (
+from core.api.v1.users.views.oauth2_views import (
     OAuth2ConnectedProvidersView,
     OAuth2ConnectView,
     OAuth2DisconnectView,

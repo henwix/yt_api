@@ -47,7 +47,7 @@ from core.apps.videos.use_cases.videos_upload.abort_upload_video import AbortVid
 from core.apps.videos.use_cases.videos_upload.complete_upload_video import CompleteVideoMultipartUploadUseCase
 from core.apps.videos.use_cases.videos_upload.create_upload_video import CreateVideoMultipartUploadUseCase
 from core.apps.videos.use_cases.videos_upload.download_video_url import GenerateUrlForVideoDownloadUseCase
-from core.apps.videos.use_cases.videos_upload.upload_video_url import GenerateUrlForVideoUploadUseCase
+from core.apps.videos.use_cases.videos_upload.upload_video_url import GenerateUrlForVideoPartUploadUseCase
 
 
 def init_videos(container: punq.Container) -> None:
@@ -88,7 +88,7 @@ def init_videos(container: punq.Container) -> None:
     container.register(CreateVideoMultipartUploadUseCase)
     container.register(AbortVideoMultipartUploadUseCase)
     container.register(CompleteVideoMultipartUploadUseCase)
-    container.register(GenerateUrlForVideoUploadUseCase)
+    container.register(GenerateUrlForVideoPartUploadUseCase)
     container.register(GenerateUrlForVideoDownloadUseCase)
 
     container.register(ClearVideoHistoryUseCase)

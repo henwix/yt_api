@@ -10,7 +10,7 @@ from core.apps.videos.services.videos import (
 
 
 @dataclass
-class GenerateUrlForVideoUploadUseCase:
+class GenerateUrlForVideoPartUploadUseCase:
     video_service: BaseVideoService
     channel_service: BaseChannelService
     author_validator: BaseVideoAuthorValidatorService

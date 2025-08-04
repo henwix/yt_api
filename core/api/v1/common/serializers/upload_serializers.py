@@ -9,6 +9,10 @@ class FilenameSerializer(serializers.Serializer):
     filename = serializers.CharField(max_length=256)
 
 
+class UploadUrlSerializer(serializers.Serializer):
+    upload_url = serializers.CharField()
+
+
 class AbortMultipartUploadInSerializer(serializers.Serializer):
     key = serializers.CharField(max_length=256)
     upload_id = serializers.CharField(max_length=256)

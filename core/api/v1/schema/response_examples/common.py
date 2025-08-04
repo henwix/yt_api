@@ -35,3 +35,12 @@ def jwt_response_example() -> OpenApiExample:
         response_only=True,
         status_codes=[200],
     )
+
+
+def url_response_example() -> OpenApiExample:
+    return OpenApiExample(
+        name='URL',
+        value={'access': 'string', 'refresh': 'string'},
+        response_only=True,
+        status_codes=[200],
+    )

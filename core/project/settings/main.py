@@ -286,12 +286,12 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            'level': 'DEBUG',
+            'level': 'DEBUG',  # TODO: change to error or info
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
         'logger_console': {
-            'level': 'DEBUG',
+            'level': 'DEBUG',  # TODO: change to error or info
             'class': 'logging.StreamHandler',
             'formatter': 'logger',
             'filters': ['log_meta_filter'],

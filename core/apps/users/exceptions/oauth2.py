@@ -1,10 +1,12 @@
 from dataclasses import dataclass
 
-from rest_framework import status
-
 from social_core.exceptions import AuthException
 
 from core.apps.common.exceptions.exceptions import ServiceException
+from core.apps.users.errors import (
+    ErrorCodes,
+    ERRORS,
+)
 
 
 class CustomAuthStateMissing(AuthException):
@@ -20,11 +22,8 @@ class CustomAuthStateMissing(AuthException):
 
 @dataclass
 class OAuth2NotImplementedProvider(ServiceException):
-    default_code = status.HTTP_400_BAD_REQUEST
-    default_detail = {'detail': 'This provider is not implemented for OAuth2 authorization'}
+    default_code = ErrorCodes.OAUTH2_PROVIDER_NOT_SUPPORTED
+    status_code = ERRORS[default_code]['status_code']
+    default_detail = {'detail': ERRORS[default_code]['message']}
 
     provider: str
-
-    @property
-    def message(self):
-        return 'OAuth2 invalid provider'

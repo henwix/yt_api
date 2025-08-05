@@ -24,6 +24,7 @@ from core.api.v1.common.serializers.serializers import (
 )
 from core.api.v1.schema.response_examples.common import (
     detail_response_example,
+    error_response_example,
     jwt_response_example,
 )
 from core.api.v1.users.serializers.auth import (
@@ -32,6 +33,10 @@ from core.api.v1.users.serializers.auth import (
 )
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.common.pagination import CustomPageNumberPagination
+from core.apps.users.errors import (
+    ErrorCodes as UsersErrorCodes,
+    ERRORS as USERS_ERRORS,
+)
 from core.apps.users.tasks import (
     send_activation_email,
     send_confirmation_email,
@@ -63,11 +68,7 @@ from core.project.containers import get_container  # noqa
             value='Email successfully sent',
             status_code=200,
         ),
-        detail_response_example(
-            name='User not found error',
-            value='User not found',
-            status_code=404,
-        ),
+        error_response_example(USERS_ERRORS[UsersErrorCodes.USER_NOT_FOUND]),
     ],
     summary='Login user and get JWT tokens or send OTP code',
 )
@@ -103,21 +104,9 @@ class UserLoginView(APIView):
     },
     examples=[
         jwt_response_example(),
-        detail_response_example(
-            name='Code not equal error',
-            value='Code not equal',
-            status_code=400,
-        ),
-        detail_response_example(
-            name='Code not provided error',
-            value='Code not provided',
-            status_code=404,
-        ),
-        detail_response_example(
-            name='User not found error',
-            value='User not found',
-            status_code=404,
-        ),
+        error_response_example(USERS_ERRORS[UsersErrorCodes.CODE_NOT_EQUAL]),
+        error_response_example(USERS_ERRORS[UsersErrorCodes.CODE_NOT_PROVIDED]),
+        error_response_example(USERS_ERRORS[UsersErrorCodes.USER_NOT_FOUND]),
     ],
     summary='Verify OTP code and get JWT tokens',
 )

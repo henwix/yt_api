@@ -24,11 +24,23 @@ from core.api.v1.common.serializers.upload_serializers import (
     GenerateUploadUrlOutSerializer,
     KeySerializer,
 )
-from core.api.v1.schema.response_examples.common import detail_response_example
+from core.api.v1.schema.response_examples.common import (
+    detail_response_example,
+    error_response_example,
+)
+from core.api.v1.schema.response_examples.files_upload import s3_error_response_example
+from core.apps.channels.errors import (
+    ErrorCodes as ChannelsErrorCodes,
+    ERRORS as CHANNELS_ERRORS,
+)
 from core.apps.channels.use_cases.avatar_upload.complete_upload_avatar import CompleteUploadAvatarUseCase
 from core.apps.channels.use_cases.avatar_upload.delete_avatar import DeleteChannelAvatarUseCase
 from core.apps.channels.use_cases.avatar_upload.download_avatar_url import GenerateUrlForAvatarDownloadUseCase
 from core.apps.channels.use_cases.avatar_upload.upload_avatar_url import GenerateUploadAvatarUrlUseCase
+from core.apps.common.errors import (
+    ErrorCodes as CommonErrorCodes,
+    ERRORS as COMMON_ERRORS,
+)
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.users.converters.users import user_to_entity
 from core.project.containers import get_container
@@ -46,11 +58,8 @@ from core.project.containers import get_container
             value={'filename': 'avatar.png'},
             request_only=True,
         ),
-        detail_response_example(
-            name='Unsupported avatar file format',
-            value='Unsupported avatar file format',
-            status_code=400,
-        ),
+        error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.AVATAR_FILENAME_FORMAT_ERROR]),
+        s3_error_response_example(),
     ],
     summary='Generate presigned url to upload avatar file in S3',
 )
@@ -93,11 +102,8 @@ class GenerateUploadAvatarUrlView(generics.GenericAPIView):
         500: DetailOutSerializer,
     },
     examples=[
-        detail_response_example(
-            name='File does not exist in S3',
-            value='File with this key does not exist in S3',
-            status_code=404,
-        ),
+        error_response_example(COMMON_ERRORS[CommonErrorCodes.S3_FILE_WITH_KEY_NOT_EXISTS]),
+        s3_error_response_example(),
     ],
     summary='Generate presigned url to download avatar file from S3',
 )
@@ -145,16 +151,8 @@ class GenerateDownloadAvatarUrlView(generics.GenericAPIView):
             value='Success',
             status_code=200,
         ),
-        detail_response_example(
-            name='Channel not found',
-            value='Channel not found',
-            status_code=404,
-        ),
-        detail_response_example(
-            name='Avatar does not exists',
-            value='Avatar does not exists',
-            status_code=404,
-        ),
+        error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
+        error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.AVATAR_DOES_NOT_EXIST]),
 
     ],
     summary='Delete channel avatar',
@@ -181,7 +179,6 @@ class DeleteChannelAvatarView(generics.GenericAPIView):
     responses={
         200: DetailOutSerializer,
         404: DetailOutSerializer,
-        500: DetailOutSerializer,
     },
     examples=[
         detail_response_example(
@@ -189,16 +186,8 @@ class DeleteChannelAvatarView(generics.GenericAPIView):
             value='Success',
             status_code=200,
         ),
-        detail_response_example(
-            name='Channel not found',
-            value='Channel not found',
-            status_code=404,
-        ),
-        detail_response_example(
-            name='File does not exists',
-            value='File with this key does not exist in S3',
-            status_code=404,
-        ),
+        error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
+        error_response_example(COMMON_ERRORS[CommonErrorCodes.S3_FILE_WITH_KEY_NOT_EXISTS]),
     ],
     summary='Complete avatar file uploading',
 )

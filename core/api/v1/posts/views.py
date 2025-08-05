@@ -42,9 +42,18 @@ from core.api.v1.posts.serializers.post_serializers import (
 )
 from core.api.v1.schema.response_examples.common import (
     detail_response_example,
+    error_response_example,
     like_created_response_example,
 )
 from core.api.v1.videos.serializers.video_serializers import CommentCreatedSerializer
+from core.apps.channels.errors import (
+    ErrorCodes as ChannelsErrorCodes,
+    ERRORS as CHANNELS_ERRORS,
+)
+from core.apps.common.errors import (
+    ErrorCodes as CommonErrorCodes,
+    ERRORS as COMMON_ERRORS,
+)
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.common.mixins import CustomViewMixin
 from core.apps.common.pagination import CustomCursorPagination
@@ -54,6 +63,10 @@ from core.apps.common.permissions import (
 )
 from core.apps.common.services.cache import BaseCacheService
 from core.apps.posts.converters.posts import post_to_entity
+from core.apps.posts.errors import (
+    ErrorCodes as PostsErrorCodes,
+    ERRORS as POSTS_ERRORS,
+)
 from core.apps.posts.services.comments import BasePostCommentService
 from core.apps.posts.services.posts import BasePostService
 from core.apps.posts.use_cases.posts.create_post import PostCreateUseCase
@@ -100,11 +113,7 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
 
         },
         examples=[
-            detail_response_example(
-                name='Channel not found error',
-                value='Channel not found',
-                status_code=404,
-            ),
+            error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
         ],
         summary='Create a new post',
     )
@@ -178,16 +187,8 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
         },
         examples=[
             like_created_response_example(),
-            detail_response_example(
-                name='Channel not found error',
-                value='Channel not found',
-                status_code=404,
-            ),
-            detail_response_example(
-                name='Post not found error',
-                value='Post not found',
-                status_code=404,
-            ),
+            error_response_example(POSTS_ERRORS[PostsErrorCodes.POST_NOT_FOUND]),
+            error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
         ],
         summary='Like or dislike post',
     )
@@ -221,21 +222,9 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
                 value='Success',
                 status_code=200,
             ),
-            detail_response_example(
-                name='Channel not found error',
-                value='Channel not found',
-                status_code=404,
-            ),
-            detail_response_example(
-                name='Post not found error',
-                value='Post not found',
-                status_code=404,
-            ),
-            detail_response_example(
-                name='Post like not found error',
-                value='Post like not found',
-                status_code=404,
-            ),
+            error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
+            error_response_example(POSTS_ERRORS[PostsErrorCodes.POST_NOT_FOUND]),
+            error_response_example(POSTS_ERRORS[PostsErrorCodes.POST_LIKE_NOT_FOUND]),
         ],
         summary='Delete like or dislike post',
     )
@@ -298,11 +287,7 @@ class CommentPostAPIView(
             404: DetailOutSerializer,
         },
         examples=[
-            detail_response_example(
-                name='Channel not found error',
-                value='Channel not found',
-                status_code=404,
-            ),
+            error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
         ],
         summary='Create a new comment',
     )
@@ -343,11 +328,7 @@ class CommentPostAPIView(
             404: DetailOutSerializer,
         },
         examples=[
-            detail_response_example(
-                name='Post not found error',
-                value='Post not found',
-                status_code=404,
-            ),
+            error_response_example(POSTS_ERRORS[PostsErrorCodes.POST_NOT_FOUND]),
         ],
         summary="Get post's comments",
     )
@@ -393,16 +374,8 @@ class CommentPostAPIView(
         },
         examples=[
             like_created_response_example(),
-            detail_response_example(
-                name='Channel not found error',
-                value='Channel not found',
-                status_code=404,
-            ),
-            detail_response_example(
-                name='Comment not found error',
-                value='Comment not found',
-                status_code=404,
-            ),
+            error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
+            error_response_example(COMMON_ERRORS[CommonErrorCodes.COMMENT_NOT_FOUND]),
         ],
         summary='Like or dislike comment',
     )
@@ -436,21 +409,9 @@ class CommentPostAPIView(
                 value='Success',
                 status_code=200,
             ),
-            detail_response_example(
-                name='Channel not found error',
-                value='Channel not found',
-                status_code=404,
-            ),
-            detail_response_example(
-                name='Comment not found error',
-                value='Comment not found',
-                status_code=404,
-            ),
-            detail_response_example(
-                name='Comment like or dislike not found error',
-                value='Comment like or dislike not found',
-                status_code=404,
-            ),
+            error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
+            error_response_example(COMMON_ERRORS[CommonErrorCodes.COMMENT_NOT_FOUND]),
+            error_response_example(COMMON_ERRORS[CommonErrorCodes.COMMENT_LIKE_NOT_FOUND]),
         ],
         summary='Delete like or dislike comment',
     )

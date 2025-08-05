@@ -13,13 +13,28 @@ from drf_spectacular.utils import extend_schema
 
 from core.api.v1.common.serializers.serializers import DetailOutSerializer
 from core.api.v1.reports.serializers import VideoReportSerializer
-from core.api.v1.schema.response_examples.common import detail_response_example
+from core.api.v1.schema.response_examples.common import (
+    detail_response_example,
+    error_response_example,
+)
+from core.apps.channels.errors import (
+    ErrorCodes as ChannelsErrorCodes,
+    ERRORS as CHANNELS_ERRORS,
+)
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.common.pagination import CustomCursorPagination
+from core.apps.reports.errors import (
+    ErrorCodes as ReportsErrorCodes,
+    ERRORS as REPORTS_ERRORS,
+)
 from core.apps.reports.permissions import IsStaffOrCreateOnly
 from core.apps.reports.services.reports import BaseVideoReportsService
 from core.apps.reports.use_cases.create import CreateReportUseCase
 from core.apps.users.converters.users import user_to_entity
+from core.apps.videos.errors import (
+    ErrorCodes as VideosErrorCodes,
+    ERRORS as VIDEOS_ERRORS,
+)
 from core.project.containers import get_container
 
 
@@ -52,26 +67,10 @@ class VideoReportsView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIVi
                 value='Successfully created',
                 status_code=201,
             ),
-            detail_response_example(
-                name='Report limit error',
-                value='You have reached limit of reports to this video. 3 reports by 1 user',
-                status_code=400,
-            ),
-            detail_response_example(
-                name='Private or uploading video error',
-                value="You can't perform actions if the video is private or still uploading",
-                status_code=403,
-            ),
-            detail_response_example(
-                name='Video not found by "video_id" error',
-                value="Video not found by video_id",
-                status_code=404,
-            ),
-            detail_response_example(
-                name='Channel not found error',
-                value='Channel not found',
-                status_code=404,
-            ),
+            error_response_example(REPORTS_ERRORS[ReportsErrorCodes.REPORT_LIMIT]),
+            error_response_example(VIDEOS_ERRORS[VideosErrorCodes.PRIVATE_VIDEO_OR_UPLOADING]),
+            error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_VIDEO_ID]),
+            error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
         ],
         summary='Create a new video report',
     )

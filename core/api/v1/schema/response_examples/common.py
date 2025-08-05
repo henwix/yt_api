@@ -1,6 +1,17 @@
 from drf_spectacular.utils import OpenApiExample
 
 
+def error_response_example(error: dict, summary: str = '', description: str = '') -> OpenApiExample:
+    return OpenApiExample(
+        name=error['message'] + ' error',
+        value={'detail': error['message']},
+        response_only=True,
+        status_codes=[error['status_code']],
+        summary=summary,
+        description=description,
+    )
+
+
 def detail_response_example(
     name: str,
     value: str,

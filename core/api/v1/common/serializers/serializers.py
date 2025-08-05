@@ -25,3 +25,7 @@ class UrlSerializer(serializers.Serializer):
 
 class SParameterSerializer(serializers.Serializer):
     s = serializers.CharField(max_length=40, error_messages={'required': 'This query parameter is required.'})
+
+
+class VParameterSerializer(serializers.Serializer):
+    v = serializers.CharField(max_length=11, error_messages={'required': 'This query parameter is required.'})

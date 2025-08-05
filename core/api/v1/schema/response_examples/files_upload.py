@@ -17,3 +17,12 @@ def multipart_upload_part_url_response_example() -> OpenApiExample:
         response_only=True,
         status_codes=[201],
     )
+
+
+def s3_error_response_example() -> OpenApiExample:
+    return OpenApiExample(
+        name='S3 error',
+        value={'detail': 'string'},
+        response_only=True,
+        status_codes=[500],
+    )

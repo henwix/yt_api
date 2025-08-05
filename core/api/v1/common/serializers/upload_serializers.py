@@ -38,3 +38,8 @@ class GenerateUploadUrlOutSerializer(serializers.Serializer):
 class CreateMultipartUploadOutSerializer(serializers.Serializer):
     upload_id = serializers.CharField(max_length=256)
     key = serializers.CharField(max_length=256)
+
+
+class CompleteMultipartUploadOutSerializer(serializers.Serializer):
+    detail = serializers.CharField(max_length=256)
+    message = serializers.CharField(max_length=256)

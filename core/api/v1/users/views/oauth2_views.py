@@ -1,5 +1,6 @@
 from logging import Logger
 
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -19,6 +20,7 @@ from core.api.v1.common.serializers.serializers import (
 )
 from core.api.v1.schema.response_examples.common import (
     detail_response_example,
+    error_response_example,
     jwt_response_example,
 )
 from core.api.v1.schema.response_examples.oauth2 import oauth2_connected_providers_response_example
@@ -29,6 +31,10 @@ from core.api.v1.users.serializers.oauth2 import (
 )
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.users.converters.users import user_to_entity
+from core.apps.users.errors import (
+    ErrorCodes as UsersErrorCodes,
+    ERRORS as USERS_ERRORS,
+)
 from core.apps.users.throttles import OAuth2ThrottleClass  # noqa
 from core.apps.users.use_cases.oauth2_connect import OAuth2ConnectUseCase
 from core.apps.users.use_cases.oauth2_connected_providers import OAuth2ConnectedProvidersUseCase
@@ -43,11 +49,7 @@ from core.project.containers import get_container
         400: DetailOutSerializer,
     },
     examples=[
-        detail_response_example(
-            name='Provider not implemented error',
-            value='This provider is not implemented for OAuth2 authorization',
-            status_code=400,
-        ),
+        error_response_example(USERS_ERRORS[UsersErrorCodes.OAUTH2_PROVIDER_NOT_SUPPORTED]),
         detail_response_example(
             name='Social Auth Error',
             value='string',
@@ -71,7 +73,7 @@ class OAuth2GenerateURLView(APIView):
             )
 
         except SocialAuthBaseException as e:
-            return Response({'detail': str(e)}, status=400)
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -97,11 +99,7 @@ class OAuth2GenerateURLView(APIView):
             value='github successfully connected',
             status_code=200,
         ),
-        detail_response_example(
-            name='Provider not implemented error',
-            value='This provider is not implemented for OAuth2 authorization',
-            status_code=400,
-        ),
+        error_response_example(USERS_ERRORS[UsersErrorCodes.OAUTH2_PROVIDER_NOT_SUPPORTED]),
         detail_response_example(
             name='Social Auth Error',
             value='string',
@@ -126,7 +124,7 @@ class OAuth2ConnectView(APIView):
             )
 
         except SocialAuthBaseException as e:
-            return Response({'detail': str(e)}, status=400)
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -146,11 +144,7 @@ class OAuth2ConnectView(APIView):
             value='github successfully disconnected',
             status_code=200,
         ),
-        detail_response_example(
-            name='Provider not implemented error',
-            value='This provider is not implemented for OAuth2 authorization',
-            status_code=400,
-        ),
+        error_response_example(USERS_ERRORS[UsersErrorCodes.OAUTH2_PROVIDER_NOT_SUPPORTED]),
         detail_response_example(
             name='Social Auth Error',
             value='string',
@@ -175,7 +169,7 @@ class OAuth2DisconnectView(APIView):
             )
 
         except SocialAuthBaseException as e:
-            return Response({'detail': str(e)}, status=400)
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})

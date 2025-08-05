@@ -1,43 +1,36 @@
 from dataclasses import dataclass
 
-from rest_framework import status
-
+from core.apps.channels.errors import (
+    ErrorCodes,
+    ERRORS,
+)
 from core.apps.common.exceptions.exceptions import ServiceException
 
 
 @dataclass
 class SelfSubscriptionError(ServiceException):
-    status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = {'detail': "You can't subscribe/unsubscribe to/from yourself"}
+    default_code = ErrorCodes.SELF_SUBSCRIPTION
+    status_code = ERRORS[default_code]['status_code']
+    default_detail = {'detail': ERRORS[default_code]['message']}
 
     channel_slug: str
-
-    @property
-    def message(self):
-        return "User can't subscribe/unsubscribe to/from yourself"
 
 
 @dataclass
 class SubscriptionExistsError(ServiceException):
-    status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = {'detail': 'Subscription already exists'}
+    default_code = ErrorCodes.SUBSCRIPTION_EXISTS
+    status_code = ERRORS[default_code]['status_code']
+    default_detail = {'detail': ERRORS[default_code]['message']}
 
     sub_slug: str
     sub_to_slug: str
-
-    @property
-    def message(self):
-        return 'Subscription already exists'
 
 
 @dataclass
 class SubscriptionDoesNotExistsError(ServiceException):
-    status_code = status.HTTP_404_NOT_FOUND
-    default_detail = {'detail': 'Subscription does not exists'}
+    default_code = ErrorCodes.SUBSCRIPTION_DOES_NOT_EXIST
+    status_code = ERRORS[default_code]['status_code']
+    default_detail = {'detail': ERRORS[default_code]['message']}
 
     sub_slug: str
     sub_to_slug: str
-
-    @property
-    def message(self):
-        return 'Subscription does not exists'

@@ -1,18 +1,17 @@
 from dataclasses import dataclass
 
-from rest_framework import status
-
 from core.apps.common.exceptions.exceptions import ServiceException
+from core.apps.reports.errors import (
+    ErrorCodes,
+    ERRORS,
+)
 
 
 @dataclass
 class ReportLimitError(ServiceException):
-    status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = {'detail': 'You have reached limit of reports to this video. 3 reports by 1 user'}
+    default_code = ErrorCodes.REPORT_LIMIT
+    status_code = ERRORS[default_code]['status_code']
+    default_detail = {'detail': ERRORS[default_code]['message']}
 
     video_id: str
     channel_slug: str
-
-    @property
-    def message(self):
-        return 'Channel have reached reports limit'

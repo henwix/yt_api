@@ -1,30 +1,26 @@
 from dataclasses import dataclass
 
-from rest_framework import status
-
 from core.apps.common.exceptions.exceptions import ServiceException
+from core.apps.users.errors import (
+    ErrorCodes,
+    ERRORS,
+)
 
 
 @dataclass
 class CodeNotProvidedException(ServiceException):
-    status_code = status.HTTP_404_NOT_FOUND
-    default_detail = {'detail': 'Code not provided'}
+    default_code = ErrorCodes.CODE_NOT_PROVIDED
+    status_code = ERRORS[default_code]['status_code']
+    default_detail = {'detail': ERRORS[default_code]['message']}
 
     email: str
-
-    @property
-    def message(self):
-        return 'Code is not provided'
 
 
 @dataclass
 class CodeNotEqualException(ServiceException):
-    status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = {'detail': 'Code not equal'}
+    default_code = ErrorCodes.CODE_NOT_EQUAL
+    status_code = ERRORS[default_code]['status_code']
+    default_detail = {'detail': ERRORS[default_code]['message']}
 
     cached_code: str
     user_code: str
-
-    @property
-    def message(self):
-        return 'Code is not equal'

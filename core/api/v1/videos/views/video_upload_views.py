@@ -19,19 +19,36 @@ from core.api.v1.common.serializers.serializers import (
 from core.api.v1.common.serializers.upload_serializers import (
     AbortMultipartUploadInSerializer,
     CompleteMultipartUploadInSerializer,
+    CompleteMultipartUploadOutSerializer,
     CreateMultipartUploadOutSerializer,
     GenerateMultipartUploadPartUrlInSerializer,
     KeySerializer,
     UploadUrlSerializer,
 )
-from core.api.v1.schema.response_examples.common import detail_response_example
+from core.api.v1.schema.response_examples.common import (
+    detail_response_example,
+    error_response_example,
+)
 from core.api.v1.schema.response_examples.files_upload import (
     multipart_upload_created_response_example,
     multipart_upload_part_url_response_example,
+    s3_error_response_example,
 )
 from core.api.v1.videos.serializers import video_serializers
+from core.apps.channels.errors import (
+    ErrorCodes as ChannelsErrorCodes,
+    ERRORS as CHANNELS_ERRORS,
+)
+from core.apps.common.errors import (
+    ErrorCodes as CommonErrorCodes,
+    ERRORS as COMMON_ERRORS,
+)
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.users.converters.users import user_to_entity
+from core.apps.videos.errors import (
+    ErrorCodes as VideosErrorCodes,
+    ERRORS as VIDEOS_ERRORS,
+)
 from core.apps.videos.use_cases.videos_upload.abort_upload_video import AbortVideoMultipartUploadUseCase
 from core.apps.videos.use_cases.videos_upload.complete_upload_video import CompleteVideoMultipartUploadUseCase
 from core.apps.videos.use_cases.videos_upload.create_upload_video import CreateVideoMultipartUploadUseCase
@@ -49,26 +66,10 @@ from core.project.containers import get_container
     },
     examples=[
         multipart_upload_created_response_example(),
-        detail_response_example(
-            name='Video filename not provided error',
-            value='Video filename not provided',
-            status_code=400,
-        ),
-        detail_response_example(
-            name='Unsupported video file format error',
-            value='Unsupported video file format',
-            status_code=400,
-        ),
-        detail_response_example(
-            name='Channel not found error',
-            value='Channel not found',
-            status_code=404,
-        ),
-        detail_response_example(
-            name='S3 error',
-            value='string',
-            status_code=500,
-        ),
+        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_FILENAME_NOT_PROVIDED]),
+        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_FILENAME_FORMAT_ERROR]),
+        error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
+        s3_error_response_example(),
     ],
     summary='Create multipart upload',
 )
@@ -117,26 +118,10 @@ class CreateMultipartUploadView(generics.GenericAPIView):
     },
     examples=[
         multipart_upload_part_url_response_example(),
-        detail_response_example(
-            name='Video author does not match error',
-            value='Video author does not match the current user',
-            status_code=400,
-        ),
-        detail_response_example(
-            name='Channel not found error',
-            value='Channel not found',
-            status_code=404,
-        ),
-        detail_response_example(
-            name='Video not found by upload_id error',
-            value='Video not found by upload_id',
-            status_code=404,
-        ),
-        detail_response_example(
-            name='S3 error',
-            value='string',
-            status_code=500,
-        ),
+        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_AUTHOR_NOT_MATCH]),
+        error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
+        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_UPLOAD_ID]),
+        s3_error_response_example(),
     ],
     summary='Generate upload part url for video',
 )
@@ -185,26 +170,10 @@ class GenerateUploadPartUrlView(generics.GenericAPIView):
         500: DetailOutSerializer,
     },
     examples=[
-        detail_response_example(
-            name='Video permission error',
-            value='You do not have permission to access this video',
-            status_code=403,
-        ),
-        detail_response_example(
-            name='Video not found by key error',
-            value='Video not found by key',
-            status_code=404,
-        ),
-        detail_response_example(
-            name='File with this key does not exist in S3 error',
-            value='File with this key does not exist in S3',
-            status_code=404,
-        ),
-        detail_response_example(
-            name='S3 error',
-            value='string',
-            status_code=500,
-        ),
+        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.PRIVATE_VIDEO_PERMISSION_ERROR]),
+        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_KEY]),
+        error_response_example(COMMON_ERRORS[CommonErrorCodes.S3_FILE_WITH_KEY_NOT_EXISTS]),
+        s3_error_response_example(),
     ],
     summary='Generate presigned url for video download',
 )
@@ -254,26 +223,10 @@ class GenerateDownloadVideoUrlView(generics.GenericAPIView):
             value='Success',
             status_code=200,
         ),
-        detail_response_example(
-            name='Video author does not match error',
-            value='Video author does not match the current user',
-            status_code=400,
-        ),
-        detail_response_example(
-            name='Multipart upload does not exist error',
-            value='Multipart upload with this key and upload_id does not exist in S3',
-            status_code=404,
-        ),
-        detail_response_example(
-            name='Video not found by upload_id error',
-            value='Video not found by upload_id',
-            status_code=404,
-        ),
-        detail_response_example(
-            name='Channel not found error',
-            value='Channel not found',
-            status_code=404,
-        ),
+        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_AUTHOR_NOT_MATCH]),
+        error_response_example(COMMON_ERRORS[CommonErrorCodes.MULTIPART_UPLOAD_EXISTS_ERROR]),
+        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_UPLOAD_ID]),
+        error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
     ],
     summary='Abort multipart upload',
 )
@@ -315,20 +268,20 @@ class AbortMultipartUploadView(generics.GenericAPIView):
 
 @extend_schema(
     responses={
-        200: {
-            'type': 'object',
-            'properties': {
-                'status': {
-                    'type': 'string',
-                    'example': 'success',
-                },
-                'message': {
-                    'type': 'string',
-                    'example': 'Video upload completed successfully',
-                },
-            },
-        },
+        200: CompleteMultipartUploadOutSerializer,
+        400: DetailOutSerializer,
+        404: DetailOutSerializer,
     },
+    examples=[
+        detail_response_example(
+            name='Completed',
+            value='Success',
+            status_code=200,
+        ),
+        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_AUTHOR_NOT_MATCH]),
+        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_UPLOAD_ID]),
+        error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
+    ],
     summary='Complete multipart upload',
 )
 class CompleteMultipartUploadView(generics.GenericAPIView):

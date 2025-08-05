@@ -24,8 +24,15 @@ from core.api.v1.channels.serializers import (
     SubscriptionSerializer,
 )
 from core.api.v1.common.serializers.serializers import DetailOutSerializer
-from core.api.v1.schema.response_examples.common import detail_response_example
+from core.api.v1.schema.response_examples.common import (
+    detail_response_example,
+    error_response_example,
+)
 from core.apps.channels.converters.channels import channel_from_entity
+from core.apps.channels.errors import (
+    ErrorCodes as ChannelsErrorCodes,
+    ERRORS as CHANNELS_ERRORS,
+)
 from core.apps.channels.models import (
     Channel,
     SubscriptionItem,
@@ -180,21 +187,9 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
                 value='Subscription created',
                 status_code=201,
             ),
-            detail_response_example(
-                name='Channel is not found error',
-                value='Channel with this slug is not found',
-                status_code=404,
-            ),
-            detail_response_example(
-                name='Self-subscription error',
-                value="You can't subscribe/unsubscribe to/from yourself",
-                status_code=400,
-            ),
-            detail_response_example(
-                name='Subscription already exists error',
-                value='Subscription already exists',
-                status_code=400,
-            ),
+            error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.SLUG_CHANNEL_NOT_FOUND]),
+            error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.SELF_SUBSCRIPTION]),
+            error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.SUBSCRIPTION_EXISTS]),
 
         ],
         summary='Subscribe to channel',
@@ -227,21 +222,9 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
                 value='Subscription deleted',
                 status_code=200,
             ),
-            detail_response_example(
-                name='Self-subscription error',
-                value="You can't subscribe/unsubscribe to/from yourself",
-                status_code=400,
-            ),
-            detail_response_example(
-                name='Channel is not found error',
-                value='Channel with this slug is not found',
-                status_code=404,
-            ),
-            detail_response_example(
-                name='Subscription does not exists error',
-                value='Subscription does not exists',
-                status_code=404,
-            ),
+            error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.SELF_SUBSCRIPTION]),
+            error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.SLUG_CHANNEL_NOT_FOUND]),
+            error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.SUBSCRIPTION_DOES_NOT_EXIST]),
         ],
         summary='Unsubscribe from channel',
     )

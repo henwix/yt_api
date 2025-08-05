@@ -222,7 +222,7 @@ class ORMVideoService(BaseVideoService):
         if not created and like.is_like != is_like:
             self.video_repository.update_is_like_field(like, is_like)
 
-        return {'status': 'success', 'is_like': is_like}
+        return {'detail': 'Success', 'is_like': is_like}
 
     def like_delete(self, user: UserEntity, video_id: str) -> dict:
         channel, video = self._user_and_video_validate(user, video_id)
@@ -232,7 +232,7 @@ class ORMVideoService(BaseVideoService):
         if not deleted:
             raise VideoLikeNotFoundError(channel_slug=channel.slug, video_id=video.id)
 
-        return {'status': 'success'}
+        return {'detail': 'Success'}
 
     def view_create(self, user: UserEntity, video_id: str, ip_address: str) -> dict:
         channel, video = self._user_and_video_validate(user, video_id)
@@ -246,7 +246,7 @@ class ORMVideoService(BaseVideoService):
             )
 
         self.video_repository.create_view(channel, video, ip_address)
-        return {'status': 'success'}
+        return {'detail': 'Success'}
 
     def get_videos_for_listing(self) -> Iterable[Video]:
         return (
@@ -323,9 +323,9 @@ class ORMVideoHistoryService(BaseVideoHistoryService):
 
         if not created:
             self.history_repository.update_watch_time(video_history=history_item)
-            return {'status': 'Video already exists in history, watched_at has been updated'}
+            return {'detail': 'Video already exists in history, watched_at has been updated'}
 
-        return {'status': 'Video added in history'}
+        return {'detail': 'Success'}
 
     def delete_video_from_history(self, user: UserEntity, video_id: str) -> dict:
         channel, video = self._validate_video_id_and_get_objects(video_id, user)
@@ -335,7 +335,7 @@ class ORMVideoHistoryService(BaseVideoHistoryService):
         if not deleted:
             raise VideoNotFoundInHistoryError(video_id=video_id, channel_slug=channel.slug)
 
-        return {'status': 'Video successfully deleted from history'}
+        return {'detail': 'Success'}
 
     def get_channel_history(self, user: UserEntity) -> Iterable[VideoHistory]:
         channel = self.channel_repository.get_channel_by_user_or_none(user=user)
@@ -390,8 +390,8 @@ class ORMVideoPlaylistService(BaseVideoPlaylistService):
         _, created = self.playlist_repository.playlist_item_get_or_create(playlist=playlist, video=video)
 
         if created:
-            return {'status': 'Video added in playlist'}
-        return {'status': 'Video already exists in that playlist'}
+            return {'detail': 'Success'}
+        return {'detail': 'Video already exists in that playlist'}
 
     def delete_video_from_playlist(self, playlist_id: str, video_id: str) -> dict:
         playlist, video = self._validate_data_and_return_objects(playlist_id, video_id)
@@ -400,7 +400,7 @@ class ORMVideoPlaylistService(BaseVideoPlaylistService):
 
         if not deleted:
             raise VideoNotInPlaylistError(playlist_id, video_id)
-        return {'status': 'Video successfully deleted from playlist'}
+        return {'detail': 'Success'}
 
     def get_playlists_for_listing(self, user: UserEntity) -> Iterable[Playlist]:
         queryset = self.playlist_repository.get_all_playlists()

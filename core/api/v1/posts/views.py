@@ -18,8 +18,8 @@ from drf_spectacular.utils import (
 )
 
 from core.api.v1.common.serializers.comments import (
-    CommentIdParameterSerializer,
-    CommentLikeSerializer,
+    PkLikeSerializer,
+    PkParameterSerializer,
     PostLikeSerializer,
 )
 from core.api.v1.common.serializers.serializers import (
@@ -41,7 +41,7 @@ from core.api.v1.posts.serializers.post_serializers import (
     PostUIDSerializer,
 )
 from core.api.v1.schema.response_examples.common import (
-    detail_response_example,
+    deleted_response_example,
     error_response_example,
     like_created_response_example,
 )
@@ -217,11 +217,7 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
             404: DetailOutSerializer,
         },
         examples=[
-            detail_response_example(
-                name='Deleted',
-                value='Success',
-                status_code=200,
-            ),
+            deleted_response_example(),
             error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
             error_response_example(POSTS_ERRORS[PostsErrorCodes.POST_NOT_FOUND]),
             error_response_example(POSTS_ERRORS[PostsErrorCodes.POST_LIKE_NOT_FOUND]),
@@ -354,7 +350,7 @@ class CommentPostAPIView(
     def get_replies_list(self, request, pk):
         use_case: GetPostCommentRepliesUseCase = self.container.resolve(GetPostCommentRepliesUseCase)
 
-        serializer = CommentIdParameterSerializer(data={'pk': pk})
+        serializer = PkParameterSerializer(data={'pk': pk})
         serializer.is_valid(raise_exception=True)
 
         try:
@@ -383,7 +379,7 @@ class CommentPostAPIView(
     def like_create(self, request, pk):
         use_case: PostCommentLikeCreateUseCase = self.container.resolve(PostCommentLikeCreateUseCase)
 
-        serializer = CommentLikeSerializer(data={'is_like': request.data.get('is_like', True), 'pk': pk})
+        serializer = PkLikeSerializer(data={'is_like': request.data.get('is_like', True), 'pk': pk})
         serializer.is_valid(raise_exception=True)
 
         try:
@@ -404,11 +400,7 @@ class CommentPostAPIView(
             404: DetailOutSerializer,
         },
         examples=[
-            detail_response_example(
-                name='Deleted',
-                value='Success',
-                status_code=200,
-            ),
+            deleted_response_example(),
             error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
             error_response_example(COMMON_ERRORS[CommonErrorCodes.COMMENT_NOT_FOUND]),
             error_response_example(COMMON_ERRORS[CommonErrorCodes.COMMENT_LIKE_NOT_FOUND]),
@@ -419,7 +411,7 @@ class CommentPostAPIView(
     def like_delete(self, request, pk):
         use_case: PostCommentLikeDeleteUseCase = self.container.resolve(PostCommentLikeDeleteUseCase)
 
-        serializer = CommentLikeSerializer(data={'pk': pk})
+        serializer = PkParameterSerializer(data={'pk': pk})
         serializer.is_valid(raise_exception=True)
 
         try:

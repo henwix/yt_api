@@ -11,6 +11,7 @@ from core.tests.factories.videos import VideoLikeModelFactory
 
 @pytest.mark.django_db
 def test_video_like_created(client: APIClient, jwt: str, video: Video):
+    """Test that video like was created after POST request to the endpoint: /v1/videos/{video_id}/like/."""
     client.credentials(HTTP_AUTHORIZATION=jwt)
 
     assert not VideoLike.objects.filter(video=video).exists()
@@ -23,6 +24,7 @@ def test_video_like_created(client: APIClient, jwt: str, video: Video):
 
 @pytest.mark.django_db
 def test_video_like_deleted(client: APIClient, jwt_and_channel: str, video: Video):
+    """Test that video like was deleted after DELETE request to the endpoint: /v1/videos/{video_id}/unlike/."""
     jwt, channel = jwt_and_channel
     client.credentials(HTTP_AUTHORIZATION=jwt)
 

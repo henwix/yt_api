@@ -23,7 +23,10 @@ from core.api.v1.schema.response_examples.common import (
     error_response_example,
     jwt_response_example,
 )
-from core.api.v1.schema.response_examples.oauth2 import oauth2_connected_providers_response_example
+from core.api.v1.schema.response_examples.oauth2 import (
+    oauth2_connected_providers_response_example,
+    social_auth_error_response_example,
+)
 from core.api.v1.users.serializers.oauth2 import (
     AuthUrlSerializer,
     OAuth2ConnectedProvidersSerializer,
@@ -50,11 +53,7 @@ from core.project.containers import get_container
     },
     examples=[
         error_response_example(USERS_ERRORS[UsersErrorCodes.OAUTH2_PROVIDER_NOT_SUPPORTED]),
-        detail_response_example(
-            name='Social Auth Error',
-            value='string',
-            status_code=400,
-        ),
+        social_auth_error_response_example(),
     ],
     summary='Generate URL for OAuth2 authorization',
 )
@@ -100,11 +99,7 @@ class OAuth2GenerateURLView(APIView):
             status_code=200,
         ),
         error_response_example(USERS_ERRORS[UsersErrorCodes.OAUTH2_PROVIDER_NOT_SUPPORTED]),
-        detail_response_example(
-            name='Social Auth Error',
-            value='string',
-            status_code=400,
-        ),
+        social_auth_error_response_example(),
     ],
     summary='Verify SocialOAuth2 data and connect service to user',
 )
@@ -140,16 +135,12 @@ class OAuth2ConnectView(APIView):
     },
     examples=[
         detail_response_example(
-            name='Connected',
+            name='Disconnected',
             value='github successfully disconnected',
             status_code=200,
         ),
         error_response_example(USERS_ERRORS[UsersErrorCodes.OAUTH2_PROVIDER_NOT_SUPPORTED]),
-        detail_response_example(
-            name='Social Auth Error',
-            value='string',
-            status_code=400,
-        ),
+        social_auth_error_response_example(),
     ],
     summary='Disconnect OAuth2 provider',
 )

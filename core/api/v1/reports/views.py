@@ -14,7 +14,7 @@ from drf_spectacular.utils import extend_schema
 from core.api.v1.common.serializers.serializers import DetailOutSerializer
 from core.api.v1.reports.serializers import VideoReportSerializer
 from core.api.v1.schema.response_examples.common import (
-    detail_response_example,
+    created_response_example,
     error_response_example,
 )
 from core.apps.channels.errors import (
@@ -62,11 +62,7 @@ class VideoReportsView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIVi
             404: DetailOutSerializer,
         },
         examples=[
-            detail_response_example(
-                name='Created',
-                value='Successfully created',
-                status_code=201,
-            ),
+            created_response_example(),
             error_response_example(REPORTS_ERRORS[ReportsErrorCodes.REPORT_LIMIT]),
             error_response_example(VIDEOS_ERRORS[VideosErrorCodes.PRIVATE_VIDEO_OR_UPLOADING]),
             error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_VIDEO_ID]),

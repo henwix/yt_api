@@ -69,7 +69,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
             Channel.objects.create(**channel_data)
 
         except IntegrityError as e:
-            raise ValidationError({'error': str(e)})
+            raise ValidationError({'detail': str(e)})
         return user
 
     def validate_email(self, value):

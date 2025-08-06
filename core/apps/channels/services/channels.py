@@ -173,7 +173,7 @@ class ORMSubscriptionService(BaseSubscriptionService):
         if not created:
             raise SubscriptionExistsError(sub_slug=subscriber.slug, sub_to_slug=subscribed_to.slug)
 
-        return {'detail': 'Subscription created'}
+        return {'detail': 'Success'}
 
     def unsubscribe(self, user: UserEntity, channel_slug: str) -> dict:
         subscriber, subscribed_to = self._validate_subscription(user, channel_slug)
@@ -183,4 +183,4 @@ class ORMSubscriptionService(BaseSubscriptionService):
         if not deleted:
             raise SubscriptionDoesNotExistsError(sub_slug=subscriber.slug, sub_to_slug=subscribed_to.slug)
 
-        return {'detail': 'Subscription deleted'}
+        return {'detail': 'Success'}

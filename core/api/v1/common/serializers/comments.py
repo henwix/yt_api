@@ -1,8 +1,12 @@
 from rest_framework import serializers
 
 
-class CommentIdParameterSerializer(serializers.Serializer):
+class PkParameterSerializer(serializers.Serializer):
     pk = serializers.IntegerField()
+
+
+class VideoIdParameterSerializer(serializers.Serializer):
+    video_id = serializers.CharField(max_length=11)
 
 
 class LikeSerializer(serializers.Serializer):
@@ -13,5 +17,9 @@ class PostLikeSerializer(LikeSerializer):
     post_id = serializers.UUIDField()
 
 
-class CommentLikeSerializer(LikeSerializer):
-    pk = serializers.IntegerField()
+class VideoLikeSerializer(LikeSerializer, VideoIdParameterSerializer):
+    ...
+
+
+class PkLikeSerializer(LikeSerializer, PkParameterSerializer):
+    ...

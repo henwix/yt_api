@@ -25,6 +25,7 @@ from core.api.v1.common.serializers.upload_serializers import (
     KeySerializer,
 )
 from core.api.v1.schema.response_examples.common import (
+    deleted_response_example,
     detail_response_example,
     error_response_example,
 )
@@ -146,11 +147,7 @@ class GenerateDownloadAvatarUrlView(generics.GenericAPIView):
         404: DetailOutSerializer,
     },
     examples=[
-        detail_response_example(
-            name='Avatar deleted',
-            value='Success',
-            status_code=200,
-        ),
+        deleted_response_example(),
         error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
         error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.AVATAR_DOES_NOT_EXIST]),
 
@@ -182,7 +179,7 @@ class DeleteChannelAvatarView(generics.GenericAPIView):
     },
     examples=[
         detail_response_example(
-            name='Avatar deleted',
+            name='Completed',
             value='Success',
             status_code=200,
         ),

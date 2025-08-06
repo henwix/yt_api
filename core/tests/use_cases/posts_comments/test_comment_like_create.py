@@ -63,7 +63,7 @@ def test_post_comment_like_created(
         is_like=expected_is_like,
     )
 
-    assert result == {'status': 'success', 'is_like': expected_is_like}
+    assert result == {'detail': 'Success', 'is_like': expected_is_like}
     assert PostCommentLikeItem.objects.filter(
         author=channel, comment=post_comment, is_like=expected_is_like,
     ).exists()

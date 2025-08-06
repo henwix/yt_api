@@ -1,5 +1,7 @@
 from drf_spectacular.utils import OpenApiExample
 
+from core.api.v1.schema.response_examples.common import detail_response_example
+
 
 def multipart_upload_created_response_example() -> OpenApiExample:
     return OpenApiExample(
@@ -20,9 +22,4 @@ def multipart_upload_part_url_response_example() -> OpenApiExample:
 
 
 def s3_error_response_example() -> OpenApiExample:
-    return OpenApiExample(
-        name='S3 error',
-        value={'detail': 'string'},
-        response_only=True,
-        status_codes=[500],
-    )
+    return detail_response_example(name='S3 error', value='string', status_code=500)

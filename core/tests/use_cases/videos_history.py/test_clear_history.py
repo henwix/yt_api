@@ -18,9 +18,10 @@ def test_history_cleared(
 
     assert VideoHistory.objects.filter(channel=channel).count() == expected_history, 'not equal'
 
-    response = clear_video_history_use_case.execute(user=user_to_entity(channel.user))
+    cleared, response = clear_video_history_use_case.execute(user=user_to_entity(channel.user))
 
-    assert response['status'] == 'history cleared'
+    assert cleared is True
+    assert response['detail'] == 'Success'
     assert not VideoHistory.objects.filter(channel=channel).exists(), 'exists'
 
 
@@ -30,6 +31,7 @@ def test_history_empty(
     channel: Channel,
 ):
     assert not VideoHistory.objects.filter(channel=channel).exists()
-    response = clear_video_history_use_case.execute(user=user_to_entity(channel.user))
+    cleared, response = clear_video_history_use_case.execute(user=user_to_entity(channel.user))
 
-    assert response['error'] == 'history is empty'
+    assert cleared is False
+    assert response['detail'] == 'History is empty'

@@ -20,8 +20,10 @@ from drf_spectacular.utils import (
 )
 
 from core.api.v1.common.serializers.comments import (
-    CommentIdParameterSerializer,
-    CommentLikeSerializer,
+    PkLikeSerializer,
+    PkParameterSerializer,
+    VideoIdParameterSerializer,
+    VideoLikeSerializer,
 )
 from core.api.v1.common.serializers.serializers import (
     DetailOutSerializer,
@@ -30,6 +32,8 @@ from core.api.v1.common.serializers.serializers import (
     VParameterSerializer,
 )
 from core.api.v1.schema.response_examples.common import (
+    created_response_example,
+    deleted_response_example,
     detail_response_example,
     error_response_example,
     like_created_response_example,
@@ -143,11 +147,14 @@ class VideoViewSet(
         Video determines by 'video_id' URL-parameter.
 
         """
+        serializer = VideoLikeSerializer(data={'is_like': request.data.get('is_like', True), 'video_id': video_id})
+        serializer.is_valid(raise_exception=True)
+
         try:
             result = self.service.like_create(
                 user=user_to_entity(request.user),
                 video_id=video_id,
-                is_like=request.data.get('is_like', True),
+                is_like=serializer.validated_data.get('is_like', True),
             )
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -167,11 +174,7 @@ class VideoViewSet(
             404: DetailOutSerializer,
         },
         examples=[
-            detail_response_example(
-                name='Deleted',
-                value='Success',
-                status_code=200,
-            ),
+            deleted_response_example(),
             error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_LIKE_NOT_FOUND]),
             error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_VIDEO_ID]),
         ],
@@ -185,6 +188,9 @@ class VideoViewSet(
         parameter.
 
         """
+        serializer = VideoIdParameterSerializer(data={'video_id': video_id})
+        serializer.is_valid(raise_exception=True)
+
         try:
             result = self.service.like_delete(user=user_to_entity(request.user), video_id=video_id)
         except ServiceException as error:
@@ -201,11 +207,7 @@ class VideoViewSet(
             404: DetailOutSerializer,
         },
         examples=[
-            detail_response_example(
-                name='Created',
-                value='Success',
-                status_code=201,
-            ),
+            created_response_example(),
             error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIEW_EXISTS]),
             error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_VIDEO_ID]),
         ],
@@ -371,7 +373,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
     )
     @action(url_path='replies', url_name='replies', detail=True)
     def get_replies_list(self, request, pk):
-        serializer = CommentIdParameterSerializer(data={'pk': pk})
+        serializer = PkParameterSerializer(data={'pk': pk})
         serializer.is_valid(raise_exception=True)
 
         try:
@@ -401,14 +403,14 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
         use_case: VideoCommentLikeCreateUseCase = self.container.resolve(VideoCommentLikeCreateUseCase)
         is_like = request.data.get('is_like', True)
 
-        serializer = CommentLikeSerializer(data={'is_like': is_like, 'pk': pk})
+        serializer = PkLikeSerializer(data={'is_like': is_like, 'pk': pk})
         serializer.is_valid(raise_exception=True)
 
         try:
             result = use_case.execute(
                 user=user_to_entity(request.user),
-                comment_id=pk,
-                is_like=is_like,
+                comment_id=serializer.validated_data.get('pk'),
+                is_like=serializer.validated_data.get('is_like'),
             )
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -422,11 +424,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
             404: DetailOutSerializer,
         },
         examples=[
-            detail_response_example(
-                name='Deleted',
-                value='Success',
-                status_code=200,
-            ),
+            deleted_response_example(),
             error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
             error_response_example(COMMON_ERRORS[CommonErrorCodes.COMMENT_NOT_FOUND]),
             error_response_example(COMMON_ERRORS[CommonErrorCodes.COMMENT_LIKE_NOT_FOUND]),
@@ -437,7 +435,7 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
     def like_delete(self, request, pk):
         use_case: VideoCommentLikeDeleteUseCase = self.container.resolve(VideoCommentLikeDeleteUseCase)
 
-        serializer = CommentLikeSerializer(data={'pk': pk})
+        serializer = PkParameterSerializer(data={'pk': pk})
         serializer.is_valid(raise_exception=True)
 
         try:
@@ -480,16 +478,13 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
         responses={
             200: DetailOutSerializer,
             400: DetailOutSerializer,
+            404: DetailOutSerializer,
         },
         examples=[
-            detail_response_example(
-                name='History cleared',
-                value={'detail': 'History cleared'},
-                status_code=200,
-            ),
+            deleted_response_example(),
             detail_response_example(
                 name='History is empty',
-                value={'detail': 'History is empty'},
+                value='History is empty',
                 status_code=400,
             ),
             error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
@@ -573,11 +568,7 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
             404: DetailOutSerializer,
         },
         examples=[
-            detail_response_example(
-                name='Video deleted from history',
-                value='Success',
-                status_code=200,
-            ),
+            deleted_response_example(),
             error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_ID_NOT_PROVIDED]),
             error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_IN_HISTORY]),
             error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_VIDEO_ID]),
@@ -659,21 +650,23 @@ class PlaylistAPIView(viewsets.ModelViewSet):
         responses={
             201: DetailOutSerializer,
             400: DetailOutSerializer,
+            403: DetailOutSerializer,
             404: DetailOutSerializer,
         },
         examples=[
             detail_response_example(
                 name='Added',
                 value='Success',
-                status_code=200,
+                status_code=201,
             ),
             detail_response_example(
                 name='Video already exists in that playlist',
                 value='Video already exists in that playlist',
-                status_code=200,
+                status_code=400,
             ),
             error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_ID_NOT_PROVIDED]),
             error_response_example(VIDEOS_ERRORS[VideosErrorCodes.PLAYLIST_ID_NOT_PROVIDED]),
+            error_response_example(VIDEOS_ERRORS[VideosErrorCodes.PLAYLIST_PERMISSION_ERROR]),
             error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_VIDEO_ID]),
             error_response_example(VIDEOS_ERRORS[VideosErrorCodes.PLAYLIST_NOT_FOUND]),
         ],
@@ -696,7 +689,8 @@ class PlaylistAPIView(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         try:
-            result = self.service.add_video_in_playlist(
+            added, result = self.service.add_video_in_playlist(
+                user=user_to_entity(request.user),
                 playlist_id=id,
                 video_id=serializer.validated_data.get('v'),
             )
@@ -704,7 +698,7 @@ class PlaylistAPIView(viewsets.ModelViewSet):
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
 
-        return Response(result, status.HTTP_201_CREATED)
+        return Response(result, status.HTTP_201_CREATED if added else status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
         parameters=[
@@ -718,16 +712,14 @@ class PlaylistAPIView(viewsets.ModelViewSet):
         responses={
             200: DetailOutSerializer,
             400: DetailOutSerializer,
+            403: DetailOutSerializer,
             404: DetailOutSerializer,
         },
         examples=[
-            detail_response_example(
-                name='Deleted',
-                value='Success',
-                status_code=200,
-            ),
+            deleted_response_example(),
             error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_ID_NOT_PROVIDED]),
             error_response_example(VIDEOS_ERRORS[VideosErrorCodes.PLAYLIST_ID_NOT_PROVIDED]),
+            error_response_example(VIDEOS_ERRORS[VideosErrorCodes.PLAYLIST_PERMISSION_ERROR]),
             error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_IN_PLAYLIST]),
             error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_VIDEO_ID]),
             error_response_example(VIDEOS_ERRORS[VideosErrorCodes.PLAYLIST_NOT_FOUND]),
@@ -753,6 +745,7 @@ class PlaylistAPIView(viewsets.ModelViewSet):
 
         try:
             result = self.service.delete_video_from_playlist(
+                user=user_to_entity(request.user),
                 playlist_id=id,
                 video_id=serializer.validated_data.get('v'),
             )

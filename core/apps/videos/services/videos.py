@@ -20,6 +20,7 @@ from core.apps.videos.entities.videos import VideoEntity
 from core.apps.videos.exceptions.playlists import (
     PlaylistIdNotProvidedError,
     PlaylistNotFoundError,
+    PlaylistPermissionError,
     VideoNotInPlaylistError,
 )
 from core.apps.videos.exceptions.upload import (
@@ -354,13 +355,14 @@ class ORMVideoHistoryService(BaseVideoHistoryService):
 class BaseVideoPlaylistService(ABC):
     video_repository: BaseVideoRepository
     playlist_repository: BasePlaylistRepository
+    channel_repository: BaseChannelRepository
 
     @abstractmethod
-    def add_video_in_playlist(self, playlist_id: str, video_id: str) -> dict:
+    def add_video_in_playlist(self, user: UserEntity, playlist_id: str, video_id: str) -> tuple[bool, dict]:
         ...
 
     @abstractmethod
-    def delete_video_from_playlist(self, playlist_id: str, video_id: str) -> dict:
+    def delete_video_from_playlist(self, user: UserEntity, playlist_id: str, video_id: str) -> dict:
         ...
 
 
@@ -368,7 +370,7 @@ class BaseVideoPlaylistService(ABC):
 class ORMVideoPlaylistService(BaseVideoPlaylistService):
     channel_repository: BaseChannelRepository
 
-    def _validate_data_and_return_objects(self, playlist_id: str, video_id: str):
+    def _validate_data_and_return_objects(self, user: UserEntity, playlist_id: str, video_id: str):
         if not video_id:
             raise VideoIdNotProvidedError()
         if not playlist_id:
@@ -382,19 +384,23 @@ class ORMVideoPlaylistService(BaseVideoPlaylistService):
         if not playlist:
             raise PlaylistNotFoundError(playlist_id=playlist_id)
 
+        channel = self.channel_repository.get_channel_by_user_or_none(user=user)
+        if playlist.channel_id != channel.id:
+            raise PlaylistPermissionError(playlist_id=playlist.id, channel_id=channel.id)
+
         return playlist, video
 
-    def add_video_in_playlist(self, playlist_id: str, video_id: str) -> dict:
-        playlist, video = self._validate_data_and_return_objects(playlist_id, video_id)
+    def add_video_in_playlist(self, user: UserEntity, playlist_id: str, video_id: str) -> tuple[bool, dict]:
+        playlist, video = self._validate_data_and_return_objects(user, playlist_id, video_id)
 
         _, created = self.playlist_repository.playlist_item_get_or_create(playlist=playlist, video=video)
 
         if created:
-            return {'detail': 'Success'}
-        return {'detail': 'Video already exists in that playlist'}
+            return created, {'detail': 'Success'}
+        return created, {'detail': 'Video already exists in that playlist'}
 
-    def delete_video_from_playlist(self, playlist_id: str, video_id: str) -> dict:
-        playlist, video = self._validate_data_and_return_objects(playlist_id, video_id)
+    def delete_video_from_playlist(self, user: UserEntity, playlist_id: str, video_id: str) -> dict:
+        playlist, video = self._validate_data_and_return_objects(user, playlist_id, video_id)
 
         deleted = self.playlist_repository.playlist_item_delete(playlist=playlist, video=video)
 

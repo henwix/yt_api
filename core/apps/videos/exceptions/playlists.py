@@ -31,3 +31,13 @@ class VideoNotInPlaylistError(ServiceException):
 
     playlist_id: str
     video_id: str
+
+
+@dataclass
+class PlaylistPermissionError(ServiceException):
+    default_code = ErrorCodes.PLAYLIST_PERMISSION_ERROR
+    status_code = ERRORS[default_code]['status_code']
+    default_detail = {'detail': ERRORS[default_code]['message']}
+
+    playlist_id: str
+    channel_id: str

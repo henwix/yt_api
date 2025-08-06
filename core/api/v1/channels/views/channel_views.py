@@ -25,7 +25,8 @@ from core.api.v1.channels.serializers import (
 )
 from core.api.v1.common.serializers.serializers import DetailOutSerializer
 from core.api.v1.schema.response_examples.common import (
-    detail_response_example,
+    created_response_example,
+    deleted_response_example,
     error_response_example,
 )
 from core.apps.channels.converters.channels import channel_from_entity
@@ -182,11 +183,7 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
             404: DetailOutSerializer,
         },
         examples=[
-            detail_response_example(
-                name='Subscription created',
-                value='Subscription created',
-                status_code=201,
-            ),
+            created_response_example(),
             error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.SLUG_CHANNEL_NOT_FOUND]),
             error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.SELF_SUBSCRIPTION]),
             error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.SUBSCRIPTION_EXISTS]),
@@ -217,11 +214,7 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
             404: DetailOutSerializer,
         },
         examples=[
-            detail_response_example(
-                name='Subscription deleted',
-                value='Subscription deleted',
-                status_code=200,
-            ),
+            deleted_response_example(),
             error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.SELF_SUBSCRIPTION]),
             error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.SLUG_CHANNEL_NOT_FOUND]),
             error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.SUBSCRIPTION_DOES_NOT_EXIST]),

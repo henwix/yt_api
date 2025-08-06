@@ -57,7 +57,7 @@ def delete_s3_objects_task(self, objects: list[dict], cache_keys: list | None) -
     except ClientError as error:
         logger.error(
             "AWS S3 can't delete objects",
-            extra={'log_meta': orjson.dumps({'number_of_files': len(objects)}).decode(), 'error': str(error)},
+            extra={'log_meta': orjson.dumps({'number_of_files': len(objects)}).decode(), 'detail': str(error)},
         )
         raise self.retry(countdown=60)
 
@@ -91,7 +91,7 @@ def delete_s3_object_task(self, key: str, cache_key: str | None = None) -> str:
     except ClientError as error:
         logger.error(
             'Failed to delete object from AWS S3',
-            extra={'log_meta': orjson.dumps({'key': key, 'error': str(error)}).decode()},
+            extra={'log_meta': orjson.dumps({'key': key, 'detail': str(error)}).decode()},
         )
         raise self.retry(countdown=60)
 
@@ -124,7 +124,7 @@ def abort_multipart_upload_task(self, key: str, upload_id: str) -> str:
                     {
                         'key': key,
                         'upload_id': upload_id,
-                        'error': str(error),
+                        'detail': str(error),
                     },
                 ).decode(),
             },

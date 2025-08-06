@@ -26,6 +26,7 @@ from core.api.v1.common.serializers.upload_serializers import (
     UploadUrlSerializer,
 )
 from core.api.v1.schema.response_examples.common import (
+    deleted_response_example,
     detail_response_example,
     error_response_example,
 )
@@ -218,11 +219,7 @@ class GenerateDownloadVideoUrlView(generics.GenericAPIView):
         404: DetailOutSerializer,
     },
     examples=[
-        detail_response_example(
-            name='Aborted',
-            value='Success',
-            status_code=200,
-        ),
+        deleted_response_example(),
         error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_AUTHOR_NOT_MATCH]),
         error_response_example(COMMON_ERRORS[CommonErrorCodes.MULTIPART_UPLOAD_EXISTS_ERROR]),
         error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_UPLOAD_ID]),
@@ -271,6 +268,7 @@ class AbortMultipartUploadView(generics.GenericAPIView):
         200: CompleteMultipartUploadOutSerializer,
         400: DetailOutSerializer,
         404: DetailOutSerializer,
+        500: DetailOutSerializer,
     },
     examples=[
         detail_response_example(
@@ -281,6 +279,7 @@ class AbortMultipartUploadView(generics.GenericAPIView):
         error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_AUTHOR_NOT_MATCH]),
         error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_UPLOAD_ID]),
         error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
+        s3_error_response_example(),
     ],
     summary='Complete multipart upload',
 )

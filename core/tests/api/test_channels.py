@@ -13,7 +13,7 @@ from core.tests.factories.videos import (
 
 @pytest.mark.django_db
 def test_channel_data_retrieved_correctly(client: APIClient, jwt_and_channel):
-    """Test channel data retrieved after GET request to endpoint: /v1/channel/"""
+    """Test that channel data was retrieved after GET request to the endpoint: /v1/channel/"""
 
     cache.delete('retrieve_channel_1')  # delete cache with user_id 1
 
@@ -31,7 +31,7 @@ def test_channel_data_retrieved_correctly(client: APIClient, jwt_and_channel):
 
 @pytest.mark.django_db
 def test_channel_data_changed_correctly(client: APIClient, jwt: str):
-    """Test channel data changed after PATCH request to endpoint: /v1/channel/."""
+    """Test that channel data was changed after PATCH request to the endpoint: /v1/channel/."""
 
     url = '/v1/channel/'
     payload = {
@@ -57,8 +57,8 @@ def test_channel_data_changed_correctly(client: APIClient, jwt: str):
 def test_channel_about_data_retrieved_correctly(
     client: APIClient, channel: Channel, expected_videos, expected_views, expected_subs,
 ):
-    """Test channel's about data retrieved GET request to endpoint: channel's
-    about page."""
+    """Test that channel's about data was retrieved after GET request to the
+    endpoint: channel's about page."""
 
     v = VideoModelFactory.create_batch(size=expected_videos, author=channel)  # create videos
     VideoViewModelFactory.create_batch(size=expected_views, video=v[0])  # create views

@@ -26,7 +26,8 @@ def test_video_retrieved(
     expected_likes: int,
     expected_comments: int,
 ):
-    """Test video retrieved after GET request and response is correct."""
+    """Test that video has been retrieved after GET request and response is
+    correct."""
     SubscriptionItemModelFactory.create_batch(size=expected_subs, subscribed_to=video.author)
     VideoViewModelFactory.create_batch(size=expected_views, video=video)
     VideoLikeModelFactory.create_batch(size=expected_likes, video=video)
@@ -49,7 +50,7 @@ def test_video_retrieved(
 
 @pytest.mark.django_db
 def test_video_deleted(client: APIClient, jwt_and_channel: tuple):
-    """Test video deleted from database after DELETE request."""
+    """Test that video has been deleted from database after DELETE request."""
     jwt, channel = jwt_and_channel
     video = VideoModelFactory.create(author=channel)
     client.credentials(HTTP_AUTHORIZATION=jwt)
@@ -64,7 +65,7 @@ def test_video_deleted(client: APIClient, jwt_and_channel: tuple):
 
 @pytest.mark.django_db
 def test_video_updated(client: APIClient, jwt_and_channel: tuple):
-    """Test video updated after PATCH request."""
+    """Test that video has been updated after PATCH request."""
     jwt, channel = jwt_and_channel
     video = VideoModelFactory.create(author=channel)
     client.credentials(HTTP_AUTHORIZATION=jwt)
@@ -85,7 +86,7 @@ def test_video_updated(client: APIClient, jwt_and_channel: tuple):
 
 @pytest.mark.django_db
 def test_video_search(client: APIClient):
-    """Test videos were found and retrieved after searching."""
+    """Test that videos were found and retrieved after searching."""
     VideoModelFactory.create(name='test')  # create video with name 'test'
     VideoModelFactory.create(description='test')  # create video with description 'test'
 

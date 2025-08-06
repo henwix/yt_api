@@ -15,5 +15,5 @@ class ClearVideoHistoryUseCase:
 
         deleted = self.history_service.clear_history(channel=channel)
         if deleted:
-            return deleted, {'detail': 'History cleared'}
+            return deleted, {'detail': 'Success'}
         return deleted, {'detail': 'History is empty'}

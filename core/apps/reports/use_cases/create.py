@@ -41,4 +41,4 @@ class CreateReportUseCase:
                 is_reported=True,
             )
 
-        return {'detail': 'Successfully created'}
+        return {'detail': 'Success'}

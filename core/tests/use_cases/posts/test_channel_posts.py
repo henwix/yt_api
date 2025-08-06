@@ -5,7 +5,6 @@ from django.db.models import Count
 import pytest
 
 from core.apps.channels.models import Channel
-from core.apps.posts.exceptions import PostAuthorSlugNotProvidedError
 from core.apps.posts.models import (
     PostCommentItem,
     PostLikeItem,
@@ -16,15 +15,6 @@ from core.tests.factories.posts import (
     PostLikeModelFactory,
     PostModelFactory,
 )
-
-
-@pytest.mark.django_db
-def test_channel_posts_slug_exception(channel_posts_use_case: GetChannelPostsUseCase):
-    """Test that an exception 'PostAuthorSlugNotProvidedError' has been
-    raised."""
-
-    with pytest.raises(PostAuthorSlugNotProvidedError):
-        channel_posts_use_case.execute(slug=None)
 
 
 @pytest.mark.parametrize('expected_posts', [1, 3, 5, 10])

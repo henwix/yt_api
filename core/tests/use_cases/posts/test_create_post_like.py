@@ -67,7 +67,7 @@ def test_post_create_like_created(
         is_like=expected_is_like,
     )
 
-    assert result == {'status': 'success', 'is_like': expected_is_like}
+    assert result == {'detail': 'Success', 'is_like': expected_is_like}
     assert PostLikeItem.objects.filter(channel=channel, post=post, is_like=expected_is_like).exists()
 
 

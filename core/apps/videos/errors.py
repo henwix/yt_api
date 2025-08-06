@@ -6,6 +6,7 @@ class ErrorCodes:
     PLAYLIST_ID_NOT_PROVIDED = "playlist_id_not_provided"
     PLAYLIST_NOT_FOUND = "playlist_not_found"
     VIDEO_NOT_IN_PLAYLIST = "video_not_in_playlist"
+    PLAYLIST_PERMISSION_ERROR = "playlist_permission_error"
 
     # videos/exceptions/upload.py
     VIDEO_NOT_FOUND_BY_KEY = "video_not_found_by_key"
@@ -37,6 +38,10 @@ ERRORS = {
     ErrorCodes.VIDEO_NOT_IN_PLAYLIST: {
         'message': 'Video does not exist in playlist',
         'status_code': status.HTTP_404_NOT_FOUND,
+    },
+    ErrorCodes.PLAYLIST_PERMISSION_ERROR: {
+        'message': 'You do not have permission to perform actions with this playlist',
+        'status_code': status.HTTP_403_FORBIDDEN,
     },
 
     # videos/exceptions/upload.py

@@ -100,7 +100,7 @@ def send_otp_code_email(self, email: str, code: str):
     except Exception as error:
         logger.info(
             'Error raised while trying to set SMTP connection',
-            extra={'log_meta': orjson.dumps({'error': str(error)}).decode()},
+            extra={'log_meta': orjson.dumps({'detail': str(error)}).decode()},
         )
         raise self.retry(countdown=5)
     else:

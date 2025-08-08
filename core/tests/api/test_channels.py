@@ -22,8 +22,8 @@ def test_channel_data_retrieved_correctly(client: APIClient, jwt_and_channel):
 
     response = client.get('/v1/channel/')
 
-    assert response.status_code == 200
-    assert response.data.get('name') == channel.name
+    assert response.status_code == 200, 'incorrect code'
+    assert response.data.get('name') == channel.name, 'incorrect name'
     assert response.data.get('slug') == channel.slug, 'incorrect slug'
     assert response.data.get('description') == channel.description, 'incorrect desc'
     assert response.data.get('country') == channel.country, 'incorrect country'
@@ -45,11 +45,11 @@ def test_channel_data_changed_correctly(client: APIClient, jwt: str):
     client.patch(url, payload)
     response = client.get(url)
 
-    assert response.status_code == 200
-    assert payload.get('name') == response.data.get('name')
-    assert payload.get('slug') == response.data.get('slug')
-    assert payload.get('description') == response.data.get('description')
-    assert payload.get('country') == response.data.get('country')
+    assert response.status_code == 200, 'incorrect code'
+    assert payload.get('name') == response.data.get('name'), 'incorrect name'
+    assert payload.get('slug') == response.data.get('slug'), 'incorrect slug'
+    assert payload.get('description') == response.data.get('description'), 'incorrect description'
+    assert payload.get('country') == response.data.get('country'), 'incorrect country'
 
 
 @pytest.mark.django_db
@@ -66,9 +66,7 @@ def test_channel_about_data_retrieved_correctly(
 
     response = client.get(f'/v1/channels/{channel.slug}/about')
 
-    print(response)
-
-    assert response.status_code == 200
+    assert response.status_code == 200, 'incorrect code'
     assert response.data.get('description') == channel.description, 'incorrect desc'
     assert response.data.get('country') == channel.country, 'incorrect country'
     assert response.data.get('total_views') == expected_views, 'incorrect views'

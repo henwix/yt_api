@@ -26,9 +26,8 @@ def test_playlist_created(client: APIClient, jwt_and_channel: str):
         'description': 'Test playlist description',
     }
 
-    client.post('v1/playlists/', payload)
-
-    assert not Playlist.objects.filter(channel=channel).exists()
+    client.post('/v1/playlists/', payload)
+    assert Playlist.objects.filter(channel=channel).exists()
 
 
 @pytest.mark.django_db
@@ -42,13 +41,13 @@ def test_playlist_deleted(client: APIClient, jwt_and_channel: str):
 
     response = client.delete(f'/v1/playlists/{playlist.id}/')
 
-    assert response.status_code == 204
+    assert response.status_code == 204, 'incorrect code'
     assert not Playlist.objects.filter(channel=channel).exists()
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize('expected_playlists', [2, 5])
-def test_playlists_retrieved(client: APIClient, jwt_and_channel: str, expected_playlists: int):
+def test_playlists_retrieved(client: APIClient, jwt_and_channel: tuple, expected_playlists: int):
     """Test that playlists were retrieved after GET request to the endpoint: /v1/playlists/."""
     jwt, channel = jwt_and_channel
     client.credentials(HTTP_AUTHORIZATION=jwt)
@@ -61,7 +60,7 @@ def test_playlists_retrieved(client: APIClient, jwt_and_channel: str, expected_p
 
 
 @pytest.mark.django_db
-def test_playlists_updated(client: APIClient, jwt_and_channel: str):
+def test_playlists_updated(client: APIClient, jwt_and_channel: tuple):
     """Test that playlist was updated after PATCH request to the endpoint: /v1/playlists/{id}/."""
     jwt, channel = jwt_and_channel
     client.credentials(HTTP_AUTHORIZATION=jwt)
@@ -80,7 +79,7 @@ def test_playlists_updated(client: APIClient, jwt_and_channel: str):
 
 
 @pytest.mark.django_db
-def test_video_added_to_playlist(client: APIClient, jwt_and_channel: str):
+def test_video_added_to_playlist(client: APIClient, jwt_and_channel: tuple):
     """Test that video was added to playlist after POST request to the endpoint: /v1/playlists/{id}/add-video/"""
     jwt, channel = jwt_and_channel
     client.credentials(HTTP_AUTHORIZATION=jwt)
@@ -96,7 +95,7 @@ def test_video_added_to_playlist(client: APIClient, jwt_and_channel: str):
 
 
 @pytest.mark.django_db
-def test_video_add_to_playlist_permission_error(client: APIClient, jwt_and_channel: str):
+def test_video_add_to_playlist_permission_error(client: APIClient, jwt_and_channel: tuple):
     """Test that an permission error was returned after POST request to the endpoint: /v1/playlists/{id}/add-video/"""
     jwt, channel = jwt_and_channel
     client.credentials(HTTP_AUTHORIZATION=jwt)
@@ -112,10 +111,29 @@ def test_video_add_to_playlist_permission_error(client: APIClient, jwt_and_chann
 
 
 @pytest.mark.django_db
-def test_video_deleted_from_playlist(client: APIClient, jwt_and_channel: str):
+def test_video_deleted_from_playlist(client: APIClient, jwt_and_channel: tuple):
     """
     Test that video was deleted from playlist after DELETE request to the endpoint: /v1/playlists/{id}/delete-video/
     """
+    jwt, channel = jwt_and_channel
+    client.credentials(HTTP_AUTHORIZATION=jwt)
+    video = VideoModelFactory.create(author=channel)
+    other_playlist = PlaylistModelFactory.create(channel=channel)
+
+    PlaylistItemModelFactory(playlist=other_playlist, video=video)
+
+    assert PlaylistItem.objects.filter(playlist=other_playlist, video=video).exists()
+
+    response = client.delete(f'/v1/playlists/{other_playlist.id}/delete-video/?v={video.video_id}')
+
+    assert response.status_code == 200
+    assert not PlaylistItem.objects.filter(playlist=other_playlist, video=video).exists()
+
+
+@pytest.mark.django_db
+def test_video_deleted_from_playlist_permission_denied(client: APIClient, jwt_and_channel: tuple):
+    """Test that other user can't delete video from playlist if he is not
+    author."""
     jwt, channel = jwt_and_channel
     client.credentials(HTTP_AUTHORIZATION=jwt)
     video = VideoModelFactory.create(author=channel)

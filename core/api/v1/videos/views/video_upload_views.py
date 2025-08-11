@@ -9,7 +9,10 @@ from rest_framework.response import Response
 
 import orjson
 import punq
-from botocore.exceptions import ClientError
+from botocore.exceptions import (
+    BotoCoreError,
+    ClientError,
+)
 from drf_spectacular.utils import extend_schema
 
 from core.api.v1.common.serializers.serializers import (
@@ -31,6 +34,7 @@ from core.api.v1.schema.response_examples.common import (
     error_response_example,
 )
 from core.api.v1.schema.response_examples.files_upload import (
+    multipart_upload_complete_request_example,
     multipart_upload_created_response_example,
     multipart_upload_part_url_response_example,
     s3_error_response_example,
@@ -271,6 +275,10 @@ class AbortMultipartUploadView(generics.GenericAPIView):
         500: DetailOutSerializer,
     },
     examples=[
+        # request
+        multipart_upload_complete_request_example(),
+
+        # response
         detail_response_example(
             name='Completed',
             value='Success',
@@ -311,6 +319,14 @@ class CompleteMultipartUploadView(generics.GenericAPIView):
             return Response(
                 {'detail': error.response.get('Error', {}).get('Message')},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        except BotoCoreError as error:
+            logger.error(
+                "S3 client can't complete multipart upload",
+                extra={'log_meta': orjson.dumps(str(error)).decode()},
+            )
+            return Response(
+                {'detail': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         except ServiceException as error:

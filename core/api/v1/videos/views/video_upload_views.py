@@ -103,10 +103,17 @@ class CreateMultipartUploadView(generics.GenericAPIView):
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
-                {'detail': error.response.get('Error', {}).get('Message')},
+                {'detail': error.error.get('Message')},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
+        except BotoCoreError as error:
+            logger.error(
+                "BotoCoreError in create multipart upload",
+                extra={'log_meta': orjson.dumps(str(error)).decode()},
+            )
+            return Response(
+                {'detail': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
@@ -156,10 +163,17 @@ class GenerateUploadPartUrlView(generics.GenericAPIView):
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
-                {'detail': error.response.get('Error', {}).get('Message')},
+                {'detail': error.error.get('Message')},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
+        except BotoCoreError as error:
+            logger.error(
+                "BotoCoreError in generate presigned url for video upload",
+                extra={'log_meta': orjson.dumps(str(error)).decode()},
+            )
+            return Response(
+                {'detail': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
@@ -205,10 +219,17 @@ class GenerateDownloadVideoUrlView(generics.GenericAPIView):
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
-                {'detail': error.response.get('Error', {}).get('Message')},
+                {'detail': error.error.get('Message')},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
+        except BotoCoreError as error:
+            logger.error(
+                "BotoCoreError in generate presigned url for video download",
+                extra={'log_meta': orjson.dumps(str(error)).decode()},
+            )
+            return Response(
+                {'detail': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
@@ -256,10 +277,17 @@ class AbortMultipartUploadView(generics.GenericAPIView):
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
-                {'detail': error.response.get('Error', {}).get('Message')},
+                {'detail': error.error.get('Message')},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
+        except BotoCoreError as error:
+            logger.error(
+                "BotoCoreError in abort multipart upload",
+                extra={'log_meta': orjson.dumps(str(error)).decode()},
+            )
+            return Response(
+                {'detail': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
@@ -317,18 +345,17 @@ class CompleteMultipartUploadView(generics.GenericAPIView):
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
-                {'detail': error.response.get('Error', {}).get('Message')},
+                {'detail': error.error.get('Message')},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         except BotoCoreError as error:
             logger.error(
-                "S3 client can't complete multipart upload",
+                "BotoCoreError in complete multipart upload",
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
                 {'detail': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise

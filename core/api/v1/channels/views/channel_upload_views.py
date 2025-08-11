@@ -9,7 +9,10 @@ from rest_framework.response import Response
 
 import orjson
 import punq
-from botocore.exceptions import ClientError
+from botocore.exceptions import (
+    BotoCoreError,
+    ClientError,
+)
 from drf_spectacular.utils import (
     extend_schema,
     OpenApiExample,
@@ -85,10 +88,17 @@ class GenerateUploadAvatarUrlView(generics.GenericAPIView):
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
-                {'detail': error.response.get('Error', {}).get('Message')},
+                {'detail': error.error.get('Message')},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
+        except BotoCoreError as error:
+            logger.error(
+                "BotoCoreError in generate upload avatar url",
+                extra={'log_meta': orjson.dumps(str(error)).decode()},
+            )
+            return Response(
+                {'detail': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
@@ -130,10 +140,17 @@ class GenerateDownloadAvatarUrlView(generics.GenericAPIView):
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
-                {'detail': error.response.get('Error', {}).get('Message')},
+                {'detail': error.error.get('Message')},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
+        except BotoCoreError as error:
+            logger.error(
+                "BotoCoreError in generate presigned url for avatar download",
+                extra={'log_meta': orjson.dumps(str(error)).decode()},
+            )
+            return Response(
+                {'detail': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise

@@ -2,6 +2,10 @@ from rest_framework import status
 
 
 class ErrorCodes:
+    # common/exceptions/captcha.py
+    CAPTCHA_TOKEN_NOT_PROVIDED = "captcha_token_not_provided"
+    CAPTCHA_VALIDATION_FAILED = "captcha_validation_failed"
+
     # common/exceptions/comments.py
     COMMENT_NOT_FOUND = "comment_not_found"
     COMMENT_LIKE_NOT_FOUND = "comment_like_not_found"
@@ -13,6 +17,16 @@ class ErrorCodes:
 
 
 ERRORS = {
+    # common/exceptions/captcha.py
+    ErrorCodes.CAPTCHA_TOKEN_NOT_PROVIDED: {
+        'message': 'Captcha token not provided',
+        'status_code': status.HTTP_400_BAD_REQUEST,
+    },
+    ErrorCodes.CAPTCHA_VALIDATION_FAILED: {
+        'message': 'Captcha validation failed',
+        'status_code': status.HTTP_400_BAD_REQUEST,
+    },
+
     # common/exceptions/comments.py
     ErrorCodes.COMMENT_NOT_FOUND: {
         'message': 'Comment not found',

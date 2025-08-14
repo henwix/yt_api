@@ -62,7 +62,7 @@ from core.apps.common.pagination import (
     CustomCursorPagination,
     CustomPageNumberPagination,
 )
-from core.apps.common.permissions import IsAuthenticatedOrAuthorOrReadOnly
+from core.apps.common.permissions.permissions import IsAuthenticatedOrAuthorOrReadOnly
 from core.apps.users.converters.users import user_to_entity
 from core.apps.videos.converters.videos import video_to_entity
 from core.apps.videos.errors import (

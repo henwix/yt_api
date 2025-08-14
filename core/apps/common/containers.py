@@ -8,6 +8,10 @@ from core.apps.common.providers.cache import (
     BaseCacheProvider,
     RedisCacheProvider,
 )
+from core.apps.common.providers.captcha import (
+    BaseCaptchaProvider,
+    GoogleCaptchaProvider,
+)
 from core.apps.common.providers.files import (
     BaseBotoFileProvider,
     BaseCeleryFileProvider,
@@ -15,6 +19,10 @@ from core.apps.common.providers.files import (
 from core.apps.common.services.cache import (
     BaseCacheService,
     CacheService,
+)
+from core.apps.common.services.captcha import (
+    BaseCaptchaService,
+    GoogleV3CaptchaService,
 )
 from core.apps.common.services.files import (
     BaseFileExistsInS3ValidatorService,
@@ -31,12 +39,14 @@ def init_common(container: punq.Container):
     container.register(BaseCacheProvider, RedisCacheProvider)
     container.register(BaseBotoFileProvider, BotoFileProvider)
     container.register(BaseCeleryFileProvider, CeleryFileProvider)
+    container.register(BaseCaptchaProvider, GoogleCaptchaProvider)
 
     # services
     container.register(BaseCacheService, CacheService)
     container.register(BaseS3FileService, S3FileService)
     container.register(BaseFileExistsInS3ValidatorService, FileExistsInS3ValidatorService)
     container.register(BaseMultipartUploadExistsInS3ValidatorService, MultipartUploadExistsInS3ValidatorService)
+    container.register(BaseCaptchaService, GoogleV3CaptchaService)
 
     # clients
     container.register(BotoClient)

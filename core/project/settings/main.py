@@ -20,6 +20,7 @@ from kombu import Queue
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 
+VERSION = '1.3.7'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -197,9 +198,9 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Documentation for pet project YT-like API',
+    'TITLE': 'YouTube-Like-API',
     'DESCRIPTION': '-',
-    'VERSION': '1.3.6',
+    'VERSION': VERSION,
     'SERVE_INCLUDE_SCHEMA': False,
     'DISABLE_ERRORS_AND_WARNINGS': True,
     'SORT_OPERATIONS': False,
@@ -426,3 +427,10 @@ SOCIAL_AUTH_DISCONNECT_PIPELINE = (
     'social_core.pipeline.disconnect.revoke_tokens',
     'social_core.pipeline.disconnect.disconnect',
 )
+
+
+# Captcha
+
+GOOGLE_RECAPTCHA_DEFAULT_URL = 'https://www.google.com/recaptcha/api/siteverify'
+V3_GOOGLE_RECAPTCHA_PRIVATE_KEY = os.environ.get('V3_GOOGLE_RECAPTCHA_PRIVATE_KEY')
+V3_MIN_GOOGLE_RECAPTCHA_SCORE = 0.5

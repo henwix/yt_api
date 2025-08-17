@@ -4,7 +4,7 @@ from core.project.celery import app
 
 
 class BaseSenderProvider(ABC):
-    def send_code(self):
+    def send_code(self, email: str, code: int):
         ...
 
 

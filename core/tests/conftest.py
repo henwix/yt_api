@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
+import punq
 import pytest
 from punq import Container
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -10,6 +11,8 @@ from core.apps.posts.models import (
     Post,
     PostCommentItem,
 )
+from core.apps.users.providers.senders import BaseSenderProvider
+from core.apps.users.services.codes import BaseCodeService
 from core.apps.videos.models import Video
 from core.project.containers import get_container
 from core.tests.factories.channels import (
@@ -21,6 +24,7 @@ from core.tests.factories.posts import (
     PostModelFactory,
 )
 from core.tests.factories.videos import VideoModelFactory
+from core.tests.mocks.auth.email_provider import DummySenderProvider
 
 
 User = get_user_model()
@@ -29,6 +33,15 @@ User = get_user_model()
 @pytest.fixture
 def container() -> Container:
     return get_container()
+
+
+@pytest.fixture
+def mock_container() -> Container:
+    container: punq.Container = get_container()
+
+    container.register(BaseSenderProvider, DummySenderProvider)
+
+    return container
 
 
 @pytest.fixture
@@ -85,3 +98,8 @@ def post() -> Post:
 @pytest.fixture
 def post_comment() -> PostCommentItem:
     return PostCommentModelFactory()
+
+
+@pytest.fixture
+def code_service(container: punq.Container) -> BaseCodeService:
+    return container.resolve(BaseCodeService)

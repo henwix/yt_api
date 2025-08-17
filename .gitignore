@@ -3,12 +3,8 @@
 .env.prod
 .env
 __pycache__/
-test.py
-test.html
-test2.html
-test3.html
-test4.html
 media
+test_files
 api.http
 local.py
 scripts

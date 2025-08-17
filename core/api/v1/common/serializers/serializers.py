@@ -29,3 +29,7 @@ class SParameterSerializer(serializers.Serializer):
 
 class VParameterSerializer(serializers.Serializer):
     v = serializers.CharField(max_length=11, error_messages={'required': 'This query parameter is required.'})
+
+
+class CaptchaTokenSerializer(serializers.Serializer):
+    captcha_token = serializers.CharField(required=False, help_text='Captcha token')

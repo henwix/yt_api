@@ -17,7 +17,7 @@ class CaptchaPermission(BasePermission):
         logger: Logger = container.resolve(Logger)
 
         try:
-            return captcha_service.validate(
+            return captcha_service.validate_token(
                 token=request.data.get('captcha_token'),
                 captcha_required=view.captcha_required,
                 remoteip=request.META.get('HTTP_X_REAL_IP'),

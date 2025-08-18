@@ -33,12 +33,38 @@ class GoogleV3CaptchaService(BaseCaptchaService):
                 raise CaptchaTokenNotProvidedError()
             return True
 
-        result = self.captcha_provider.validate_token(token=token, remoteip=remoteip)
+        result = self.captcha_provider.validate_token(
+            secret=settings.CAPTCHA_VERSIONS_PRIVATE_KEYS.GOOGLE_V3.value,
+            token=token,
+            remoteip=remoteip,
+        )
 
         if result.get('success', False):  # check if the 'success' is in the result and not equal to False
             if result.get('score', 0) > settings.V3_MIN_GOOGLE_RECAPTCHA_SCORE:  # check 'score' from the result
                 return True
             raise CaptchaValidationFailed(score=result.get('score'))
+
+        # raise an error if the 'success' from the result equals to False
+        raise CaptchaValidationFailed(error_code=result.get('error-codes', ['unknown-error'])[0])
+
+
+class GoogleV2CaptchaService(BaseCaptchaService):
+    def validate_token(self, captcha_required: bool, token: str | None, remoteip: str | None = None) -> bool:
+        """Validate token from Google reCAPTCHA v2."""
+
+        if token is None:
+            if captcha_required:
+                raise CaptchaTokenNotProvidedError()
+            return True
+
+        result = self.captcha_provider.validate_token(
+            secret=settings.CAPTCHA_VERSIONS_PRIVATE_KEYS.GOOGLE_V2_INVISIBLE.value,
+            token=token,
+            remoteip=remoteip,
+        )
+
+        if result.get('success', False):  # check if the 'success' is in the result and not equal to False
+            return True
 
         # raise an error if the 'success' from the result equals to False
         raise CaptchaValidationFailed(error_code=result.get('error-codes', ['unknown-error'])[0])

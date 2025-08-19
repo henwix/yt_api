@@ -6,6 +6,7 @@ import orjson
 import punq
 
 from core.apps.common.exceptions.exceptions import ServiceException
+from core.apps.common.fabrics.captcha import get_captcha_service_fabric
 from core.apps.common.services.captcha import BaseCaptchaService
 from core.project.containers import get_container
 
@@ -14,13 +15,15 @@ class CaptchaPermission(BasePermission):
     def has_permission(self, request, view):
         if request.method == 'POST':
             container: punq.Container = get_container()
-            captcha_service: BaseCaptchaService = container.resolve(BaseCaptchaService)
+            captcha_service: BaseCaptchaService = container.resolve(
+                get_captcha_service_fabric(request.data.get('captcha_version')),
+            )
             logger: Logger = container.resolve(Logger)
 
             try:
                 return captcha_service.validate_token(
+                    version=request.data.get('captcha_version'),
                     token=request.data.get('captcha_token'),
-                    captcha_required=view.captcha_required,
                     remoteip=request.META.get('HTTP_X_REAL_IP'),
                 )
 

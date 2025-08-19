@@ -5,6 +5,7 @@ class ErrorCodes:
     # common/exceptions/captcha.py
     CAPTCHA_TOKEN_NOT_PROVIDED = "captcha_token_not_provided"
     CAPTCHA_VALIDATION_FAILED = "captcha_validation_failed"
+    CAPTCHA_VERSION_NOT_SUPPORTED = "captcha_version_not_supported"
 
     # common/exceptions/comments.py
     COMMENT_NOT_FOUND = "comment_not_found"
@@ -24,6 +25,10 @@ ERRORS = {
     },
     ErrorCodes.CAPTCHA_VALIDATION_FAILED: {
         'message': 'Captcha validation failed',
+        'status_code': status.HTTP_400_BAD_REQUEST,
+    },
+    ErrorCodes.CAPTCHA_VERSION_NOT_SUPPORTED: {
+        'message': 'Captcha version not supported',
         'status_code': status.HTTP_400_BAD_REQUEST,
     },
 

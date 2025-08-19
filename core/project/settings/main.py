@@ -12,10 +12,16 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 import os
 from datetime import timedelta
-from enum import Enum
 from pathlib import Path
 
+from django.db import models
+
 from kombu import Queue
+
+from core.apps.common.services.captcha import (
+    GoogleV2CaptchaService,
+    GoogleV3CaptchaService,
+)
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -435,7 +441,21 @@ SOCIAL_AUTH_DISCONNECT_PIPELINE = (
 V3_MIN_GOOGLE_RECAPTCHA_SCORE = 0.5
 
 
-class CAPTCHA_VERSIONS_PRIVATE_KEYS(Enum):
-    GOOGLE_V3 = os.environ.get('V3_GOOGLE_RECAPTCHA_PRIVATE_KEY')
-    GOOGLE_V2_VISIBLE = os.environ.get('V2_VISIBLE_GOOGLE_RECAPTCHA_PRIVATE_KEY')
-    GOOGLE_V2_INVISIBLE = os.environ.get('V2_INVISIBLE_GOOGLE_RECAPTCHA_PRIVATE_KEY')
+class CAPTCHA_VERSIONS(models.TextChoices):
+    GOOGLE_V3 = 'v3'
+    GOOGLE_V2_VISIBLE = 'v2_visible'
+    GOOGLE_V2_INVISIBLE = 'v2_invisible'
+
+
+CAPTCHA_SECRET_KEYS = {
+    CAPTCHA_VERSIONS.GOOGLE_V3.value: os.environ.get('V3_GOOGLE_RECAPTCHA_PRIVATE_KEY'),
+    CAPTCHA_VERSIONS.GOOGLE_V2_VISIBLE.value: os.environ.get('V2_VISIBLE_GOOGLE_RECAPTCHA_PRIVATE_KEY'),
+    CAPTCHA_VERSIONS.GOOGLE_V2_INVISIBLE.value: os.environ.get('V2_INVISIBLE_GOOGLE_RECAPTCHA_PRIVATE_KEY'),
+}
+
+
+CAPTCHA_VERSION_SERVICES = {
+    CAPTCHA_VERSIONS.GOOGLE_V3.value: GoogleV3CaptchaService,
+    CAPTCHA_VERSIONS.GOOGLE_V2_VISIBLE.value: GoogleV2CaptchaService,
+    CAPTCHA_VERSIONS.GOOGLE_V2_INVISIBLE.value: GoogleV2CaptchaService,
+}

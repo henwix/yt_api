@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import serializers
 
 
@@ -33,3 +34,6 @@ class VParameterSerializer(serializers.Serializer):
 
 class CaptchaTokenSerializer(serializers.Serializer):
     captcha_token = serializers.CharField(required=False, help_text='Captcha token')
+    captcha_version = serializers.ChoiceField(
+        choices=settings.CAPTCHA_VERSIONS.choices, required=False, help_text='Captcha version',
+    )

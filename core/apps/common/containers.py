@@ -21,8 +21,8 @@ from core.apps.common.services.cache import (
     CacheService,
 )
 from core.apps.common.services.captcha import (
-    BaseCaptchaService,
     GoogleV2CaptchaService,
+    GoogleV3CaptchaService,
 )
 from core.apps.common.services.files import (
     BaseFileExistsInS3ValidatorService,
@@ -46,7 +46,9 @@ def init_common(container: punq.Container):
     container.register(BaseS3FileService, S3FileService)
     container.register(BaseFileExistsInS3ValidatorService, FileExistsInS3ValidatorService)
     container.register(BaseMultipartUploadExistsInS3ValidatorService, MultipartUploadExistsInS3ValidatorService)
-    container.register(BaseCaptchaService, GoogleV2CaptchaService)
+
+    container.register(GoogleV2CaptchaService)
+    container.register(GoogleV3CaptchaService)
 
     # clients
     container.register(BotoClient)

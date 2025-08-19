@@ -20,21 +20,29 @@ class BaseCaptchaService(ABC):
     logger: Logger
 
     @abstractmethod
-    def validate_token(self, captcha_required: bool, token: str | None, remoteip: str | None = None) -> bool:
+    def validate_token(
+        self,
+        version: str,
+        token: str | None,
+        remoteip: str | None = None,
+    ) -> bool:
         ...
 
 
 class GoogleV3CaptchaService(BaseCaptchaService):
-    def validate_token(self, captcha_required: bool, token: str | None, remoteip: str | None = None) -> bool:
+    def validate_token(
+        self,
+        version: str,
+        token: str | None,
+        remoteip: str | None = None,
+    ) -> bool:
         """Validate token from Google reCAPTCHA v3."""
 
         if token is None:
-            if captcha_required:
-                raise CaptchaTokenNotProvidedError()
-            return True
+            raise CaptchaTokenNotProvidedError()
 
         result = self.captcha_provider.validate_token(
-            secret=settings.CAPTCHA_VERSIONS_PRIVATE_KEYS.GOOGLE_V3.value,
+            version=version,
             token=token,
             remoteip=remoteip,
         )
@@ -49,16 +57,19 @@ class GoogleV3CaptchaService(BaseCaptchaService):
 
 
 class GoogleV2CaptchaService(BaseCaptchaService):
-    def validate_token(self, captcha_required: bool, token: str | None, remoteip: str | None = None) -> bool:
+    def validate_token(
+        self,
+        version: str,
+        token: str | None,
+        remoteip: str | None = None,
+    ) -> bool:
         """Validate token from Google reCAPTCHA v2."""
 
         if token is None:
-            if captcha_required:
-                raise CaptchaTokenNotProvidedError()
-            return True
+            raise CaptchaTokenNotProvidedError()
 
         result = self.captcha_provider.validate_token(
-            secret=settings.CAPTCHA_VERSIONS_PRIVATE_KEYS.GOOGLE_V2_INVISIBLE.value,
+            version=version,
             token=token,
             remoteip=remoteip,
         )

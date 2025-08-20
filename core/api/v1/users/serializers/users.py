@@ -14,6 +14,7 @@ from djoser.serializers import (
 )
 
 from core.api.v1.channels.serializers import ChannelSerializer
+from core.api.v1.common.serializers.serializers import CaptchaTokenSerializer
 from core.apps.channels.models import Channel
 
 
@@ -28,7 +29,7 @@ class CustomUserCreatePasswordRetypeSerializer(UserCreatePasswordRetypeSerialize
         return fields
 
 
-class CustomUserCreateSerializer(UserCreateSerializer):
+class CustomUserCreateSerializer(CaptchaTokenSerializer, UserCreateSerializer):
     """Custom serializer for user creation.
 
     Inherited from UserCreateSerializer by Djoser. Added Channel
@@ -40,7 +41,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 
     class Meta:
         model = UserCreateSerializer.Meta.model
-        fields = UserCreateSerializer.Meta.fields
+        fields = ('captcha_token', 'captcha_version') + UserCreateSerializer.Meta.fields
 
     def create(self, validated_data):
         channel_data = validated_data.pop('channel', {})
@@ -82,6 +83,9 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         field."""
 
         channel_data = attrs.pop('channel', {})
+        attrs.pop('captcha_version')
+        attrs.pop('captcha_token')
+
         attrs = super().validate(attrs)
         attrs['channel'] = channel_data
 

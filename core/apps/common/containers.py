@@ -47,8 +47,8 @@ def init_common(container: punq.Container):
     container.register(BaseFileExistsInS3ValidatorService, FileExistsInS3ValidatorService)
     container.register(BaseMultipartUploadExistsInS3ValidatorService, MultipartUploadExistsInS3ValidatorService)
 
-    container.register(GoogleV2CaptchaService)
-    container.register(GoogleV3CaptchaService)
+    container.register('GoogleV2CaptchaService', GoogleV2CaptchaService)
+    container.register('GoogleV3CaptchaService', GoogleV3CaptchaService)
 
     # clients
     container.register(BotoClient)

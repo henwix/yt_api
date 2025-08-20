@@ -13,12 +13,35 @@ from core.project.containers import get_container
 
 class CaptchaPermission(BasePermission):
     def has_permission(self, request, view):
-        if request.method == 'POST':
+        """Permission to validate captcha token. *Captcha is not required for
+        superuser*.
+
+        To activate this permission, set the attribute `captcha_allowed_methods` in the view class.
+
+        The 'captcha_allowed_methods' is a list that may contain 'actions' from DRF viewsets and any HTTP methods.
+
+        By default, if the attribute is not set, all requests will be allowed and captcha will not be validated.
+
+        """
+
+        methods = getattr(view, 'captcha_allowed_methods', [])  # get list of allowed methods
+
+        if (request.method in methods or getattr(view, 'action', None) in methods) and not request.user.is_superuser:
             container: punq.Container = get_container()
             captcha_service: BaseCaptchaService = container.resolve(
                 get_captcha_service_fabric(request.data.get('captcha_version')),
             )
             logger: Logger = container.resolve(Logger)
+
+            logger.info(
+                msg='Service for captcha has been resolved',
+                extra={
+                    'log_meta': orjson.dumps({
+                        'version': request.data.get('captcha_version'),
+                        'service': captcha_service.__class__.__name__,
+                    }).decode(),
+                },
+            )
 
             try:
                 return captcha_service.validate_token(

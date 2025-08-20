@@ -18,11 +18,6 @@ from django.db import models
 
 from kombu import Queue
 
-from core.apps.common.services.captcha import (
-    GoogleV2CaptchaService,
-    GoogleV3CaptchaService,
-)
-
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
@@ -232,10 +227,15 @@ DJOSER = {
         'current_user': 'core.api.v1.users.serializers.users.CustomUserSerializer',
         'username_reset_confirm': 'core.api.v1.users.serializers.users.CustomUsernameResetConfirmSerializer',
     },
+    'PERMISSIONS': {
+        'user_create': [
+            'core.apps.common.permissions.captcha.CaptchaPermission', 'rest_framework.permissions.AllowAny',
+        ],
+    },
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=7),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': False,
@@ -283,7 +283,7 @@ LOGGING = {
         'logger': {
             'format': (
                 '[%(levelname)s] [%(asctime)s] [%(module)s] [%(process)d] '
-                '[%(thread)d] %(message)s \n[log_meta:%(log_meta)s]'
+                '[%(thread)d] %(message)s \nlog_meta:%(log_meta)s'
             ),
         },
     },
@@ -394,7 +394,7 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 
-#  oauth2-social
+# OAuth2-social
 
 OAUTH2_ALLOWED_PROVIDERS = {
     'github': 'github',
@@ -455,7 +455,7 @@ CAPTCHA_SECRET_KEYS = {
 
 
 CAPTCHA_VERSION_SERVICES = {
-    CAPTCHA_VERSIONS.GOOGLE_V3.value: GoogleV3CaptchaService,
-    CAPTCHA_VERSIONS.GOOGLE_V2_VISIBLE.value: GoogleV2CaptchaService,
-    CAPTCHA_VERSIONS.GOOGLE_V2_INVISIBLE.value: GoogleV2CaptchaService,
+    CAPTCHA_VERSIONS.GOOGLE_V3.value: 'GoogleV3CaptchaService',
+    CAPTCHA_VERSIONS.GOOGLE_V2_VISIBLE.value: 'GoogleV2CaptchaService',
+    CAPTCHA_VERSIONS.GOOGLE_V2_INVISIBLE.value: 'GoogleV2CaptchaService',
 }

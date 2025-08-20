@@ -1,9 +1,10 @@
 from rest_framework import serializers
 
+from core.api.v1.common.serializers.serializers import CaptchaTokenSerializer
 from core.apps.posts.models import Post
 
 
-class PostInSerializer(serializers.Serializer):
+class PostInSerializer(CaptchaTokenSerializer, serializers.Serializer):
     text = serializers.CharField()
 
 

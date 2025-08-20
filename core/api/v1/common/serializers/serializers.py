@@ -33,7 +33,7 @@ class VParameterSerializer(serializers.Serializer):
 
 
 class CaptchaTokenSerializer(serializers.Serializer):
-    captcha_token = serializers.CharField(required=False, help_text='Captcha token')
+    captcha_token = serializers.CharField(help_text='Captcha token', write_only=True)
     captcha_version = serializers.ChoiceField(
-        choices=settings.CAPTCHA_VERSIONS.choices, required=False, help_text='Captcha version',
+        choices=settings.CAPTCHA_VERSIONS.choices, help_text='Captcha version', write_only=True,
     )

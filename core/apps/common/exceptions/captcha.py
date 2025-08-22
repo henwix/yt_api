@@ -31,3 +31,13 @@ class CaptchaVersionNotSupported(ServiceException):
     default_detail = {'detail': ERRORS[default_code]['message']}
 
     version: str
+
+
+@dataclass
+class CaptchaVerifyRequestError(ServiceException):
+    default_code = ErrorCodes.CAPTCHA_VERIFY_REQUEST_ERROR
+    status_code = ERRORS[default_code]['status_code']
+    default_detail = {'detail': ERRORS[default_code]['message']}
+
+    version: str
+    error: str

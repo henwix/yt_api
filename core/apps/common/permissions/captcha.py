@@ -1,5 +1,6 @@
 from logging import Logger
 
+from django.conf import settings
 from rest_framework.permissions import BasePermission
 
 import orjson
@@ -26,7 +27,11 @@ class CaptchaPermission(BasePermission):
 
         methods = getattr(view, 'captcha_allowed_methods', [])  # get list of allowed methods
 
-        if (request.method in methods or getattr(view, 'action', None) in methods) and not request.user.is_superuser:
+        if (request.method in methods or getattr(view, 'action', None) in methods):
+
+            if 'test' in request.data.keys() and settings.DEBUG:  # TODO: for testing only, remove this later
+                return True
+
             container: punq.Container = get_container()
             captcha_service: BaseCaptchaService = container.resolve(
                 get_captcha_service_fabric(request.data.get('captcha_version')),

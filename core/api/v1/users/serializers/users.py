@@ -14,7 +14,7 @@ from djoser.serializers import (
 )
 
 from core.api.v1.channels.serializers import ChannelSerializer
-from core.api.v1.common.serializers.serializers import CaptchaTokenSerializer
+from core.api.v1.common.serializers.serializers import CaptchaSerializer
 from core.apps.channels.models import Channel
 
 
@@ -29,7 +29,7 @@ class CustomUserCreatePasswordRetypeSerializer(UserCreatePasswordRetypeSerialize
         return fields
 
 
-class CustomUserCreateSerializer(CaptchaTokenSerializer, UserCreateSerializer):
+class CustomUserCreateSerializer(CaptchaSerializer, UserCreateSerializer):
     """Custom serializer for user creation.
 
     Inherited from UserCreateSerializer by Djoser. Added Channel
@@ -38,10 +38,11 @@ class CustomUserCreateSerializer(CaptchaTokenSerializer, UserCreateSerializer):
     """
 
     email = serializers.EmailField(required=True)
+    channel = ChannelSerializer(required=False)
 
     class Meta:
         model = UserCreateSerializer.Meta.model
-        fields = ('captcha_token', 'captcha_version') + UserCreateSerializer.Meta.fields
+        fields = UserCreateSerializer.Meta.fields + ('captcha_token', 'captcha_version', 'channel')
 
     def create(self, validated_data):
         channel_data = validated_data.pop('channel', {})
@@ -90,15 +91,6 @@ class CustomUserCreateSerializer(CaptchaTokenSerializer, UserCreateSerializer):
         attrs['channel'] = channel_data
 
         return attrs
-
-    def get_fields(self):
-        """Custom 'get_fields' method to add nested 'ChannelSerializer
-        serializer'."""
-
-        fields = super().get_fields()
-        fields['channel'] = ChannelSerializer(required=False)
-
-        return fields
 
 
 class CustomUserSerializer(UserSerializer):

@@ -6,6 +6,7 @@ class ErrorCodes:
     CAPTCHA_TOKEN_NOT_PROVIDED = "captcha_token_not_provided"
     CAPTCHA_VALIDATION_FAILED = "captcha_validation_failed"
     CAPTCHA_VERSION_NOT_SUPPORTED_OR_NOT_PROVIDED = "captcha_version_not_supported_or_not_provided"
+    CAPTCHA_VERIFY_REQUEST_ERROR = "captcha_verify_request_error"
 
     # common/exceptions/comments.py
     COMMENT_NOT_FOUND = "comment_not_found"
@@ -30,6 +31,10 @@ ERRORS = {
     ErrorCodes.CAPTCHA_VERSION_NOT_SUPPORTED_OR_NOT_PROVIDED: {
         'message': 'Captcha version not supported or not provided',
         'status_code': status.HTTP_400_BAD_REQUEST,
+    },
+    ErrorCodes.CAPTCHA_VERIFY_REQUEST_ERROR: {
+        'message': 'Captcha token verify request error',
+        'status_code': status.HTTP_500_INTERNAL_SERVER_ERROR,
     },
 
     # common/exceptions/comments.py

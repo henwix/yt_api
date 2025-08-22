@@ -33,6 +33,7 @@ from core.api.v1.users.serializers.auth import (
 )
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.common.pagination import CustomPageNumberPagination
+from core.apps.common.permissions.captcha import CaptchaPermission
 from core.apps.users.errors import (
     ErrorCodes as UsersErrorCodes,
     ERRORS as USERS_ERRORS,
@@ -75,6 +76,10 @@ from core.project.containers import get_container  # noqa
 class UserLoginView(APIView):
     """Returns access and refresh tokens if user does not have OTP enabled, or
     sends an email with a code to verify OTP."""
+
+    permission_classes = [CaptchaPermission]
+    captcha_allowed_methods = ['POST']
+
     def post(self, request):
         container: punq.Container = get_container()
         use_case: AuthorizeUserUseCase = container.resolve(AuthorizeUserUseCase)
@@ -135,6 +140,7 @@ class CodeVerifyView(APIView):
 class CustomUserViewSet(UserViewSet):
     pagination_class = CustomPageNumberPagination
     queryset = get_user_model().objects.all().prefetch_related('channel')
+    captcha_allowed_methods = ['create']
 
     def _get_mail_args(self, user):
         context = {'user_id': user.pk}

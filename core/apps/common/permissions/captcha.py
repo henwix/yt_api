@@ -13,23 +13,23 @@ from core.project.containers import get_container
 
 
 class CaptchaPermission(BasePermission):
+    """Permission to validate captcha token. *Captcha is not required for
+    superuser*.
+
+    To activate this permission, set the attribute `captcha_allowed_methods` in the view class.
+
+    The 'captcha_allowed_methods' is a list that may contain 'actions' from DRF viewsets and any HTTP methods.
+
+    By default, if the attribute is not set, all requests will be allowed and captcha will not be validated.
+
+    """
+
     def has_permission(self, request, view):
-        """Permission to validate captcha token. *Captcha is not required for
-        superuser*.
+        methods = getattr(view, 'captcha_allowed_methods', [])  # get list of allowed methods for captcha
 
-        To activate this permission, set the attribute `captcha_allowed_methods` in the view class.
+        if request.method in methods or getattr(view, 'action', None) in methods:
 
-        The 'captcha_allowed_methods' is a list that may contain 'actions' from DRF viewsets and any HTTP methods.
-
-        By default, if the attribute is not set, all requests will be allowed and captcha will not be validated.
-
-        """
-
-        methods = getattr(view, 'captcha_allowed_methods', [])  # get list of allowed methods
-
-        if (request.method in methods or getattr(view, 'action', None) in methods):
-
-            if 'test' in request.data.keys() and settings.DEBUG:  # TODO: for testing only, remove this later
+            if 'test' in request.data.keys() and settings.DEBUG:  # TODO: for testing only, need to remove this later
                 return True
 
             container: punq.Container = get_container()

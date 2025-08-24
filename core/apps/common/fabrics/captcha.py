@@ -4,7 +4,7 @@ from core.apps.common.exceptions.captcha import CaptchaVersionNotSupported
 
 
 def get_captcha_service_fabric(version: str) -> str:
-    """Fabric for captcha services.
+    """Fabric function for captcha services.
 
     Args:
         version (str): Captcha version

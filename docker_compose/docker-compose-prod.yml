@@ -5,6 +5,7 @@ services:
       context: ..
       dockerfile: Dockerfile.prod
     image: yt-web-prod
+    pull_policy: build
     restart: unless-stopped
     logging:
       driver: json-file
@@ -14,8 +15,8 @@ services:
       - ../static:/app/static
     env_file:
       - ../.env
-        #deploy:
-        #replicas: 2
+    #deploy:
+      #replicas: 2
     command: "sh entrypoint.prod.sh"
     depends_on:
       #   celery:
@@ -25,7 +26,7 @@ services:
       postgres:
         condition: service_healthy
       pgbouncer:
-        condition: service_started
+        condition: service_healthy
 
   nginx:
     container_name: yt-nginx-prod
@@ -57,7 +58,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
       timeout: 30s
       retries: 5
@@ -79,6 +80,11 @@ services:
       - RESERVE_POOL_SIZE=10
       - POOL_MODE=transaction
       - AUTH_TYPE=scram-sha-256
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h ${POSTGRES_HOST} -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 30s
+      retries: 5
     env_file:
       - ../.env
     depends_on:
@@ -100,6 +106,7 @@ services:
   celery:
     # container_name: yt-celery-prod
     image: yt-web-prod
+    pull_policy: build
     restart: unless-stopped
     logging:
       driver: json-file
@@ -108,13 +115,13 @@ services:
     command: celery -A core.project.celery worker -l info -Q media-queue,email-queue
     env_file:
       - ../.env
-        #deploy:
-        #replicas: 2
-      #healthcheck:
-      #test: ["CMD", "celery", "-A", "core.project.celery", "status"]
-      #interval: 30s
-      #timeout: 10s
-      #retries: 3
+    # deploy:
+      # replicas: 2
+    # healthcheck:
+      # test: ["CMD", "celery", "-A", "core.project.celery", "status"]
+      # interval: 30s
+      # timeout: 10s
+      # retries: 3
     depends_on:
       redis:
         condition: service_healthy
@@ -124,6 +131,7 @@ services:
   celery-beat:
     container_name: yt-celery-beat-prod
     image: yt-web-prod
+    pull_policy: build
     restart: unless-stopped
     logging:
       driver: json-file

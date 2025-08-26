@@ -16,6 +16,16 @@ from core.apps.users.services.users import BaseUserService
 
 @dataclass
 class OAuth2ConnectUseCase:
+    """Use case for OAuth2 connection.
+
+    If the user is authenticated, it returns a message that the chosen
+    provider is connected.
+
+    If the user is anonymous, it creates a channel and returns JWT
+    tokens
+
+    """
+
     user_service: BaseUserService
     channel_service: BaseChannelService
     provider_validator_service: BaseOAuth2ProviderValidatorService

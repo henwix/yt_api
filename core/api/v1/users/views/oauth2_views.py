@@ -71,8 +71,8 @@ class OAuth2GenerateURLView(APIView):
                 provider=provider,
             )
 
-        except SocialAuthBaseException as e:
-            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except SocialAuthBaseException as error:
+            return Response({'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST)
 
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -118,8 +118,8 @@ class OAuth2ConnectView(APIView):
                 provider=provider,
             )
 
-        except SocialAuthBaseException as e:
-            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except SocialAuthBaseException as error:
+            return Response({'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST)
 
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -159,8 +159,8 @@ class OAuth2DisconnectView(APIView):
                 provider=provider,
             )
 
-        except SocialAuthBaseException as e:
-            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except SocialAuthBaseException as error:
+            return Response({'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST)
 
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})

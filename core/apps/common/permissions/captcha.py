@@ -25,13 +25,12 @@ class CaptchaPermission(BasePermission):
     """
 
     def has_permission(self, request, view):
+        if 'test' in request.data.keys() and settings.DEBUG:
+            return True
+
         methods = getattr(view, 'captcha_allowed_methods', [])  # get list of allowed methods for captcha
 
         if request.method in methods or getattr(view, 'action', None) in methods:
-
-            if 'test' in request.data.keys() and settings.DEBUG:  # TODO: for testing only, need to remove this later
-                return True
-
             container: punq.Container = get_container()
             captcha_service: BaseCaptchaService = container.resolve(
                 get_captcha_service_fabric(request.data.get('captcha_version')),

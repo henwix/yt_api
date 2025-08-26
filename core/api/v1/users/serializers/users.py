@@ -70,8 +70,8 @@ class CustomUserCreateSerializer(CaptchaSerializer, UserCreateSerializer):
             # create channel
             Channel.objects.create(**channel_data)
 
-        except IntegrityError as e:
-            raise ValidationError({'detail': str(e)})
+        except IntegrityError as error:
+            raise ValidationError({'detail': str(error)})
         return user
 
     def validate_email(self, value):

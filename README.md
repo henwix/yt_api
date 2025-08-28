@@ -1,11 +1,11 @@
 # YT_API - video sharing platform API
-YT_API - is a video sharing platform API created as a pet project.
+YT_API is a video sharing platform API created as a pet project.
 
 <br />
 
 ## Introduction
 
-**YT_API uses following technologies and frameworks:**
+**YT_API uses the following technologies and frameworks:**
 * Django and Django Rest Framework for backend and API
 * PostgreSQL &ndash; database server
 * Redis for caching
@@ -34,26 +34,36 @@ YT_API - is a video sharing platform API created as a pet project.
    ```bash
    git clone https://github.com/your_username/your_repository.git
    cd your_repository
+   ```
 
 2. **Install all required packages in `Requirements` section.**
 
- 
-### Production installation *with Grafana Monitoring*
 
-1. Run `make certbot-create-p` to create ssl certificates using Certbot.
-    * Make sure that certificate files found in the directory
-2. Copy `.env.template` to `.env`
-3. Change the default values for variables in `.env`:
-    * *SECRET_KEY* &ndash; to your randomized string
+### Production tips and tricks
+
+* Use regular (not self signed) SSL certificates
+* Do not use default credentials or database settings in production
+* Set server names and domains for nginx configuration in *Application domains/hosts* block in `.env` file
+
+
+### Production deployment *with Grafana Monitoring*
+
+1. Run `make certbot-create-p` to create SSL certificates using Certbot.
+    * Certbot uses `80` port to accept challenge and create new certificates - make sure the port is available
+    * Make sure certificate files are created in the expected directory
+2. Copy `.env.example` to `.env`
+3. Make sure you set values for the variables in `.env`:
+    * *NGINX_CONFIG_NAME* &ndash; to `nginx.monitoring.conf`
+    * *SECRET_KEY* &ndash; set to a random, secret string
     * *DJANGO_SETTINGS_FILE* &ndash; to `prod`
     * *CERTBOT_EMAIL* &ndash; to your email for Certbot
-    * *ADMIN_IPV4* and *ADMIN_IPV6* &ndash; to your ips to get access for private endpoints and domains
-    * *SMTP variables block* &ndash; to make SMTP work
+    * *ADMIN_IPV4* and *ADMIN_IPV6* &ndash; to your IP addresses to get access for private endpoints and domains
     * *Application domains block* &ndash; to make Nginx work
+    * *SMTP variables block* &ndash; to make SMTP work
     * *OAuth2 vars block* &ndash; to make OAuth2 work
     * *Google reCAPTCHA vars block* &ndash; to make Google reCAPTCHA work
-4. Run `make app-p` 
-5.  Wait until all TestY containers are up:
+4. Run `make app-monitoring-p` 
+5.  Wait until all containers are up:
 ```
 $ sudo docker ps --format 'table {{.Names}}\t{{.Ports}}\t{{.Status}}'
 
@@ -72,25 +82,57 @@ grafana-prod              3000/tcp                                              
 loki-prod                 3100/tcp                                                                       Up ## seconds
 ```
 
-6. Open documentation URL:
-* https://YOUR_API_DOMAIN/swagger/
-* https://YOUR_API_DOMAIN/redoc/
+6. Open URLs:
+* https://YOUR_API_DOMAIN/swagger/ - Swagger documentation
+* https://YOUR_API_DOMAIN/redoc/ - Redoc documentation
+* https://YOUR_GRAFANA_DOMAIN/ - Grafana monitoring
 
-   
-#### Tips and tricks
 
-* Use regular (not self signed) SSL certificates
-* Do not use default settings for database, other services and credentials
-* Set server names for nginx configuration by *Application domains/hosts* block in `.env` file
+### Production deployment *without Grafana Monitoring*
 
-### Production installation *with Grafana Monitoring*
+1. Run `make certbot-create-p` to create SSL certificates using Certbot.
+    * Certbot uses `80` port to accept challenge and create new certificates - make sure the port is available
+    * Make sure certificate files are created in the expected directory
+2. Copy `.env.example` to `.env`
+3. Change the default values for the variables in `.env`:
+    * *NGINX_CONFIG_NAME* &ndash; to `nginx.conf`
+    * *SECRET_KEY* &ndash; to a random, secret string
+    * *DJANGO_SETTINGS_FILE* &ndash; to `prod`
+    * *CERTBOT_EMAIL* &ndash; to your email for Certbot
+    * *ADMIN_IPV4* and *ADMIN_IPV6* &ndash; to your IP addresses to get access for private endpoints and domains
+    * *Application domains block* &ndash; to make Nginx work
+    * *SMTP variables block* &ndash; to make SMTP work
+    * *OAuth2 vars block* &ndash; to make OAuth2 work
+    * *Google reCAPTCHA vars block* &ndash; to make Google reCAPTCHA work
+4. Run `make app-p` 
+5.  Wait until all containers are up:
+```
+$ sudo docker ps --format 'table {{.Names}}\t{{.Ports}}\t{{.Status}}'
 
----
+NAMES                     PORTS                                                                          STATUS
+yt-nginx-prod             0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp   Up ## seconds
+yt-celery-beat-prod       8000/tcp                                                                       Up ## seconds
+docker_compose-web-1      8000/tcp                                                                       Up ## seconds
+yt-pgbouncer-prod         5432/tcp                                                                       Up ## seconds (healthy)
+docker_compose-celery-1   8000/tcp                                                                       Up ## seconds
+yt-postgres-prod          5432/tcp                                                                       Up ## seconds (healthy)
+yt-celery-exporter-prod   9808/tcp                                                                       Up ## seconds
+yt-redis-prod             6379/tcp                                                                       Up ## seconds (healthy)
+```
+
+6. Open URLs:
+* https://YOUR_API_DOMAIN/swagger/ - Swagger documentation
+* https://YOUR_API_DOMAIN/redoc/ - Redoc documentation
 
 ### Development deployment
 
 1. Copy `.env.example` to `.env`
-2. Run `make app`
+2. Make sure you set values for the variables in `.env`:
+    * *DJANGO_SETTINGS_FILE* &ndash; to `dev`
+    * *SMTP variables block* &ndash; to make SMTP work
+    * *OAuth2 vars block* &ndash; to make OAuth2 work
+    * *Google reCAPTCHA vars block* &ndash; to make Google reCAPTCHA work
+3. Run `make app`
 4. Wait until all containers are up:
 ```
 $ sudo docker ps --format 'table {{.Names}}\t{{.Ports}}\t{{.Status}}'
@@ -102,7 +144,7 @@ yt-celery-beat-dev   8000/tcp                                  Up ## seconds
 yt-redis-dev         6379/tcp                                  Up ## seconds (healthy)
 yt-postgres-dev      5432/tcp                                  Up ## seconds (healthy)
 ```
-4. Open documentation URL (not HTTPS!):
+5. Open documentation URL (not HTTPS!):
 * http://localhost/swagger/
 * http://localhost/redoc/
 
@@ -123,7 +165,6 @@ yt-postgres-dev      5432/tcp                                  Up ## seconds (he
 * `make celery-logs` - follow the logs in celery container
 * `make beat-logs` - follow the logs in celery-beat container
 * `make test` - run application test
-* `pre-commit install` - install pre-commit
 
 
 ### Production Implemented Commands
@@ -146,6 +187,6 @@ yt-postgres-dev      5432/tcp                                  Up ## seconds (he
 * `make superuser` - create admin user
 * `make app-shell` - run django-shell
 
-### ENV variables description
+### Environment variables description from `.env` file
 
 * `SECRET_KEY` - ***NECESSARY*** - Django secret key

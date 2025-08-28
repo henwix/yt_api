@@ -1,9 +1,11 @@
+# -- COMMON VARIABLES --
 DC = docker compose
 EXEC = docker exec -it
 LOGS = docker logs
 MANAGE_PY = python manage.py
 ENV = --env-file .env
 
+# -- DEVELOPMENT VARIABLES --
 APP_CONTAINER = yt-web-dev
 DB_CONTAINER = yt-postgres-dev
 DB_SERVICE = postgres
@@ -39,26 +41,6 @@ db-down:
 .PHONY: db-logs
 db-logs:
 	${LOGS} ${DB_CONTAINER} -f
-
-# .PHONY: db-shell
-# db-shell:
-#	 ${EXEC} ${DB_CONTAINER} psql -U yt-user -d yt
-
-.PHONY: monitoring
-monitoring:
-	${DC} -f ${MONITORING_FILE} ${ENV} up -d
-
-.PHONY: monitoring-down
-monitoring-down:
-	${DC} -f ${MONITORING_FILE} down
-
-.PHONY: monitoring-restart
-monitoring-restart:
-	${DC} -f ${MONITORING_FILE} ${ENV} down && ${DC} -f ${MONITORING_FILE} ${ENV} up -d
-
-.PHONY: monitoring-logs
-monitoring-logs:
-	${DC} -f ${MONITORING_FILE} ${ENV} logs -f
 
 .PHONY: app
 app:
@@ -144,14 +126,33 @@ nginx-logs-p:
 superuser-p:
 	${EXEC} ${APP_CONTAINER_PROD} ${MANAGE_PY} createsuperuser
 
-.PHONY: pr
-pr:
+
+# -- PRODUCTION MONITORING COMMANDS --
+
+
+.PHONY: app-monitoring-restart-p
+app-monitoring-restart-p:
 	${DC} -f ${MONITORING_FILE} ${ENV} down && ${DC} -f ${MONITORING_FILE} ${ENV} up -d && ${DC} -f ${APP_PROD_FILE} ${ENV} down && ${DC} -f ${APP_PROD_FILE} ${ENV} up --build -d
 
-.PHONY: pd
-pd:
+.PHONY: app-monitoring-down-p
+app-monitoring-down-p:
 	${DC} -f ${MONITORING_FILE} ${ENV} down && ${DC} -f ${APP_PROD_FILE} ${ENV} down
 
-.PHONY: p
-p:
+.PHONY: app-monitoring-p
+app-monitoring-p:
 	${DC} -f ${MONITORING_FILE} ${ENV} up -d && ${DC} -f ${APP_PROD_FILE} ${ENV} up --build -d
+.PHONY: monitoring
+monitoring:
+	${DC} -f ${MONITORING_FILE} ${ENV} up -d
+
+.PHONY: monitoring-down
+monitoring-down:
+	${DC} -f ${MONITORING_FILE} down
+
+.PHONY: monitoring-restart
+monitoring-restart:
+	${DC} -f ${MONITORING_FILE} ${ENV} down && ${DC} -f ${MONITORING_FILE} ${ENV} up -d && ${EXEC} ${NGINX_CONTAINER} nginx -s reload
+
+.PHONY: monitoring-logs
+monitoring-logs:
+	${DC} -f ${MONITORING_FILE} ${ENV} logs -f

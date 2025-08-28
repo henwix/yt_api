@@ -2,7 +2,8 @@ services:
   certbot:
     image: certbot/certbot
     container_name: certbot
+    ports:
+      - "80:80"
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
-      - /var/www/certbot:/var/www/certbot
-    command: certonly --webroot -w /var/www/certbot --email ${CERTBOT_EMAIL} -n --expand --agree-tos -d ${API_DOMAIN} -d ${FLOWER_DOMAIN} -d ${GRAFANA_DOMAIN} -d ${ADMIN_DOMAIN}
+    command: certonly --standalone --email ${CERTBOT_EMAIL} -n --expand --agree-tos -d ${API_DOMAIN} -d ${FLOWER_DOMAIN} -d ${GRAFANA_DOMAIN} -d ${ADMIN_DOMAIN}

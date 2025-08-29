@@ -30,6 +30,26 @@ MONITORING_FILE = docker_compose/monitoring.yml
 build:
 	${DC} -f ${APP_DEV_FILE} ${ENV} build
 
+.PHONY: app
+app:
+	${DC} -f ${APP_DEV_FILE} ${ENV} up -d
+
+.PHONY: app-logs
+app-logs:
+	${LOGS} ${APP_CONTAINER} -f
+
+.PHONY: app-down
+app-down:
+	${DC} -f ${APP_DEV_FILE} ${ENV} down
+
+.PHONY: app-restart
+app-restart:
+	${DC} -f ${APP_DEV_FILE} ${ENV} down && ${DC} -f ${APP_DEV_FILE} ${ENV} up -d
+
+.PHONY: app-shell
+app-shell:
+	${EXEC} ${APP_CONTAINER} ${MANAGE_PY} shell_plus
+
 .PHONY: db
 db:
 	${DC} -f ${APP_DEV_FILE} ${ENV} up -d ${DB_SERVICE}
@@ -41,26 +61,6 @@ db-down:
 .PHONY: db-logs
 db-logs:
 	${LOGS} ${DB_CONTAINER} -f
-
-.PHONY: app
-app:
-	${DC} -f ${APP_DEV_FILE} ${ENV} up -d
-
-.PHONY: app-down
-app-down:
-	${DC} -f ${APP_DEV_FILE} ${ENV} down
-
-.PHONY: app-restart
-app-restart:
-	${DC} -f ${APP_DEV_FILE} ${ENV} down && ${DC} -f ${APP_DEV_FILE} ${ENV} up -d
-
-.PHONY: app-logs
-app-logs:
-	${LOGS} ${APP_CONTAINER} -f
-
-.PHONY: app-shell
-app-shell:
-	${EXEC} ${APP_CONTAINER} ${MANAGE_PY} shell_plus
 
 .PHONY: celery-logs
 celery-logs:
@@ -141,6 +141,7 @@ app-monitoring-down-p:
 .PHONY: app-monitoring-p
 app-monitoring-p:
 	${DC} -f ${MONITORING_FILE} ${ENV} up -d && ${DC} -f ${APP_PROD_FILE} ${ENV} up --build -d
+
 .PHONY: monitoring
 monitoring:
 	${DC} -f ${MONITORING_FILE} ${ENV} up -d

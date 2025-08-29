@@ -3,7 +3,23 @@ YT_API is a video sharing platform API created as a pet project.
 
 <br />
 
-## Introduction
+# Shortcuts
+
+* [Project technology stack](#project-technology-stack)
+* [Requirements](#requirements)
+* [Clone the repository](#clone-the-repository)
+* [Development deployment](#development-deployment)
+* [Production deployment *with Grafana Monitoring*](#production-deployment-with-grafana-monitoring)
+* [Production deployment *without Grafana Monitoring*](#production-deployment-without-grafana-monitoring)
+* [Production tips and tricks](#production-tips-and-tricks)
+* [Development implemented commands](#development-implemented-commands)
+* [Production implemented commands](#production-implemented-commands)
+* [Most used Django specific commands](#most-used-django-specific-commands)
+* [Environment variables description](#environment-variables-description-from-env-file)
+
+<br />
+
+# Project technology stack
 
 **YT_API uses the following technologies and frameworks:**
 * Django and Django Rest Framework for backend and API
@@ -18,39 +34,56 @@ YT_API is a video sharing platform API created as a pet project.
 
 <br />
 
-## Getting started
+# Getting started
 
-### Requirements
+## Requirements
 
 - [Docker](https://www.docker.com/get-started)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 - [GNU Make](https://www.gnu.org/software/make/)
 
 
-### How to Use
+## Clone the repository
 
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/your_username/your_repository.git
-   cd your_repository
+   git clone https://github.com/henwix/yt_api.git
+   cd yt_api
    ```
 
-2. **Install all required packages in `Requirements` section.**
+2. **Install all required packages in [Requirements](#requirements) section.**
+
+## Development deployment
+
+1. Copy `.env.example` to `.env`
+2. Make sure you set values for the variables in `.env`:
+    * *DJANGO_SETTINGS_FILE* &ndash; to `dev`
+    * *SMTP variables block* &ndash; to make SMTP work
+    * *OAuth2 vars block* &ndash; to make OAuth2 work
+    * *Google reCAPTCHA vars block* &ndash; to make Google reCAPTCHA work
+3. Run `make app`
+4. Wait until all containers are up:
+```
+$ sudo docker ps --format 'table {{.Names}}\t{{.Ports}}\t{{.Status}}'
+
+NAMES                PORTS                                     STATUS
+yt-web-dev           0.0.0.0:80->8000/tcp, [::]:80->8000/tcp   Up ## seconds
+yt-celery-dev        8000/tcp                                  Up ## seconds
+yt-celery-beat-dev   8000/tcp                                  Up ## seconds
+yt-redis-dev         6379/tcp                                  Up ## seconds (healthy)
+yt-postgres-dev      5432/tcp                                  Up ## seconds (healthy)
+```
+5. Open documentation URL (not HTTPS!):
+* http://localhost/swagger/
+* http://localhost/redoc/
 
 
-### Production tips and tricks
-
-* Use regular (not self signed) SSL certificates
-* Do not use default credentials or database settings in production
-* Set server names and domains for nginx configuration in *Application domains/hosts* block in `.env` file
-
-
-### Production deployment *with Grafana Monitoring*
+## Production deployment *with Grafana Monitoring*
 
 1. Run `make certbot-create-p` to create SSL certificates using Certbot.
     * Certbot uses `80` port to accept challenge and create new certificates - make sure the port is available
-    * Make sure certificate files are created in the expected directory
+    * Make sure certificate files are created in the expected directory: `/etc/letsencrypt/live/<domain>`
 2. Copy `.env.example` to `.env`
 3. Make sure you set values for the variables in `.env`:
     * *NGINX_CONFIG_NAME* &ndash; to `nginx.monitoring.conf`
@@ -88,11 +121,11 @@ loki-prod                 3100/tcp                                              
 * https://YOUR_GRAFANA_DOMAIN/ - Grafana monitoring
 
 
-### Production deployment *without Grafana Monitoring*
+## Production deployment *without Grafana Monitoring*
 
 1. Run `make certbot-create-p` to create SSL certificates using Certbot.
     * Certbot uses `80` port to accept challenge and create new certificates - make sure the port is available
-    * Make sure certificate files are created in the expected directory
+    * Make sure certificate files are created in the expected directory: `/etc/letsencrypt/live/<domain>`
 2. Copy `.env.example` to `.env`
 3. Change the default values for the variables in `.env`:
     * *NGINX_CONFIG_NAME* &ndash; to `nginx.conf`
@@ -124,35 +157,19 @@ yt-redis-prod             6379/tcp                                              
 * https://YOUR_API_DOMAIN/swagger/ - Swagger documentation
 * https://YOUR_API_DOMAIN/redoc/ - Redoc documentation
 
-### Development deployment
 
-1. Copy `.env.example` to `.env`
-2. Make sure you set values for the variables in `.env`:
-    * *DJANGO_SETTINGS_FILE* &ndash; to `dev`
-    * *SMTP variables block* &ndash; to make SMTP work
-    * *OAuth2 vars block* &ndash; to make OAuth2 work
-    * *Google reCAPTCHA vars block* &ndash; to make Google reCAPTCHA work
-3. Run `make app`
-4. Wait until all containers are up:
-```
-$ sudo docker ps --format 'table {{.Names}}\t{{.Ports}}\t{{.Status}}'
+## Production tips and tricks
 
-NAMES                PORTS                                     STATUS
-yt-web-dev           0.0.0.0:80->8000/tcp, [::]:80->8000/tcp   Up ## seconds
-yt-celery-dev        8000/tcp                                  Up ## seconds
-yt-celery-beat-dev   8000/tcp                                  Up ## seconds
-yt-redis-dev         6379/tcp                                  Up ## seconds (healthy)
-yt-postgres-dev      5432/tcp                                  Up ## seconds (healthy)
-```
-5. Open documentation URL (not HTTPS!):
-* http://localhost/swagger/
-* http://localhost/redoc/
+* Use regular (not self signed) SSL certificates
+* Do not use default credentials or database settings in production
+* Set server names and domains for nginx configuration in *Application domains/hosts* block in `.env` file
+
 
 <br />
 
-## Application console commands
+# Application console commands
 
-### Development Implemented Commands
+## Development implemented commands
 
 * `make build` - build application images
 * `make app` - up application and database/infrastructure
@@ -164,29 +181,89 @@ yt-postgres-dev      5432/tcp                                  Up ## seconds (he
 * `make db-logs` - follow the logs in db container
 * `make celery-logs` - follow the logs in celery container
 * `make beat-logs` - follow the logs in celery-beat container
-* `make test` - run application test
+* `make test` - run application tests
 
 
-### Production Implemented Commands
+## Production implemented commands
+
+* `app-monitoring-p` - build images and up production application with Grafana Monitoring
+* `app-monitoring-down-p` - down production application and Grafana Monitoring
+* `monitoring` - up Grafana Monitoring without production application
+* `monitoring-down` - down Grafana Monitoring without production application
+* `monitoring-restart` - restart Grafana Monitoring without production application
+* `monitoring-logs` - follow the logs in Grafana Monitoring containers
+
+---
 
 * `make build-p` - build production application images
-* `make app-p` - up production application and database/infrastructure
-* `make app-down-p` - down production application and all infrastructure
+* `make app-p` - up production application
+* `make app-down-p` - down production application
 * `make app-restart-p` - restart production application
 * `make nginx-logs-p` - follow the logs in nginx container
-* `make certbot-create-p` - run certbot to create a new TLS/SSL certificates
-* `make certbot-renew-p` - run certbot to renew existing TLS/SSL certificates
 * `make superuser-p` - create an admin user in production
 
+---
 
-### Most Used Django Specific Commands
+* `make certbot-create-p` - run certbot to create a new TLS/SSL certificates
+* `make certbot-renew-p` - run certbot to renew existing TLS/SSL certificates
 
-* `make migrations` - make migrations to models
-* `make migrate` - apply all made migrations
+
+## Most used Django specific commands
+
+* `make makemigrations` - make migrations to models the Django models
+* `make migrate` - apply all created migrations
 * `make collectstatic` - collect static
 * `make superuser` - create admin user
-* `make app-shell` - run django-shell
+* `make app-shell` - run django-shell with imported models from the project
 
-### Environment variables description from `.env` file
+<br />
 
-* `SECRET_KEY` - ***NECESSARY*** - Django secret key
+# Environment variables description from `.env` file
+
+
+| Name                                        | Description                                                              | Notes                                                                                                          | Environment |
+| ------------------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- | ----------- |
+| `SECRET_KEY`                                | Django secret key for security                                           | Generate random string. Example: `openssl rand -hex 50`                                                        | DEV, PROD   |
+| `DJANGO_SETTINGS_FILE`                      | Specifies which settings file to use                                     | Controls application settings. Choose between `dev` and `prod`                                                 | DEV, PROD   |
+| `DJANGO_ADMIN_PATH`                         | URL path for Django admin panel                                          | Usually `admin`, can be changed for security                                                                   | DEV, PROD   |
+| `DJANGO_PORT`                               | The port number on your host machine where you want to access Django     | Default 80. Used in `http://127.0.0.1:DJANGO_PORT/swagger/` or `http://localhost:DJANGO_PORT/swagger/`         | DEV         |
+| `POSTGRES_PORT`                             | The port number on your host machine where you want to access PostgreSQL | Default 5432                                                                                                   | DEV         |
+| `REDIS_PORT`                                | The port number on your host machine where you want to access Redis      | Default 6379                                                                                                   | DEV         |
+| `FLOWER_PORT`                               | The port number on your host machine where you want to access Flower     | Default 5555, can be changed                                                                                   | DEV         |
+| `FLOWER_USERNAME`                           | Flower login                                                             | Set manually                                                                                                   | DEV, PROD   |
+| `FLOWER_PASSWORD`                           | Flower password                                                          | Set manually                                                                                                   | DEV, PROD   |
+| `PGBOUNCER_HOST`                            | Host for pgbouncer (connection pooler)                                   | Usually container name in docker-compose. Example: `pgbouncer`                                                 | PROD        |
+| `POSTGRES_HOST`                             | PostgreSQL host                                                          | Usually container name in docker-compose. Example: `postgres`                                                  | DEV, PROD   |
+| `POSTGRES_DB`                               | Database name                                                            | Examples: `postgres`, `yt_api`, etc.                                                                           | DEV, PROD   |
+| `POSTGRES_USER`                             | Database user                                                            | Usually `postgres`                                                                                             | DEV, PROD   |
+| `POSTGRES_PASSWORD`                         | Database user password                                                   | Define your own                                                                                                | DEV, PROD   |
+| `AWS_ACCESS_KEY_ID`                         | AWS user access key                                                      | Created in AWS IAM                                                                                             | DEV, PROD   |
+| `AWS_SECRET_ACCESS_KEY`                     | AWS user secret key                                                      | Created in AWS IAM                                                                                             | DEV, PROD   |
+| `AWS_STORAGE_BUCKET_NAME`                   | Name of S3 bucket for storage                                            | Created in AWS S3                                                                                              | DEV, PROD   |
+| `AWS_S3_REGION_NAME`                        | S3 region                                                                | Example: `us-east-1`, `eu-central-1`                                                                           | DEV, PROD   |
+| `AWS_S3_VIDEO_BUCKET_PREFIX`                | Prefix for storing videos                                                | Example: `videos/`                                                                                             | DEV, PROD   |
+| `AWS_S3_AVATAR_BUCKET_PREFIX`               | Prefix for storing avatars                                               | Example: `channel_avatars/`                                                                                    | DEV, PROD   |
+| `EMAIL_HOST_USER`                           | SMTP user                                                                | Provided by mail delivery service (Mailgun, Gmail, Sendgrid, etc.)                                             | DEV, PROD   |
+| `EMAIL_HOST_PASSWORD`                       | SMTP password                                                            | Provided by mail delivery service (Mailgun, Gmail, Sendgrid, etc.)                                             | DEV, PROD   |
+| `DEFAULT_FROM_EMAIL`                        | Default email sender                                                     | Depends on your domain or email registered in mail delivery service. Example: `"YT_API <noreply@example.com>"` | DEV, PROD   |
+| `CERTBOT_EMAIL`                             | Email for Certbot registration                                           | Used for certificate expiry notifications                                                                      | PROD        |
+| `API_DOMAIN`                                | Domain for API                                                           | Example: `api.example.com`                                                                                     | PROD        |
+| `FLOWER_DOMAIN`                             | Domain for Flower                                                        | Example: `flower.example.com`                                                                                  | PROD        |
+| `GRAFANA_DOMAIN`                            | Domain for Grafana                                                       | Example: `grafana.example.com`                                                                                 | PROD        |
+| `ADMIN_DOMAIN`                              | Domain for Django admin                                                  | Example: `admin.example.com`                                                                                   | PROD        |
+| `ADMIN_IPV4`                                | IPv4 addresses for access to private endpoints                           | Set your own IP                                                                                                | PROD        |
+| `ADMIN_IPV6`                                | IPv6 addresses for access to private endpoints                           | Set your own IP                                                                                                | PROD        |
+| `GRAFANA_ADMIN_USER`                        | Grafana administrator login                                              | Usually `admin`                                                                                                | PROD        |
+| `GRAFANA_ADMIN_PASSWORD`                    | Grafana administrator password                                           | Define your own                                                                                                | PROD        |
+| `NGINX_CONFIG_NAME`                         | Name of Nginx configuration file                                         | Choose between `nginx.conf` or `nginx.monitoring.conf`                                                         | PROD        |
+| `SOCIAL_AUTH_GITHUB_KEY`                    | GitHub OAuth2 key                                                        | Obtained in GitHub OAuth settings                                                                              | DEV, PROD   |
+| `SOCIAL_AUTH_GITHUB_SECRET`                 | GitHub OAuth2 secret                                                     | Obtained in GitHub OAuth settings                                                                              | DEV, PROD   |
+| `SOCIAL_AUTH_GOOGLE_OAUTH2_KEY`             | Google OAuth2 key                                                        | Obtained in Google Cloud Console                                                                               | DEV, PROD   |
+| `SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET`          | Google OAuth2 secret                                                     | Obtained in Google Cloud Console                                                                               | DEV, PROD   |
+| `SOCIAL_AUTH_TWITTER_OAUTH2_KEY`            | Twitter OAuth2 key                                                       | Obtained in Twitter Developer Portal                                                                           | DEV, PROD   |
+| `SOCIAL_AUTH_TWITTER_OAUTH2_SECRET`         | Twitter OAuth2 secret                                                    | Obtained in Twitter Developer Portal                                                                           | DEV, PROD   |
+| `V3_GOOGLE_RECAPTCHA_PRIVATE_KEY`           | Google reCAPTCHA v3 private key                                          | Obtained in Google reCAPTCHA admin console                                                                     | DEV, PROD   |
+| `V2_VISIBLE_GOOGLE_RECAPTCHA_PRIVATE_KEY`   | Google reCAPTCHA v2 (visible) private key                                | Obtained in Google reCAPTCHA admin console                                                                     | DEV, PROD   |
+| `V2_INVISIBLE_GOOGLE_RECAPTCHA_PRIVATE_KEY` | Google reCAPTCHA v2 (invisible) private key                              | Obtained in Google reCAPTCHA admin console                                                                     | DEV, PROD   |
+
+

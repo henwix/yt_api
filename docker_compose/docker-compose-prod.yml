@@ -153,7 +153,7 @@ services:
     restart: unless-stopped
     image: danihodovic/celery-exporter:latest
     environment:
-      - CE_BROKER_URL=redis://redis:${REDIS_PORT}/0
+      - CE_BROKER_URL=redis://redis:6379/0
 
 volumes:
   postgres_data:

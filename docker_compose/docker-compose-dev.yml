@@ -82,7 +82,7 @@ services:
   # flower:
   #   container_name: yt-flower-dev
   #   image: mher/flower:latest
-  #   command: celery --broker=redis://redis:${REDIS_PORT}/0 flower 
+  #   command: celery --broker=redis://redis:6379/0 flower 
   #   volumes:
   #     - flower_data:/data
   #   env_file:

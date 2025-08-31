@@ -82,6 +82,7 @@ yt-postgres-dev      5432/tcp                                  Up ## seconds (he
 ## Production deployment *with Grafana Monitoring*
 
 1. Run `make certbot-create-p` to create SSL certificates using Certbot.
+    * Make sure you set the `CERTBOT_DOMAINS` variable in `.env` file before you run Certbot
     * Certbot uses `80` port to accept challenge and create new certificates - make sure the port is available
     * Make sure certificate files are created in the expected directory: `/etc/letsencrypt/live/<domain>`
 2. Copy `.env.example` to `.env`
@@ -90,6 +91,7 @@ yt-postgres-dev      5432/tcp                                  Up ## seconds (he
     * *SECRET_KEY* &ndash; set to a random, secret string
     * *DJANGO_SETTINGS_FILE* &ndash; to `prod`
     * *CERTBOT_EMAIL* &ndash; to your email for Certbot
+    * *CERTBOT_DOMAINS* &ndash; to your list of domains
     * *ADMIN_IPV4* and *ADMIN_IPV6* &ndash; to your IP addresses to get access for private endpoints and domains
     * *Application domains block* &ndash; to make Nginx work
     * *SMTP variables block* &ndash; to make SMTP work
@@ -124,6 +126,7 @@ loki-prod                 3100/tcp                                              
 ## Production deployment *without Grafana Monitoring*
 
 1. Run `make certbot-create-p` to create SSL certificates using Certbot.
+    * Make sure you set the `CERTBOT_DOMAINS` variable in `.env` file before you run Certbot
     * Certbot uses `80` port to accept challenge and create new certificates - make sure the port is available
     * Make sure certificate files are created in the expected directory: `/etc/letsencrypt/live/<domain>`
 2. Copy `.env.example` to `.env`
@@ -132,6 +135,7 @@ loki-prod                 3100/tcp                                              
     * *SECRET_KEY* &ndash; to a random, secret string
     * *DJANGO_SETTINGS_FILE* &ndash; to `prod`
     * *CERTBOT_EMAIL* &ndash; to your email for Certbot
+    * *CERTBOT_DOMAINS* &ndash; to your list of domains
     * *ADMIN_IPV4* and *ADMIN_IPV6* &ndash; to your IP addresses to get access for private endpoints and domains
     * *Application domains block* &ndash; to make Nginx work
     * *SMTP variables block* &ndash; to make SMTP work
@@ -247,6 +251,7 @@ yt-redis-prod             6379/tcp                                              
 | `EMAIL_HOST_PASSWORD`                       | SMTP password                                                            | Provided by mail delivery service (Mailgun, Gmail, Sendgrid, etc.)                                             | DEV, PROD   |
 | `DEFAULT_FROM_EMAIL`                        | Default email sender                                                     | Depends on your domain or email registered in mail delivery service. Example: `"YT_API <noreply@example.com>"` | DEV, PROD   |
 | `CERTBOT_EMAIL`                             | Email for Certbot registration                                           | Used for certificate expiry notifications                                                                      | PROD        |
+| `CERTBOT_DOMAINS`                             | List of domains for which you want to create certificates                                           | Each domain in the list must have the -d flag. Example: `-d first.example.domain -d second.example.domain`                                                                      | PROD        |
 | `API_DOMAIN`                                | Domain for API                                                           | Example: `api.example.com`                                                                                     | PROD        |
 | `FLOWER_DOMAIN`                             | Domain for Flower                                                        | Example: `flower.example.com`                                                                                  | PROD        |
 | `GRAFANA_DOMAIN`                            | Domain for Grafana                                                       | Example: `grafana.example.com`                                                                                 | PROD        |

@@ -6,4 +6,4 @@ services:
       - "80:80"
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
-    command: certonly --standalone --email ${CERTBOT_EMAIL} -n --expand --agree-tos -d ${API_DOMAIN} -d ${FLOWER_DOMAIN} -d ${GRAFANA_DOMAIN} -d ${ADMIN_DOMAIN}
+    command: certonly --standalone --email ${CERTBOT_EMAIL} -n --expand --agree-tos ${CERTBOT_DOMAINS}

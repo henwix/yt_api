@@ -1,6 +1,6 @@
 import punq
 
-from core.apps.common.adapters.boto_file_provider import BotoFileProvider
+from core.apps.common.adapters.boto_file_provider import BotoCloudfrontFileProvider
 from core.apps.common.adapters.celery_file_provider import CeleryFileProvider
 from core.apps.common.clients.boto_client import BotoClient
 from core.apps.common.clients.email_client import EmailClient
@@ -37,7 +37,7 @@ from core.apps.common.services.files import (
 def init_common(container: punq.Container):
     # providers
     container.register(BaseCacheProvider, RedisCacheProvider)
-    container.register(BaseBotoFileProvider, BotoFileProvider)
+    container.register(BaseBotoFileProvider, BotoCloudfrontFileProvider)
     container.register(BaseCeleryFileProvider, CeleryFileProvider)
     container.register(BaseCaptchaProvider, GoogleCaptchaProvider)
 

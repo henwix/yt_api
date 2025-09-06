@@ -91,3 +91,16 @@ sections=[
     "FIRSTPARTY",
     "LOCALFOLDER",
 ]
+
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+ignore = ["A003", "A002", "E704", "E800"]
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+skip-magic-trailing-comma = false
+

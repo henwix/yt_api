@@ -460,3 +460,12 @@ CAPTCHA_VERSION_SERVICES = {
     CAPTCHA_VERSIONS.GOOGLE_V2_VISIBLE.value: 'GoogleV2CaptchaService',
     CAPTCHA_VERSIONS.GOOGLE_V2_INVISIBLE.value: 'GoogleV2CaptchaService',
 }
+
+
+# AWS Cloudfront
+
+AWS_CLOUDFRONT_DOMAIN = os.environ.get("AWS_CLOUDFRONT_DOMAIN")
+AWS_CLOUDFRONT_KEY_ID = os.environ.get("AWS_CLOUDFRONT_KEY_ID")
+AWS_CLOUDFRONT_KEY = (
+    os.environ.get("AWS_CLOUDFRONT_KEY").replace("\\n", "\n").encode("ascii").strip()
+)

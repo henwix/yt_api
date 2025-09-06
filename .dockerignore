@@ -21,8 +21,9 @@ core/tests
 scripts
 certs
 nginx.conf
+nginx.monitoring.conf
+nginx-cert.conf
 test.py
 test.html
 entrypoint.dev.sh
-nginx-cert.conf
 pg_backups

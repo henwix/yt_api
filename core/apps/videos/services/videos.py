@@ -7,7 +7,6 @@ from typing import Iterable
 
 from django.db.models import (
     Count,
-    Prefetch,
     Q,
 )
 
@@ -16,6 +15,8 @@ from core.apps.channels.models import Channel
 from core.apps.channels.repositories.channels import BaseChannelRepository
 from core.apps.channels.services.channels import BaseChannelService
 from core.apps.users.entities import UserEntity
+from core.apps.videos.converters.playlists import playlist_to_entity
+from core.apps.videos.entities.playlists import PlaylistEntity
 from core.apps.videos.entities.videos import VideoEntity
 from core.apps.videos.exceptions.playlists import (
     PlaylistIdNotProvidedError,
@@ -351,6 +352,21 @@ class ORMVideoHistoryService(BaseVideoHistoryService):
         return self.history_repository.clear_history(channel=channel)
 
 
+class BasePlaylistPrivatePermissionValidatorService(ABC):
+    @abstractmethod
+    def validate(self, playlist: PlaylistEntity, channel: ChannelEntity | None) -> None:
+        ...
+
+
+class PlaylistPrivatePermissionValidatorService(BasePlaylistPrivatePermissionValidatorService):
+    def validate(self, playlist: PlaylistEntity, channel: ChannelEntity | None) -> None:
+        if playlist.status == Playlist.StatusChoices.PRIVATE and (channel is None or playlist.channel_id != channel.id):
+            raise PlaylistPermissionError(
+                playlist_id=playlist.id,
+                channel_id=channel.id if channel else 'AnonymousUser',
+            )
+
+
 @dataclass
 class BaseVideoPlaylistService(ABC):
     video_repository: BaseVideoRepository
@@ -363,6 +379,14 @@ class BaseVideoPlaylistService(ABC):
 
     @abstractmethod
     def delete_video_from_playlist(self, user: UserEntity, playlist_id: str, video_id: str) -> dict:
+        ...
+
+    @abstractmethod
+    def get_playlist_videos(self, playlist_id: str) -> Iterable[Video]:
+        ...
+
+    @abstractmethod
+    def get_playlist_by_id_or_error(self, playlist_id: str) -> PlaylistEntity:
         ...
 
 
@@ -430,16 +454,7 @@ class ORMVideoPlaylistService(BaseVideoPlaylistService):
         queryset = self.playlist_repository.get_all_playlists()
 
         return (
-            queryset.prefetch_related(
-                Prefetch(
-                    'videos',
-                    queryset=self.video_repository.get_videos_list().filter(
-                        status=Video.VideoStatus.PUBLIC,
-                        upload_status=Video.UploadStatus.FINISHED,
-                    ),
-                ),
-                'videos__author',
-            )
+            queryset.prefetch_related('videos__author')
             .select_related('channel')
             .annotate(
                 videos_count=Count(
@@ -451,3 +466,17 @@ class ORMVideoPlaylistService(BaseVideoPlaylistService):
                 ),
             )
         )
+
+    def get_playlist_videos(self, playlist_id: str) -> Iterable[Video]:
+        qs = self.video_repository.get_videos_list()
+
+        return qs.filter(
+            playlists=playlist_id,
+        ).select_related('author')
+
+    def get_playlist_by_id_or_error(self, playlist_id: str) -> PlaylistEntity:
+        playlist = self.playlist_repository.get_all_playlists().filter(pk=playlist_id).first()
+
+        if playlist is not None:
+            return playlist_to_entity(playlist)
+        raise PlaylistNotFoundError(playlist_id=playlist_id)

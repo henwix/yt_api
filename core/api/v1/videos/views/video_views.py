@@ -25,6 +25,7 @@ from core.api.v1.common.serializers.comments import (
     VideoIdParameterSerializer,
     VideoLikeSerializer,
 )
+from core.api.v1.common.serializers.playlists import PlaylistIdParameterSerializer
 from core.api.v1.common.serializers.serializers import (
     DetailOutSerializer,
     LikeCreateInSerializer,
@@ -88,6 +89,7 @@ from core.apps.videos.use_cases.comments.get_comments_list import GetVideoCommen
 from core.apps.videos.use_cases.comments.like_create import VideoCommentLikeCreateUseCase
 from core.apps.videos.use_cases.comments.like_delete import VideoCommentLikeDeleteUseCase
 from core.apps.videos.use_cases.history.clear_history import ClearVideoHistoryUseCase
+from core.apps.videos.use_cases.playlists.playlist_videos import GetPlaylistVideosUseCase
 from core.project.containers import get_container
 
 
@@ -602,7 +604,32 @@ class MyVideoView(generics.ListAPIView):
         return Video.objects.all().filter(author=self.request.user.channel).select_related('author')
 
 
-#  TODO: maybe remove 'videos' from serializer and add new endpoints to load all playlist's related videos
+class PlaylistVideosView(generics.ListAPIView, CustomViewMixin):
+    serializer_class = VideoPreviewSerializer
+    pagination_class = CustomCursorPagination
+
+    @extend_schema(
+        responses={200: VideoPreviewSerializer(many=True)},
+        summary="Get playlist's videos",
+    )
+    @action(['GET'], detail=True)
+    def list(self, request, id):
+        container: punq.Container = get_container()
+        logger: Logger = container.resolve(Logger)
+        use_case: GetPlaylistVideosUseCase = container.resolve(GetPlaylistVideosUseCase)
+
+        serializer = PlaylistIdParameterSerializer(data={'id': id})
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            result = use_case.execute(playlist_id=id, user=user_to_entity(request.user))
+        except ServiceException as error:
+            logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        return self.mixin_filtration_and_pagination(result)
+
+
 class PlaylistAPIView(viewsets.ModelViewSet):
     """API endpoint to list/retrieve/create/update/delete playlists.
 
@@ -636,6 +663,10 @@ class PlaylistAPIView(viewsets.ModelViewSet):
         if self.action == 'list':
             return self.service.get_playlists_for_listing(user_to_entity(self.request.user))
         return self.service.get_playlists_for_retrieving()
+
+    @extend_schema(summary='Get your personal playlists')
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     @extend_schema(
         request=None,

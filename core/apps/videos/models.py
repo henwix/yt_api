@@ -150,7 +150,7 @@ class Playlist(models.Model):
         db_index=True,
     )
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='playlists', db_index=True)
-    videos = models.ManyToManyField(Video, through='PlaylistItem', db_index=True)
+    videos = models.ManyToManyField(Video, through='PlaylistItem', related_name='playlists', db_index=True)
     title = models.CharField(max_length=150)
     description = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=7, choices=StatusChoices.choices, default=StatusChoices.PRIVATE)
@@ -161,7 +161,7 @@ class Playlist(models.Model):
 
 class PlaylistItem(models.Model):
     playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE, related_name='items')
-    video = models.ForeignKey(Video, on_delete=models.CASCADE)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='playlists_items')
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['playlist', 'video'], name='playlist_item_unique')]

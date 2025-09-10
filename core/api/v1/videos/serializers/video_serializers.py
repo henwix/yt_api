@@ -119,7 +119,7 @@ class VideoPreviewSerializer(serializers.ModelSerializer):
         lookup_field='video_id',
         lookup_url_kwarg='video_id',
     )
-    views_count = serializers.IntegerField(read_only=True)
+    views_count = serializers.IntegerField(read_only=True, required=False)
     author_name = serializers.CharField(source='author.slug')
     author_link = serializers.HyperlinkedRelatedField(
         view_name='v1:channels:channels-show',
@@ -176,7 +176,6 @@ class PlaylistPreviewSerializer(serializers.ModelSerializer):
 
 
 class PlaylistSerializer(PlaylistPreviewSerializer):
-    videos = VideoPreviewSerializer(many=True, read_only=True)
     playlist_link = serializers.HyperlinkedIdentityField(
         view_name='v1:videos:playlists-detail',
         lookup_field='id',
@@ -194,7 +193,6 @@ class PlaylistSerializer(PlaylistPreviewSerializer):
             'channel_name',
             'channel_link',
             'videos_count',
-            'videos',
         ]
 
     def create(self, validated_data):

@@ -26,6 +26,12 @@ urlpatterns = [
         name='videos-personal',
     ),
 
+    path(
+        'playlists/<str:id>/videos/',
+        video_views.PlaylistVideosView.as_view(),
+        name='playlist-videos',
+    ),
+
     # endpoints for video multipart upload
     path(
         'videos/upload_create/',

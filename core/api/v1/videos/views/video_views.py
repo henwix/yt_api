@@ -612,7 +612,6 @@ class PlaylistVideosView(generics.ListAPIView, CustomViewMixin):
         responses={200: VideoPreviewSerializer(many=True)},
         summary="Get playlist's videos",
     )
-    @action(['GET'], detail=True)
     def list(self, request, id):
         container: punq.Container = get_container()
         logger: Logger = container.resolve(Logger)

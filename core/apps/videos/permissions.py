@@ -6,7 +6,6 @@ from core.apps.videos.models import (
 )
 
 
-# list, retrieve, create, delete, put/update
 class IsAuthorOrReadOnlyPlaylist(permissions.BasePermission):
     def has_permission(self, request, view):
         if view.action in ['retrieve', 'videos']:
@@ -17,13 +16,10 @@ class IsAuthorOrReadOnlyPlaylist(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         user_channel = getattr(request.user, 'channel') if hasattr(request.user, 'channel') else None
 
-        if obj.status == Playlist.StatusChoices.PRIVATE:
-            return user_channel and (obj.channel == user_channel or request.user.is_staff)
-
-        if view.action in ['retrieve', 'videos']:
+        if view.action in ['retrieve', 'videos'] and obj.status != Playlist.StatusChoices.PRIVATE:
             return True
 
-        return user_channel and (user_channel == obj.channel or request.user.is_staff)
+        return user_channel and (user_channel.pk == obj.channel_id or request.user.is_staff)
 
 
 class VideoIsAuthenticatedOrAuthorOrAdminOrReadOnly(permissions.BasePermission):

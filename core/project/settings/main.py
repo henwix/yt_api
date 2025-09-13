@@ -345,6 +345,9 @@ STORAGES = {
     'local': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
 }
 
+
+# AWS S3 & Cloudfront
+
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
@@ -355,9 +358,14 @@ AWS_QUERYSTRING_AUTH = False
 AWS_S3_VIDEO_BUCKET_PREFIX = os.environ.get('AWS_S3_VIDEO_BUCKET_PREFIX')
 AWS_S3_AVATAR_BUCKET_PREFIX = os.environ.get('AWS_S3_AVATAR_BUCKET_PREFIX')
 
+AWS_CLOUDFRONT_DOMAIN = os.environ.get("AWS_CLOUDFRONT_DOMAIN")
+AWS_CLOUDFRONT_KEY_ID = os.environ.get("AWS_CLOUDFRONT_KEY_ID")
+AWS_CLOUDFRONT_KEY = (
+    os.environ.get("AWS_CLOUDFRONT_KEY").replace("\\n", "\n").encode("ascii").strip()
+)
+
 
 # Celery
-
 
 CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_RESULT_BACKEND = 'redis://redis:6379/0'  # 'django-db'
@@ -383,7 +391,6 @@ CELERY_TASK_QUEUES = (
 
 
 # Email SMTP
-
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.eu.mailgun.org'
@@ -461,12 +468,3 @@ CAPTCHA_VERSION_SERVICES = {
     CAPTCHA_VERSIONS.GOOGLE_V2_VISIBLE.value: 'GoogleV2CaptchaService',
     CAPTCHA_VERSIONS.GOOGLE_V2_INVISIBLE.value: 'GoogleV2CaptchaService',
 }
-
-
-# AWS Cloudfront
-
-AWS_CLOUDFRONT_DOMAIN = os.environ.get("AWS_CLOUDFRONT_DOMAIN")
-AWS_CLOUDFRONT_KEY_ID = os.environ.get("AWS_CLOUDFRONT_KEY_ID")
-AWS_CLOUDFRONT_KEY = (
-    os.environ.get("AWS_CLOUDFRONT_KEY").replace("\\n", "\n").encode("ascii").strip()
-)

@@ -1,9 +1,13 @@
-from abc import ABC
+from abc import (
+    ABC,
+    abstractmethod,
+)
 
 from core.project.celery import app
 
 
 class BaseSenderProvider(ABC):
+    @abstractmethod
     def send_code(self, email: str, code: int):
         ...
 

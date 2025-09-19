@@ -604,14 +604,22 @@ class MyVideoView(generics.ListAPIView):
         return Video.objects.all().filter(author=self.request.user.channel).select_related('author')
 
 
+@extend_schema(
+    responses={
+        200: VideoPreviewSerializer(many=True),
+        403: DetailOutSerializer,
+        404: DetailOutSerializer,
+    },
+    examples=[
+        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.PLAYLIST_NOT_FOUND]),
+        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.PLAYLIST_PERMISSION_ERROR]),
+    ],
+    summary="Get playlist's videos",
+)
 class PlaylistVideosView(generics.ListAPIView, CustomViewMixin):
     serializer_class = VideoPreviewSerializer
     pagination_class = CustomCursorPagination
 
-    @extend_schema(
-        responses={200: VideoPreviewSerializer(many=True)},
-        summary="Get playlist's videos",
-    )
     def list(self, request, id):
         container: punq.Container = get_container()
         logger: Logger = container.resolve(Logger)

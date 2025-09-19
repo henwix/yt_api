@@ -140,7 +140,7 @@ class CodeVerifyView(APIView):
 class CustomUserViewSet(UserViewSet):
     pagination_class = CustomPageNumberPagination
     queryset = get_user_model().objects.all().prefetch_related('channel')
-    captcha_allowed_methods = ['create']
+    captcha_allowed_methods = ['create']  # permission for this view in defined in settings file
 
     def _get_mail_args(self, user):
         context = {'user_id': user.pk}

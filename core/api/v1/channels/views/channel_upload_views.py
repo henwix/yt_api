@@ -55,6 +55,7 @@ from core.project.containers import get_container
         201: GenerateUploadUrlOutSerializer,
         400: DetailOutSerializer,
         500: DetailOutSerializer,
+        502: DetailOutSerializer,
     },
     examples=[
         OpenApiExample(
@@ -63,7 +64,8 @@ from core.project.containers import get_container
             request_only=True,
         ),
         error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.AVATAR_FILENAME_FORMAT_ERROR]),
-        s3_error_response_example(),
+        s3_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
+        s3_error_response_example(code=status.HTTP_502_BAD_GATEWAY),
     ],
     summary='Generate presigned url to upload avatar file in S3',
 )
@@ -89,7 +91,7 @@ class GenerateUploadAvatarUrlView(generics.GenericAPIView):
             )
             return Response(
                 {'detail': error.error.get('Message')},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status=status.HTTP_502_BAD_GATEWAY,
             )
         except BotoCoreError as error:
             logger.error(
@@ -111,10 +113,12 @@ class GenerateUploadAvatarUrlView(generics.GenericAPIView):
         201: UrlSerializer,
         404: DetailOutSerializer,
         500: DetailOutSerializer,
+        502: DetailOutSerializer,
     },
     examples=[
         error_response_example(COMMON_ERRORS[CommonErrorCodes.S3_FILE_WITH_KEY_NOT_EXISTS]),
-        s3_error_response_example(),
+        s3_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
+        s3_error_response_example(code=status.HTTP_502_BAD_GATEWAY),
     ],
     summary='Generate presigned url to download avatar file from S3',
 )

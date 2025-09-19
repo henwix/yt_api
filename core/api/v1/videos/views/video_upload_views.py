@@ -68,13 +68,15 @@ from core.project.containers import get_container
         400: DetailOutSerializer,
         404: DetailOutSerializer,
         500: DetailOutSerializer,
+        502: DetailOutSerializer,
     },
     examples=[
         multipart_upload_created_response_example(),
         error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_FILENAME_NOT_PROVIDED]),
         error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_FILENAME_FORMAT_ERROR]),
         error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
-        s3_error_response_example(),
+        s3_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
+        s3_error_response_example(code=status.HTTP_502_BAD_GATEWAY),
     ],
     summary='Create multipart upload',
 )
@@ -104,7 +106,7 @@ class CreateMultipartUploadView(generics.GenericAPIView):
             )
             return Response(
                 {'detail': error.error.get('Message')},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status=status.HTTP_502_BAD_GATEWAY,
             )
         except BotoCoreError as error:
             logger.error(
@@ -127,13 +129,15 @@ class CreateMultipartUploadView(generics.GenericAPIView):
         400: DetailOutSerializer,
         404: DetailOutSerializer,
         500: DetailOutSerializer,
+        502: DetailOutSerializer,
     },
     examples=[
         multipart_upload_part_url_response_example(),
         error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_AUTHOR_NOT_MATCH]),
         error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
         error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_UPLOAD_ID]),
-        s3_error_response_example(),
+        s3_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
+        s3_error_response_example(code=status.HTTP_502_BAD_GATEWAY),
     ],
     summary='Generate upload part url for video',
 )
@@ -164,7 +168,7 @@ class GenerateUploadPartUrlView(generics.GenericAPIView):
             )
             return Response(
                 {'detail': error.error.get('Message')},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status=status.HTTP_502_BAD_GATEWAY,
             )
         except BotoCoreError as error:
             logger.error(
@@ -187,12 +191,14 @@ class GenerateUploadPartUrlView(generics.GenericAPIView):
         403: DetailOutSerializer,
         404: DetailOutSerializer,
         500: DetailOutSerializer,
+        502: DetailOutSerializer,
     },
     examples=[
         error_response_example(VIDEOS_ERRORS[VideosErrorCodes.PRIVATE_VIDEO_PERMISSION_ERROR]),
         error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_KEY]),
         error_response_example(COMMON_ERRORS[CommonErrorCodes.S3_FILE_WITH_KEY_NOT_EXISTS]),
-        s3_error_response_example(),
+        s3_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
+        s3_error_response_example(code=status.HTTP_502_BAD_GATEWAY),
     ],
     summary='Generate presigned url for video download',
 )
@@ -220,7 +226,7 @@ class GenerateDownloadVideoUrlView(generics.GenericAPIView):
             )
             return Response(
                 {'detail': error.error.get('Message')},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status=status.HTTP_502_BAD_GATEWAY,
             )
         except BotoCoreError as error:
             logger.error(
@@ -301,6 +307,7 @@ class AbortMultipartUploadView(generics.GenericAPIView):
         400: DetailOutSerializer,
         404: DetailOutSerializer,
         500: DetailOutSerializer,
+        502: DetailOutSerializer,
     },
     examples=[
         # request
@@ -315,7 +322,8 @@ class AbortMultipartUploadView(generics.GenericAPIView):
         error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_AUTHOR_NOT_MATCH]),
         error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_UPLOAD_ID]),
         error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
-        s3_error_response_example(),
+        s3_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
+        s3_error_response_example(code=status.HTTP_502_BAD_GATEWAY),
     ],
     summary='Complete multipart upload',
 )
@@ -346,7 +354,7 @@ class CompleteMultipartUploadView(generics.GenericAPIView):
             )
             return Response(
                 {'detail': error.error.get('Message')},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status=status.HTTP_502_BAD_GATEWAY,
             )
         except BotoCoreError as error:
             logger.error(

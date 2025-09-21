@@ -2,7 +2,13 @@ from logging import Logger
 
 from django.contrib.auth import get_user_model  # noqa
 from django.db import transaction
-from rest_framework import status  # noqa
+from django.db.utils import IntegrityError
+from rest_framework import (  # noqa
+    generics,
+    mixins,
+    status,
+    viewsets,
+)
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -31,13 +37,22 @@ from core.api.v1.users.serializers.auth import (
     AuthCodeVerifyInSerializer,
     AuthInSerializer,
 )
+from core.api.v1.users.serializers.users import (
+    AuthUserSerializer,
+    PasswordAuthUserSerializer,
+    UpdateAuthUserSerializer,
+)
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.common.pagination import CustomPageNumberPagination
 from core.apps.common.permissions.captcha import CaptchaPermission
+from core.apps.users.converters.users import user_to_entity
 from core.apps.users.errors import (
     ErrorCodes as UsersErrorCodes,
     ERRORS as USERS_ERRORS,
 )
+from core.apps.users.exceptions.users import UserWithThisDataAlreadyExists
+from core.apps.users.models import CustomUser
+from core.apps.users.permissions import AuthUserPermission
 from core.apps.users.tasks import (
     send_activation_email,
     send_confirmation_email,
@@ -48,7 +63,71 @@ from core.apps.users.use_cases.auth import (
     AuthorizeUserUseCase,
     VerifyCodeUseCase,
 )
+from core.apps.users.use_cases.user_create import UserCreateUseCase
+from core.apps.users.use_cases.user_set_password import UserSetPasswordUseCase
 from core.project.containers import get_container  # noqa
+
+
+# TODO: add captcha in user creation
+# TODO: доку для всех endpoints
+class UserView(
+        mixins.CreateModelMixin,
+        mixins.RetrieveModelMixin,
+        mixins.UpdateModelMixin,
+        viewsets.GenericViewSet,
+):
+    queryset = get_user_model().objects.all().select_related('channel')
+    permission_classes = [AuthUserPermission]
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.container: punq.Container = get_container()
+        self.logger: Logger = self.container.resolve(Logger)
+
+    def get_object(self):
+        return self.request.user
+
+    def get_serializer_class(self):
+        if self.action in ['update', 'partial_update']:
+            return UpdateAuthUserSerializer
+
+        if self.action in ['create', 'retrieve']:
+            return AuthUserSerializer
+
+        if self.action == 'set_password':
+            return PasswordAuthUserSerializer
+
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        use_case: UserCreateUseCase = self.container.resolve(UserCreateUseCase)
+
+        try:
+            result: CustomUser = use_case.execute(validated_data=serializer.validated_data)
+
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        except IntegrityError:
+            raise UserWithThisDataAlreadyExists()
+
+        return Response(self.get_serializer(result).data, status=status.HTTP_201_CREATED)
+
+    @action(['post'], detail=False)
+    def set_password(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        use_case: UserSetPasswordUseCase = self.container.resolve(UserSetPasswordUseCase)
+
+        use_case.execute(
+            user=user_to_entity(request.user),
+            password=serializer.validated_data.get('password'),
+        )
+
+        return Response({'detail': 'Success'})
 
 
 @extend_schema(
@@ -136,7 +215,6 @@ class CodeVerifyView(APIView):
         return Response(result, status=status.HTTP_200_OK)
 
 
-# TODO: refactor
 class CustomUserViewSet(UserViewSet):
     pagination_class = CustomPageNumberPagination
     queryset = get_user_model().objects.all().prefetch_related('channel')

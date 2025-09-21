@@ -37,6 +37,8 @@ from core.apps.users.use_cases.oauth2_connect import OAuth2ConnectUseCase
 from core.apps.users.use_cases.oauth2_connected_providers import OAuth2ConnectedProvidersUseCase
 from core.apps.users.use_cases.oauth2_disconnect import OAuth2DisconnectUseCase
 from core.apps.users.use_cases.oauth2_generate_url import OAuth2GenerateURLUseCase
+from core.apps.users.use_cases.user_create import UserCreateUseCase
+from core.apps.users.use_cases.user_set_password import UserSetPasswordUseCase
 
 
 def init_users(container: punq.Container) -> None:
@@ -57,6 +59,9 @@ def init_users(container: punq.Container) -> None:
     #  use cases
     container.register(AuthorizeUserUseCase)
     container.register(VerifyCodeUseCase)
+
+    container.register(UserCreateUseCase)
+    container.register(UserSetPasswordUseCase)
 
     container.register(OAuth2GenerateURLUseCase)
     container.register(OAuth2ConnectUseCase)

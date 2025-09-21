@@ -9,6 +9,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from core.apps.users.converters.users import user_from_entity
 from core.apps.users.entities import UserEntity
 from core.apps.users.exceptions.users import UserNotFoundError
+from core.apps.users.models import CustomUser
 from core.apps.users.repositories.users import BaseUserRepository
 
 
@@ -41,6 +42,14 @@ class BaseUserService(ABC):
     def generate_jwt(self, user: UserEntity) -> dict:
         ...
 
+    @abstractmethod
+    def create_by_data(self, data: dict) -> CustomUser:
+        ...
+
+    @abstractmethod
+    def set_password(self, user: UserEntity, password: str) -> None:
+        ...
+
 
 class ORMUserService(BaseUserService):
     def authenticate(self, login: str, password: str) -> UserEntity:
@@ -57,3 +66,9 @@ class ORMUserService(BaseUserService):
         refresh = RefreshToken.for_user(user_from_entity(user))
         access = refresh.access_token
         return {'access': str(access), 'refresh': str(refresh)}
+
+    def create_by_data(self, data: dict) -> CustomUser:
+        return self.repository.create_by_data(data=data)
+
+    def set_password(self, user: UserEntity, password: str) -> None:
+        self.repository.set_password(user=user, password=password)

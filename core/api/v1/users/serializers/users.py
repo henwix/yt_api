@@ -1,6 +1,7 @@
 import uuid
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
 from django.db import IntegrityError
 from rest_framework import serializers
 
@@ -16,6 +17,7 @@ from djoser.serializers import (
 from core.api.v1.channels.serializers import ChannelSerializer
 from core.api.v1.common.serializers.serializers import CaptchaSerializer
 from core.apps.channels.models import Channel
+from core.apps.users.models import CustomUser
 
 
 class CustomUserCreatePasswordRetypeSerializer(UserCreatePasswordRetypeSerializer):
@@ -123,3 +125,38 @@ class CustomUsernameResetConfirmSerializer(UsernameResetConfirmSerializer):
     class Meta:
         model = UsernameResetConfirmSerializer.Meta.model
         fields = (settings.LOGIN_FIELD, 'uid', 'token')
+
+
+class AuthUserSerializer(serializers.ModelSerializer):
+    channel = ChannelSerializer(required=False)
+
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'email', 'username', 'otp_enabled', 'password', 'channel']
+        read_only_fields = ['id', 'otp_enabled']
+        extra_kwargs = {
+            'password': {
+                'write_only': True,
+            },
+        }
+
+
+class UpdateAuthUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'username', 'otp_enabled']
+
+
+class PasswordAuthUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['password']
+        extra_kwargs = {
+            'password': {
+                'write_only': True,
+            },
+        }
+
+    def validate_password(self, value):
+        validate_password(password=value)
+        return value

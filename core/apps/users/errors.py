@@ -11,6 +11,7 @@ class ErrorCodes:
 
     # users/exceptions/users.py
     USER_NOT_FOUND = "user_not_found"
+    USER_WITH_DATA_ALREADY_EXISTS = "user_with_data_already_exists"
 
 
 ERRORS = {
@@ -34,5 +35,9 @@ ERRORS = {
     ErrorCodes.USER_NOT_FOUND: {
         'message': 'User not found',
         'status_code': status.HTTP_404_NOT_FOUND,
+    },
+    ErrorCodes.USER_WITH_DATA_ALREADY_EXISTS: {
+        'message': 'User with this data already exists',
+        'status_code': status.HTTP_400_BAD_REQUEST,
     },
 }

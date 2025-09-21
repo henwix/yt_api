@@ -42,6 +42,10 @@ class BaseChannelRepository(ABC):
         ...
 
     @abstractmethod
+    def create_by_data(self, data: dict) -> ChannelEntity:
+        ...
+
+    @abstractmethod
     def get_channel_by_user_or_none(self, user: UserEntity) -> ChannelEntity | None:
         ...
 
@@ -71,6 +75,10 @@ class ORMChannelRepository(BaseChannelRepository):
 
     def channel_create(self, channel_entity: ChannelEntity) -> ChannelEntity:
         channel_dto = Channel.objects.create(**channel_entity.__dict__)
+        return channel_to_entity(channel_dto)
+
+    def create_by_data(self, data: dict) -> ChannelEntity:
+        channel_dto = Channel.objects.create(**data)
         return channel_to_entity(channel_dto)
 
     def get_channel_by_user_or_none(self, user: UserEntity) -> ChannelEntity | None:

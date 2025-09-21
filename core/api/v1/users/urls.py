@@ -21,7 +21,9 @@ from core.api.v1.users.views.user_views import (
     CodeVerifyView,
     CustomUserViewSet,
     UserLoginView,
+    UserView,
 )
+from core.apps.users.routers import CustomUserRouter
 
 
 app_name = 'users'
@@ -30,9 +32,14 @@ app_name = 'users'
 router = DefaultRouter()
 router.register('users', CustomUserViewSet)
 
+# TODO: посмотреть, правильно ли задаются имена путей
+user_router = CustomUserRouter()
+user_router.register(r'users', UserView, basename='user')
+
 urlpatterns = [
     #  djoser user endpoints
     re_path(r'^auth/', include(router.urls)),
+    path('auth_2/', include(user_router.urls)),
 
     #  JWT tokens endpoints
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

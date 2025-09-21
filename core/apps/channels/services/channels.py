@@ -39,6 +39,10 @@ class BaseChannelService(ABC):
     repository: BaseChannelRepository
 
     @abstractmethod
+    def create_by_data(self, data: dict) -> ChannelEntity:
+        ...
+
+    @abstractmethod
     def create_channel_by_user_info(self, user: UserEntity) -> ChannelEntity:
         ...
 
@@ -60,6 +64,30 @@ class BaseChannelService(ABC):
 
 
 class ORMChannelService(BaseChannelService):
+    def create_by_data(self, data: dict) -> ChannelEntity:
+        """This method creates a ChannelEntity based on the provided data
+        dictionary.
+
+        This data is a 'validated_data' dictionary from a serializer
+        that includes a nested 'channel' dictionary.
+
+        """
+
+        channel_data = data.pop('channel')
+
+        channel_data.setdefault('name', data.get('username'))
+
+        if not channel_data.get('slug'):
+            base_slug = channel_data.get('name').replace(' ', '')
+            unique_slug = base_slug
+
+            if self.repository.is_slug_exists(slug=unique_slug):
+                unique_slug = base_slug + '_' + uuid.uuid4().hex[:8]
+
+            channel_data['slug'] = unique_slug
+
+        return self.repository.create_by_data(data=channel_data)
+
     def create_channel_by_user_info(self, user: UserEntity) -> ChannelEntity:
         channel_data = {}
 

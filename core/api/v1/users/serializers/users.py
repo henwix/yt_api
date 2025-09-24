@@ -15,7 +15,10 @@ from djoser.serializers import (
 )
 
 from core.api.v1.channels.serializers import ChannelSerializer
-from core.api.v1.common.serializers.serializers import CaptchaSerializer
+from core.api.v1.common.serializers.serializers import (
+    CaptchaSerializer,
+    UUID4CodeSerializer,
+)
 from core.apps.channels.models import Channel
 from core.apps.users.models import CustomUser
 
@@ -151,12 +154,34 @@ class PasswordAuthUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['password']
-        extra_kwargs = {
-            'password': {
-                'write_only': True,
-            },
-        }
 
     def validate_password(self, value):
         validate_password(password=value)
         return value
+
+
+class EmailAuthUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['email']
+        extra_kwargs = {
+            'email': {
+                'write_only': True,
+            },
+        }
+
+
+class PasswordAuthResetConfirmSerializer(PasswordAuthUserSerializer, UUID4CodeSerializer):
+    uid = serializers.CharField(max_length=20)
+
+    class Meta:
+        model = CustomUser
+        fields = ['uid', 'code', 'password']
+
+
+class UsernameAuthResetConfirmSerializer(serializers.ModelSerializer, UUID4CodeSerializer):
+    uid = serializers.CharField(max_length=20)
+
+    class Meta:
+        model = CustomUser
+        fields = ['uid', 'code', 'username']

@@ -1,4 +1,5 @@
 import random
+import uuid
 from abc import (
     ABC,
     abstractmethod,
@@ -6,42 +7,157 @@ from abc import (
 from dataclasses import dataclass
 from logging import Logger
 
-from core.apps.common.providers.cache import BaseCacheProvider
+from django.db.utils import settings
+
+from core.apps.common.services.cache import BaseCacheService
+from core.apps.users.entities import UserEntity
 from core.apps.users.exceptions.codes import (
-    CodeNotEqualException,
-    CodeNotProvidedException,
+    OtpCodeNotEqualException,
+    OtpCodeNotProvidedOrNotFoundException,
+    ResetPasswordCodeNotEqualException,
+    ResetPasswordCodeNotProvidedOrNotFoundException,
+    ResetUsernameCodeNotEqualException,
+    ResetUsernameCodeNotProvidedOrNotFoundException,
+    SetEmailCodeNotProvidedOrNotFoundException,
+    SetEmailUserNotEqualException,
 )
 
 
 class BaseCodeService(ABC):
     @abstractmethod
-    def generate_code(self, email: str) -> str:
+    def generate_email_otp_code(self, email: str) -> str:
         ...
 
     @abstractmethod
-    def validate_code(self, email: str, code: str | None) -> None:
+    def validate_email_otp_code(self, email: str, code: str | None) -> None:
+        ...
+
+    @abstractmethod
+    def generate_set_email_code(self, user_id: int, email: str) -> str:
+        ...
+
+    @abstractmethod
+    def validate_set_email_code(self, user_id: int, code: str) -> str:
+        ...
+
+    @abstractmethod
+    def generate_password_reset_code(self, user: UserEntity) -> str:
+        ...
+
+    @abstractmethod
+    def validate_password_reset_code(self, user: UserEntity, code: str) -> bool:
+        ...
+
+    @abstractmethod
+    def generate_username_reset_code(self, user: UserEntity) -> str:
+        ...
+
+    @abstractmethod
+    def validate_username_reset_code(self, user: UserEntity, code: str) -> bool:
         ...
 
 
 @dataclass
 class EmailCodeService(BaseCodeService):
     logger: Logger
-    cache_provider: BaseCacheProvider
+    cache_service: BaseCacheService
 
-    _KEY_PREFIX = 'otp_code_'
+    _OTP_CACHE_KEY_PREFIX = settings.CACHE_KEYS.get('otp_email')
+    _SET_EMAIL_CACHE_KEY_PREFIX = settings.CACHE_KEYS.get('set_email')
+    _PASSWORD_RESET_CACHE_KEY_PREFIX = settings.CACHE_KEYS.get('password_reset')
+    _USERNAME_RESET_CACHE_KEY_PREFIX = settings.CACHE_KEYS.get('username_reset')
 
-    def generate_code(self, email: str) -> str:
+    def generate_email_otp_code(self, email: str) -> str:
         code = str(random.randint(100000, 999999))  # noqa
-        self.cache_provider.set(key=self._KEY_PREFIX + email, value=code, timeout=60 * 5)
+        self.cache_service.cache_data(key=self._OTP_CACHE_KEY_PREFIX + email, data=code, timeout=60 * 5)
         return code
 
-    def validate_code(self, email: str, code: str | None) -> None:
-        cached_code = self.cache_provider.get(key=self._KEY_PREFIX + email)
+    def validate_email_otp_code(self, email: str, code: str | None) -> None:
+        cached_code = self.cache_service.get_cached_data(key=self._OTP_CACHE_KEY_PREFIX + email)
 
         if cached_code is None:
-            raise CodeNotProvidedException(email=email)
+            raise OtpCodeNotProvidedOrNotFoundException(email=email)
 
         if cached_code != code:
-            raise CodeNotEqualException(cached_code=cached_code, user_code=code)
+            raise OtpCodeNotEqualException(cached_code=cached_code, user_code=code)
 
-        self.cache_provider.delete(key=self._KEY_PREFIX + email)
+        self.cache_service.delete_cached_data(key=self._OTP_CACHE_KEY_PREFIX + email)
+
+    def generate_set_email_code(self, user_id: int, email: str) -> str:
+        """Generate UUID4 code, save in cache and return."""
+
+        code = uuid.uuid4().hex
+
+        self.cache_service.cache_data(
+            key=self._SET_EMAIL_CACHE_KEY_PREFIX + code,
+            data={'user_id': user_id, 'new_email': email},
+            timeout=60 * 5,  # TODO: сделать общие настройки для таймаута и почты с темплейтами в целом
+        )
+
+        return code
+
+    def validate_set_email_code(self, user_id: int, code: str) -> str:
+        """Validate set email code and return new email if valid."""
+
+        cache_key = self._SET_EMAIL_CACHE_KEY_PREFIX + code
+        cached_data = self.cache_service.get_cached_data(key=cache_key)
+
+        if cached_data is None:
+            raise SetEmailCodeNotProvidedOrNotFoundException(user_id=user_id, user_code=code)
+
+        if cached_data.get('user_id') != user_id:
+            raise SetEmailUserNotEqualException(user_id=user_id, cached_user_id=cached_data.get('user_id'))
+
+        self.cache_service.delete_cached_data(key=cache_key)
+
+        return cached_data.get('new_email')
+
+    def generate_password_reset_code(self, user: UserEntity) -> str:
+        code = uuid.uuid4().hex
+
+        self.cache_service.cache_data(
+            key=f'{self._PASSWORD_RESET_CACHE_KEY_PREFIX}{user.id}',
+            data=code,
+            timeout=60 * 5,
+        )
+
+        return code
+
+    def validate_password_reset_code(self, user: UserEntity, code: str) -> bool:
+        cache_key = f'{self._PASSWORD_RESET_CACHE_KEY_PREFIX}{user.id}'
+        cached_code = self.cache_service.get_cached_data(key=cache_key)
+
+        if cached_code is None:
+            raise ResetPasswordCodeNotProvidedOrNotFoundException(user_id=user.id, code=code)
+
+        if code != cached_code:
+            raise ResetPasswordCodeNotEqualException(user_id=user.id, code=code)
+
+        self.cache_service.delete_cached_data(key=cache_key)
+
+        return True
+
+    def generate_username_reset_code(self, user: UserEntity) -> str:
+        code = uuid.uuid4().hex
+
+        self.cache_service.cache_data(
+            key=f'{self._USERNAME_RESET_CACHE_KEY_PREFIX}{user.id}',
+            data=code,
+            timeout=60 * 5,
+        )
+
+        return code
+
+    def validate_username_reset_code(self, user: UserEntity, code: str) -> bool:
+        cache_key = f'{self._USERNAME_RESET_CACHE_KEY_PREFIX}{user.id}'
+        cached_code = self.cache_service.get_cached_data(key=cache_key)
+
+        if cached_code is None:
+            raise ResetUsernameCodeNotProvidedOrNotFoundException(user_id=user.id, code=code)
+
+        if code != cached_code:
+            raise ResetUsernameCodeNotEqualException(user_id=user.id, code=code)
+
+        self.cache_service.delete_cached_data(key=cache_key)
+
+        return True

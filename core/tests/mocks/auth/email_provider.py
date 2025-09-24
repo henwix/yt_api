@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from core.apps.users.providers.senders import BaseSenderProvider
+from core.apps.common.providers.senders import BaseSenderProvider
 
 
 @dataclass

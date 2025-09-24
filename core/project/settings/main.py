@@ -331,6 +331,9 @@ CACHE_KEYS = {
     'related_posts': 'channel_posts_',
     'subs_list': 'subs_',
     'retrieve_channel': 'retrieve_channel_',
+    'otp_email': 'otp_code_',
+    'set_email': 'set_email_code_',
+    'password_reset': 'user_password_reset_',
 }
 
 
@@ -401,6 +404,14 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+
+EMAIL_SMTP_TEMPLATES = {
+    'otp_email': 'users/otp_email.html',
+    'set_email': 'users/set_email.html',
+    'password_reset': 'users/password_reset_email.html',
+    'username_reset': 'users/username_reset_email.html',
+}
 
 
 # OAuth2-social

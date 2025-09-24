@@ -7,11 +7,11 @@ from punq import Container
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.apps.channels.models import Channel
+from core.apps.common.providers.senders import BaseSenderProvider
 from core.apps.posts.models import (
     Post,
     PostCommentItem,
 )
-from core.apps.users.providers.senders import BaseSenderProvider
 from core.apps.users.services.codes import BaseCodeService
 from core.apps.videos.models import Video
 from core.project.containers import get_container

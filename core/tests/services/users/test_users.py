@@ -57,7 +57,7 @@ def test_user_not_found():
 def test_get_user_by_email(user_service: BaseUserService, user: User):
     """Test that the user has been retrieved by email from database."""
 
-    user_dto = user_from_entity(user_service.get_by_email(user.email))
+    user_dto = user_from_entity(user_service.get_by_email_or_404(user.email))
 
     assert user == user_dto
 

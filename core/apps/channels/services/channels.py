@@ -6,6 +6,8 @@ from abc import (
 from dataclasses import dataclass
 from typing import Iterable
 
+from django.db.utils import IntegrityError
+
 from core.apps.channels.converters.channels import data_to_channel_entity
 from core.apps.channels.entities.channels import ChannelEntity
 from core.apps.channels.exceptions.channels import (
@@ -32,6 +34,7 @@ from core.apps.users.entities import (
     AnonymousUserEntity,
     UserEntity,
 )
+from core.apps.users.exceptions.users import UserWithThisDataAlreadyExists
 
 
 @dataclass(eq=False)
@@ -86,7 +89,11 @@ class ORMChannelService(BaseChannelService):
 
             channel_data['slug'] = unique_slug
 
-        return self.repository.create_by_data(data=channel_data)
+        try:
+            return self.repository.create_by_data(data=channel_data)
+
+        except IntegrityError:
+            raise UserWithThisDataAlreadyExists()
 
     def create_channel_by_user_info(self, user: UserEntity) -> ChannelEntity:
         channel_data = {}

@@ -4,11 +4,16 @@ from abc import (
 )
 from dataclasses import dataclass
 
+from django.db.utils import IntegrityError
+
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.apps.users.converters.users import user_from_entity
 from core.apps.users.entities import UserEntity
-from core.apps.users.exceptions.users import UserNotFoundError
+from core.apps.users.exceptions.users import (
+    UserNotFoundError,
+    UserWithThisDataAlreadyExists,
+)
 from core.apps.users.models import CustomUser
 from core.apps.users.repositories.users import BaseUserRepository
 
@@ -35,7 +40,11 @@ class BaseUserService(ABC):
         ...
 
     @abstractmethod
-    def get_by_email(self, email: str) -> UserEntity:
+    def get_by_email_or_404(self, email: str) -> UserEntity:
+        ...
+
+    @abstractmethod
+    def get_by_id_or_404(self, user_id: int) -> UserEntity:
         ...
 
     @abstractmethod
@@ -48,6 +57,10 @@ class BaseUserService(ABC):
 
     @abstractmethod
     def set_password(self, user: UserEntity, password: str) -> None:
+        ...
+
+    @abstractmethod
+    def update_by_data(self, user: UserEntity, data: dict) -> bool:
         ...
 
 
@@ -57,8 +70,13 @@ class ORMUserService(BaseUserService):
         self.validator_service.validate(user=user)
         return user
 
-    def get_by_email(self, email: str) -> UserEntity:
+    def get_by_email_or_404(self, email: str) -> UserEntity:
         user = self.repository.get_by_email(email=email)
+        self.validator_service.validate(user=user)
+        return user
+
+    def get_by_id_or_404(self, user_id: int) -> UserEntity:
+        user = self.repository.get_by_id(user_id=user_id)
         self.validator_service.validate(user=user)
         return user
 
@@ -68,7 +86,18 @@ class ORMUserService(BaseUserService):
         return {'access': str(access), 'refresh': str(refresh)}
 
     def create_by_data(self, data: dict) -> CustomUser:
-        return self.repository.create_by_data(data=data)
+        try:
+            return self.repository.create_by_data(data=data)
+
+        except IntegrityError:
+            raise UserWithThisDataAlreadyExists()
 
     def set_password(self, user: UserEntity, password: str) -> None:
         self.repository.set_password(user=user, password=password)
+
+    def update_by_data(self, user: UserEntity, data: dict) -> bool:
+        try:
+            return self.repository.update_by_data(user=user, data=data)
+
+        except IntegrityError:
+            raise UserWithThisDataAlreadyExists()

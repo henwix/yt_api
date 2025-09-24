@@ -3,8 +3,14 @@ from rest_framework import status
 
 class ErrorCodes:
     # users/exceptions/codes.py
-    CODE_NOT_PROVIDED = "code_not_provided"
-    CODE_NOT_EQUAL = "code_not_equal"
+    OTP_CODE_NOT_PROVIDED_OR_NOT_FOUND = "otp_code_not_provided"
+    CODE_NOT_EQUAL = "otp_code_not_equal"
+    SET_EMAIL_CODE_NOT_PROVIDED_OR_NOT_FOUND = "set_email_code_not_provided"
+    SET_EMAIL_USER_NOT_EQUAL = "set_email_user_not_equal"
+    RESET_PASSWORD_CODE_NOT_NOT_PROVIDED_OR_NOT_FOUND = "reset_password_code_not_provided"
+    RESET_PASSWORD_CODE_NOT_EQUAL = 'reset_password_not_equal'
+    RESET_USERNAME_CODE_NOT_NOT_PROVIDED_OR_NOT_FOUND = "reset_username_code_not_provided"
+    RESET_USERNAME_CODE_NOT_EQUAL = 'reset_username_not_equal'
 
     # users/exceptions/oauth2.py
     OAUTH2_PROVIDER_NOT_SUPPORTED = "oauth2_provider_not_supported"
@@ -16,12 +22,36 @@ class ErrorCodes:
 
 ERRORS = {
     # users/exceptions/codes.py
-    ErrorCodes.CODE_NOT_PROVIDED: {
-        'message': 'Code not provided',
+    ErrorCodes.OTP_CODE_NOT_PROVIDED_OR_NOT_FOUND: {
+        'message': 'Otp code not provided or not found',
         'status_code': status.HTTP_404_NOT_FOUND,
     },
     ErrorCodes.CODE_NOT_EQUAL: {
-        'message': 'Code not equal',
+        'message': 'Otp code not equal',
+        'status_code': status.HTTP_400_BAD_REQUEST,
+    },
+    ErrorCodes.SET_EMAIL_CODE_NOT_PROVIDED_OR_NOT_FOUND: {
+        'message': 'Set email code not provided or not found',
+        'status_code': status.HTTP_404_NOT_FOUND,
+    },
+    ErrorCodes.SET_EMAIL_USER_NOT_EQUAL: {
+        'message': 'Set email user not equal',
+        'status_code': status.HTTP_400_BAD_REQUEST,
+    },
+    ErrorCodes.RESET_PASSWORD_CODE_NOT_NOT_PROVIDED_OR_NOT_FOUND: {
+        'message': 'Reset password code not provided or not found',
+        'status_code': status.HTTP_404_NOT_FOUND,
+    },
+    ErrorCodes.RESET_PASSWORD_CODE_NOT_EQUAL: {
+        'message': 'Reset password code not equal',
+        'status_code': status.HTTP_400_BAD_REQUEST,
+    },
+    ErrorCodes.RESET_USERNAME_CODE_NOT_NOT_PROVIDED_OR_NOT_FOUND: {
+        'message': 'Reset username code not provided or not found',
+        'status_code': status.HTTP_404_NOT_FOUND,
+    },
+    ErrorCodes.RESET_USERNAME_CODE_NOT_EQUAL: {
+        'message': 'Reset username code not equal',
         'status_code': status.HTTP_400_BAD_REQUEST,
     },
 

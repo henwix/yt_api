@@ -2,7 +2,6 @@ from logging import Logger
 
 from django.contrib.auth import get_user_model  # noqa
 from django.db import transaction
-from django.db.utils import IntegrityError
 from rest_framework import (  # noqa
     generics,
     mixins,
@@ -27,6 +26,7 @@ from drf_spectacular.utils import (
 from core.api.v1.common.serializers.serializers import (
     DetailOutSerializer,
     JWTOutSerializer,
+    UUID4CodeSerializer,
 )
 from core.api.v1.schema.response_examples.common import (
     detail_response_example,
@@ -36,11 +36,15 @@ from core.api.v1.schema.response_examples.common import (
 from core.api.v1.users.serializers.auth import (
     AuthCodeVerifyInSerializer,
     AuthInSerializer,
+    EmailSerializer,
 )
 from core.api.v1.users.serializers.users import (
     AuthUserSerializer,
+    EmailAuthUserSerializer,
+    PasswordAuthResetConfirmSerializer,
     PasswordAuthUserSerializer,
     UpdateAuthUserSerializer,
+    UsernameAuthResetConfirmSerializer,
 )
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.common.pagination import CustomPageNumberPagination
@@ -50,7 +54,6 @@ from core.apps.users.errors import (
     ErrorCodes as UsersErrorCodes,
     ERRORS as USERS_ERRORS,
 )
-from core.apps.users.exceptions.users import UserWithThisDataAlreadyExists
 from core.apps.users.models import CustomUser
 from core.apps.users.permissions import AuthUserPermission
 from core.apps.users.tasks import (
@@ -64,19 +67,26 @@ from core.apps.users.use_cases.auth import (
     VerifyCodeUseCase,
 )
 from core.apps.users.use_cases.user_create import UserCreateUseCase
+from core.apps.users.use_cases.user_reset_password import UserResetPasswordUseCase
+from core.apps.users.use_cases.user_reset_password_confirm import UserResetPasswordConfirmUseCase
+from core.apps.users.use_cases.user_reset_username import UserResetUsernameUseCase
+from core.apps.users.use_cases.user_reset_username_confirm import UserResetUsernameConfirmUseCase
+from core.apps.users.use_cases.user_set_email import UserSetEmailUseCase
+from core.apps.users.use_cases.user_set_email_confirm import UserSetEmailConfirmUseCase
 from core.apps.users.use_cases.user_set_password import UserSetPasswordUseCase
 from core.project.containers import get_container  # noqa
 
 
 # TODO: add captcha in user creation
 # TODO: доку для всех endpoints
+# TODO: throttling для отправки почты на все эндпоинты
 class UserView(
         mixins.CreateModelMixin,
         mixins.RetrieveModelMixin,
         mixins.UpdateModelMixin,
         viewsets.GenericViewSet,
 ):
-    queryset = get_user_model().objects.all().select_related('channel')
+    queryset = get_user_model().objects.all()
     permission_classes = [AuthUserPermission]
 
     def __init__(self, *args, **kwargs) -> None:
@@ -90,12 +100,20 @@ class UserView(
     def get_serializer_class(self):
         if self.action in ['update', 'partial_update']:
             return UpdateAuthUserSerializer
-
         if self.action in ['create', 'retrieve']:
             return AuthUserSerializer
-
         if self.action == 'set_password':
             return PasswordAuthUserSerializer
+        if self.action == 'set_email':
+            return EmailAuthUserSerializer
+        if self.action == 'set_email_confirm':
+            return UUID4CodeSerializer
+        if self.action in ['reset_password', 'reset_username']:
+            return EmailSerializer
+        if self.action == 'reset_password_confirm':
+            return PasswordAuthResetConfirmSerializer
+        if self.action == 'reset_username_confirm':
+            return UsernameAuthResetConfirmSerializer
 
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -109,9 +127,6 @@ class UserView(
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
-
-        except IntegrityError:
-            raise UserWithThisDataAlreadyExists()
 
         return Response(self.get_serializer(result).data, status=status.HTTP_201_CREATED)
 
@@ -128,6 +143,111 @@ class UserView(
         )
 
         return Response({'detail': 'Success'})
+
+    @action(['post'], detail=False)
+    def set_email(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        use_case: UserSetEmailUseCase = self.container.resolve(UserSetEmailUseCase)
+
+        result = use_case.execute(
+            user=user_to_entity(request.user),
+            email=serializer.validated_data.get('email'),
+        )
+
+        return Response(result, status=status.HTTP_200_OK)
+
+    @action(['post'], detail=False)
+    def set_email_confirm(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        use_case: UserSetEmailConfirmUseCase = self.container.resolve(UserSetEmailConfirmUseCase)
+
+        try:
+            result = use_case.execute(
+                user=user_to_entity(request.user),
+                code=serializer.validated_data.get('code'),
+            )
+
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        return Response(result, status=status.HTTP_200_OK)
+
+    @action(['post'], detail=False)
+    def reset_password(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        use_case: UserResetPasswordUseCase = self.container.resolve(UserResetPasswordUseCase)
+
+        try:
+            result = use_case.execute(email=serializer.validated_data.get('email'))
+
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        return Response(result, status=status.HTTP_200_OK)
+
+    @action(['post'], detail=False)
+    def reset_password_confirm(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        use_case: UserResetPasswordConfirmUseCase = self.container.resolve(UserResetPasswordConfirmUseCase)
+
+        try:
+            result = use_case.execute(
+                encoded_id=serializer.validated_data.get('uid'),
+                code=serializer.validated_data.get('code'),
+                new_password=serializer.validated_data.get('password'),
+            )
+
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        return Response(result, status=status.HTTP_200_OK)
+
+    @action(['post'], detail=False)
+    def reset_username(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        use_case: UserResetUsernameUseCase = self.container.resolve(UserResetUsernameUseCase)
+
+        try:
+            result = use_case.execute(email=serializer.validated_data.get('email'))
+
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        return Response(result, status=status.HTTP_200_OK)
+
+    @action(['post'], detail=False)
+    def reset_username_confirm(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        use_case: UserResetUsernameConfirmUseCase = self.container.resolve(UserResetUsernameConfirmUseCase)
+
+        try:
+            result = use_case.execute(
+                encoded_id=serializer.validated_data.get('uid'),
+                code=serializer.validated_data.get('code'),
+                new_username=serializer.validated_data.get('username'),
+            )
+
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        return Response(result, status=status.HTTP_200_OK)
 
 
 @extend_schema(
@@ -189,7 +309,7 @@ class UserLoginView(APIView):
     examples=[
         jwt_response_example(),
         error_response_example(USERS_ERRORS[UsersErrorCodes.CODE_NOT_EQUAL]),
-        error_response_example(USERS_ERRORS[UsersErrorCodes.CODE_NOT_PROVIDED]),
+        error_response_example(USERS_ERRORS[UsersErrorCodes.OTP_CODE_NOT_PROVIDED_OR_NOT_FOUND]),
         error_response_example(USERS_ERRORS[UsersErrorCodes.USER_NOT_FOUND]),
     ],
     summary='Verify OTP code and get JWT tokens',

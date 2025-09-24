@@ -1,5 +1,3 @@
-from typing import List
-
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
@@ -7,10 +5,10 @@ from django.template.loader import render_to_string
 class EmailClient:
     def build_smtp_email(
         self,
-        to: List[str],
+        to: list[str],
         context: dict,
-        subject: str = 'OTP Email Confirmation',
-        template: str = 'users/otp_email.html',
+        subject: str,
+        template: str,
     ) -> EmailMultiAlternatives:
         html_content = render_to_string(
             template_name=template,
@@ -19,7 +17,7 @@ class EmailClient:
 
         msg = EmailMultiAlternatives(
             subject=subject,
-            to=[*to],
+            to=to,
         )
         msg.attach_alternative(html_content, 'text/html')
 

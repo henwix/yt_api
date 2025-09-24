@@ -12,7 +12,7 @@ def test_code_verified(verify_code_use_case: VerifyCodeUseCase, code_service: Ba
 
     expected_email = 'test_email@test.com'
     UserModelFactory.create(email=expected_email)
-    expected_code = code_service.generate_code(email=expected_email)
+    expected_code = code_service.generate_email_otp_code(email=expected_email)
 
     result = verify_code_use_case.execute(email=expected_email, code=expected_code)
 

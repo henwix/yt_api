@@ -82,29 +82,33 @@ def send_reset_username_email(context, to):
 
 
 @shared_task(bind=True, max_retries=5)
-def send_otp_code_email(self, email: str, code: str):
+def send_email(self, to: list[str], context: dict, subject: str, template: str):
     container: punq.Container = get_container()
     logger: Logger = container.resolve(Logger)
     email_client: EmailClient = container.resolve(EmailClient)
 
     try:
         logger.info(
-            'Trying to set SMTP connection and send email',
-            extra={'log_meta': orjson.dumps({'email': email}).decode()},
+            'Trying to set SMTP connection and send email via Celery Task',
+            extra={'log_meta': orjson.dumps({'subject': subject, 'template': template}).decode()},
         )
         msg = email_client.build_smtp_email(
-            to=[email],
-            context={'email': email, 'code': code},
+            to=to,
+            context=context,
+            subject=subject,
+            template=template,
         )
         email_client.send_email(msg)
+
     except Exception as error:
         logger.info(
             'Error raised while trying to set SMTP connection',
             extra={'log_meta': orjson.dumps({'detail': str(error)}).decode()},
         )
         raise self.retry(countdown=5)
+
     else:
         logger.info(
-            'OTP email successfully sent to email',
-            extra={'log_meta': orjson.dumps({'email': email, 'code': code}).decode()},
+            'Email successfully sent via Celery Task',
+            extra={'log_meta': orjson.dumps({'subject': subject, 'template': template}).decode()},
         )

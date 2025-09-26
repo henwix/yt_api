@@ -47,8 +47,8 @@ class SetEmailUserNotEqualException(ServiceException):
 
 
 @dataclass
-class ResetPasswordCodeNotProvidedOrNotFoundException(ServiceException):
-    default_code = ErrorCodes.RESET_PASSWORD_CODE_NOT_NOT_PROVIDED_OR_NOT_FOUND
+class ResetCodeNotNotFoundException(ServiceException):
+    default_code = ErrorCodes.RESET_CODE_NOT_FOUND
     status_code = ERRORS[default_code]['status_code']
     default_detail = {'detail': ERRORS[default_code]['message']}
 
@@ -57,28 +57,8 @@ class ResetPasswordCodeNotProvidedOrNotFoundException(ServiceException):
 
 
 @dataclass
-class ResetPasswordCodeNotEqualException(ServiceException):
-    default_code = ErrorCodes.RESET_PASSWORD_CODE_NOT_EQUAL
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
-
-    user_id: int
-    code: str
-
-
-@dataclass
-class ResetUsernameCodeNotProvidedOrNotFoundException(ServiceException):
-    default_code = ErrorCodes.RESET_USERNAME_CODE_NOT_NOT_PROVIDED_OR_NOT_FOUND
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
-
-    user_id: int
-    code: str
-
-
-@dataclass
-class ResetUsernameCodeNotEqualException(ServiceException):
-    default_code = ErrorCodes.RESET_USERNAME_CODE_NOT_EQUAL
+class ResetCodeNotEqualException(ServiceException):
+    default_code = ErrorCodes.RESET_CODE_NOT_EQUAL
     status_code = ERRORS[default_code]['status_code']
     default_detail = {'detail': ERRORS[default_code]['message']}
 

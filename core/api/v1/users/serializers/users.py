@@ -144,13 +144,13 @@ class AuthUserSerializer(serializers.ModelSerializer):
         }
 
 
-class UpdateAuthUserSerializer(serializers.ModelSerializer):
+class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['email', 'username', 'otp_enabled']
 
 
-class PasswordAuthUserSerializer(serializers.ModelSerializer):
+class PasswordUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['password']
@@ -160,28 +160,23 @@ class PasswordAuthUserSerializer(serializers.ModelSerializer):
         return value
 
 
-class EmailAuthUserSerializer(serializers.ModelSerializer):
+class EmailUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['email']
-        extra_kwargs = {
-            'email': {
-                'write_only': True,
-            },
-        }
 
 
-class PasswordAuthResetConfirmSerializer(PasswordAuthUserSerializer, UUID4CodeSerializer):
+class BaseResetConfirmSerializer(UUID4CodeSerializer):
     uid = serializers.CharField(max_length=20)
 
+
+class AuthPasswordResetConfirmSerializer(BaseResetConfirmSerializer, PasswordUserSerializer):
     class Meta:
         model = CustomUser
         fields = ['uid', 'code', 'password']
 
 
-class UsernameAuthResetConfirmSerializer(serializers.ModelSerializer, UUID4CodeSerializer):
-    uid = serializers.CharField(max_length=20)
-
+class UsernameResetConfirmSerializer(BaseResetConfirmSerializer, serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['uid', 'code', 'username']

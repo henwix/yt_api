@@ -18,7 +18,10 @@ class UserResetPasswordUseCase:
     def execute(self, email: str) -> dict:
         user = self.user_service.get_by_email_or_404(email=email)
 
-        token = self.code_service.generate_password_reset_code(user=user)
+        token = self.code_service.generate_reset_code(
+            user=user,
+            cache_prefix=settings.CACHE_KEYS.get('password_reset'),
+        )
         encoded_id = self.encoding_service.base64_encode(data=user.id)
 
         self.email_service.send_email(

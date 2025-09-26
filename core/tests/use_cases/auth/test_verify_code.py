@@ -1,7 +1,7 @@
 import pytest
 
 from core.apps.users.services.codes import BaseCodeService
-from core.apps.users.use_cases.auth import VerifyCodeUseCase
+from core.apps.users.use_cases.users.auth_verify_code import VerifyCodeUseCase
 from core.tests.factories.channels import UserModelFactory
 
 

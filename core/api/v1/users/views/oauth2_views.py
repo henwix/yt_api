@@ -39,10 +39,10 @@ from core.apps.users.errors import (
     ERRORS as USERS_ERRORS,
 )
 from core.apps.users.throttles import OAuth2ThrottleClass  # noqa
-from core.apps.users.use_cases.oauth2_connect import OAuth2ConnectUseCase
-from core.apps.users.use_cases.oauth2_connected_providers import OAuth2ConnectedProvidersUseCase
-from core.apps.users.use_cases.oauth2_disconnect import OAuth2DisconnectUseCase
-from core.apps.users.use_cases.oauth2_generate_url import OAuth2GenerateURLUseCase
+from core.apps.users.use_cases.oauth2.oauth2_connect import OAuth2ConnectUseCase
+from core.apps.users.use_cases.oauth2.oauth2_connected_providers import OAuth2ConnectedProvidersUseCase
+from core.apps.users.use_cases.oauth2.oauth2_disconnect import OAuth2DisconnectUseCase
+from core.apps.users.use_cases.oauth2.oauth2_generate_url import OAuth2GenerateURLUseCase
 from core.project.containers import get_container
 
 

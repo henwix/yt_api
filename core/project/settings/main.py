@@ -213,7 +213,7 @@ SPECTACULAR_SETTINGS = {
 }
 
 DJOSER = {
-    'SEND_ACTIVATION_EMAIL': False,
+    'SEND_ACTIVATION_EMAIL': True,
     'SEND_CONFIRMATION_EMAIL': False,
     'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': False,
     'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm?uid={uid}&token={token}',
@@ -405,6 +405,7 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
+SEND_ACTIVATION_EMAIL = True
 
 EMAIL_SMTP_TEMPLATES = {
     'otp_email': 'users/otp_email.html',

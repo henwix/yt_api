@@ -14,4 +14,4 @@ class UserSetEmailConfirmUseCase:
         cached_new_email = self.code_service.validate_set_email_code(user_id=user.id, code=code)
         self.user_service.update_by_data(user=user, data={'email': cached_new_email})
 
-        return {'detail': 'Email successfully updated', 'new_email': cached_new_email}
+        return {'detail': 'Success', 'new_email': cached_new_email}

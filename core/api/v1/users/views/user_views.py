@@ -39,12 +39,12 @@ from core.api.v1.users.serializers.auth import (
     EmailSerializer,
 )
 from core.api.v1.users.serializers.users import (
+    AuthPasswordResetConfirmSerializer,
     AuthUserSerializer,
-    EmailAuthUserSerializer,
-    PasswordAuthResetConfirmSerializer,
-    PasswordAuthUserSerializer,
-    UpdateAuthUserSerializer,
-    UsernameAuthResetConfirmSerializer,
+    EmailUserSerializer,
+    PasswordUserSerializer,
+    UpdateUserSerializer,
+    UsernameResetConfirmSerializer,
 )
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.common.pagination import CustomPageNumberPagination
@@ -62,21 +62,20 @@ from core.apps.users.tasks import (
     send_reset_password_email,
     send_reset_username_email,
 )
-from core.apps.users.use_cases.auth import (
-    AuthorizeUserUseCase,
-    VerifyCodeUseCase,
-)
-from core.apps.users.use_cases.user_create import UserCreateUseCase
-from core.apps.users.use_cases.user_reset_password import UserResetPasswordUseCase
-from core.apps.users.use_cases.user_reset_password_confirm import UserResetPasswordConfirmUseCase
-from core.apps.users.use_cases.user_reset_username import UserResetUsernameUseCase
-from core.apps.users.use_cases.user_reset_username_confirm import UserResetUsernameConfirmUseCase
-from core.apps.users.use_cases.user_set_email import UserSetEmailUseCase
-from core.apps.users.use_cases.user_set_email_confirm import UserSetEmailConfirmUseCase
-from core.apps.users.use_cases.user_set_password import UserSetPasswordUseCase
+from core.apps.users.use_cases.users.auth_authorize import AuthorizeUserUseCase
+from core.apps.users.use_cases.users.auth_verify_code import VerifyCodeUseCase
+from core.apps.users.use_cases.users.user_create import UserCreateUseCase
+from core.apps.users.use_cases.users.user_reset_password import UserResetPasswordUseCase
+from core.apps.users.use_cases.users.user_reset_password_confirm import UserResetPasswordConfirmUseCase
+from core.apps.users.use_cases.users.user_reset_username import UserResetUsernameUseCase
+from core.apps.users.use_cases.users.user_reset_username_confirm import UserResetUsernameConfirmUseCase
+from core.apps.users.use_cases.users.user_set_email import UserSetEmailUseCase
+from core.apps.users.use_cases.users.user_set_email_confirm import UserSetEmailConfirmUseCase
+from core.apps.users.use_cases.users.user_set_password import UserSetPasswordUseCase
 from core.project.containers import get_container  # noqa
 
 
+# TODO: activation, resend_activation
 # TODO: add captcha in user creation
 # TODO: доку для всех endpoints
 # TODO: throttling для отправки почты на все эндпоинты
@@ -99,21 +98,21 @@ class UserView(
 
     def get_serializer_class(self):
         if self.action in ['update', 'partial_update']:
-            return UpdateAuthUserSerializer
+            return UpdateUserSerializer
         if self.action in ['create', 'retrieve']:
             return AuthUserSerializer
         if self.action == 'set_password':
-            return PasswordAuthUserSerializer
+            return PasswordUserSerializer
         if self.action == 'set_email':
-            return EmailAuthUserSerializer
+            return EmailUserSerializer
         if self.action == 'set_email_confirm':
             return UUID4CodeSerializer
         if self.action in ['reset_password', 'reset_username']:
             return EmailSerializer
         if self.action == 'reset_password_confirm':
-            return PasswordAuthResetConfirmSerializer
+            return AuthPasswordResetConfirmSerializer
         if self.action == 'reset_username_confirm':
-            return UsernameAuthResetConfirmSerializer
+            return UsernameResetConfirmSerializer
 
     def create(self, request):
         serializer = self.get_serializer(data=request.data)

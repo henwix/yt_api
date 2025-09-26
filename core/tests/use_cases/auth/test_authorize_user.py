@@ -2,7 +2,7 @@ import pytest
 
 from core.apps.users.exceptions.users import UserNotFoundError
 from core.apps.users.models import CustomUser
-from core.apps.users.use_cases.auth import AuthorizeUserUseCase
+from core.apps.users.use_cases.users.auth_authorize import AuthorizeUserUseCase
 
 
 @pytest.mark.django_db

@@ -14,10 +14,8 @@ from core.apps.users.entities import UserEntity
 from core.apps.users.exceptions.codes import (
     OtpCodeNotEqualException,
     OtpCodeNotProvidedOrNotFoundException,
-    ResetPasswordCodeNotEqualException,
-    ResetPasswordCodeNotProvidedOrNotFoundException,
-    ResetUsernameCodeNotEqualException,
-    ResetUsernameCodeNotProvidedOrNotFoundException,
+    ResetCodeNotEqualException,
+    ResetCodeNotNotFoundException,
     SetEmailCodeNotProvidedOrNotFoundException,
     SetEmailUserNotEqualException,
 )
@@ -41,19 +39,11 @@ class BaseCodeService(ABC):
         ...
 
     @abstractmethod
-    def generate_password_reset_code(self, user: UserEntity) -> str:
+    def generate_reset_code(self, user: UserEntity, cache_prefix: str) -> str:
         ...
 
     @abstractmethod
-    def validate_password_reset_code(self, user: UserEntity, code: str) -> bool:
-        ...
-
-    @abstractmethod
-    def generate_username_reset_code(self, user: UserEntity) -> str:
-        ...
-
-    @abstractmethod
-    def validate_username_reset_code(self, user: UserEntity, code: str) -> bool:
+    def validate_reset_code(self, user: UserEntity, code: str, cache_prefix: str) -> bool:
         ...
 
 
@@ -64,8 +54,6 @@ class EmailCodeService(BaseCodeService):
 
     _OTP_CACHE_KEY_PREFIX = settings.CACHE_KEYS.get('otp_email')
     _SET_EMAIL_CACHE_KEY_PREFIX = settings.CACHE_KEYS.get('set_email')
-    _PASSWORD_RESET_CACHE_KEY_PREFIX = settings.CACHE_KEYS.get('password_reset')
-    _USERNAME_RESET_CACHE_KEY_PREFIX = settings.CACHE_KEYS.get('username_reset')
 
     def generate_email_otp_code(self, email: str) -> str:
         code = str(random.randint(100000, 999999))  # noqa
@@ -84,21 +72,17 @@ class EmailCodeService(BaseCodeService):
         self.cache_service.delete_cached_data(key=self._OTP_CACHE_KEY_PREFIX + email)
 
     def generate_set_email_code(self, user_id: int, email: str) -> str:
-        """Generate UUID4 code, save in cache and return."""
-
         code = uuid.uuid4().hex
 
         self.cache_service.cache_data(
             key=self._SET_EMAIL_CACHE_KEY_PREFIX + code,
             data={'user_id': user_id, 'new_email': email},
-            timeout=60 * 5,  # TODO: сделать общие настройки для таймаута и почты с темплейтами в целом
+            timeout=60 * 5,
         )
 
         return code
 
     def validate_set_email_code(self, user_id: int, code: str) -> str:
-        """Validate set email code and return new email if valid."""
-
         cache_key = self._SET_EMAIL_CACHE_KEY_PREFIX + code
         cached_data = self.cache_service.get_cached_data(key=cache_key)
 
@@ -112,51 +96,26 @@ class EmailCodeService(BaseCodeService):
 
         return cached_data.get('new_email')
 
-    def generate_password_reset_code(self, user: UserEntity) -> str:
+    def generate_reset_code(self, user: UserEntity, cache_prefix: str) -> str:
         code = uuid.uuid4().hex
 
         self.cache_service.cache_data(
-            key=f'{self._PASSWORD_RESET_CACHE_KEY_PREFIX}{user.id}',
+            key=f'{cache_prefix}{user.id}',
             data=code,
             timeout=60 * 5,
         )
 
         return code
 
-    def validate_password_reset_code(self, user: UserEntity, code: str) -> bool:
-        cache_key = f'{self._PASSWORD_RESET_CACHE_KEY_PREFIX}{user.id}'
+    def validate_reset_code(self, user: UserEntity, code: str, cache_prefix: str) -> bool:
+        cache_key = f'{cache_prefix}{user.id}'
         cached_code = self.cache_service.get_cached_data(key=cache_key)
 
         if cached_code is None:
-            raise ResetPasswordCodeNotProvidedOrNotFoundException(user_id=user.id, code=code)
+            raise ResetCodeNotNotFoundException(user_id=user.id, code=code)
 
         if code != cached_code:
-            raise ResetPasswordCodeNotEqualException(user_id=user.id, code=code)
-
-        self.cache_service.delete_cached_data(key=cache_key)
-
-        return True
-
-    def generate_username_reset_code(self, user: UserEntity) -> str:
-        code = uuid.uuid4().hex
-
-        self.cache_service.cache_data(
-            key=f'{self._USERNAME_RESET_CACHE_KEY_PREFIX}{user.id}',
-            data=code,
-            timeout=60 * 5,
-        )
-
-        return code
-
-    def validate_username_reset_code(self, user: UserEntity, code: str) -> bool:
-        cache_key = f'{self._USERNAME_RESET_CACHE_KEY_PREFIX}{user.id}'
-        cached_code = self.cache_service.get_cached_data(key=cache_key)
-
-        if cached_code is None:
-            raise ResetUsernameCodeNotProvidedOrNotFoundException(user_id=user.id, code=code)
-
-        if code != cached_code:
-            raise ResetUsernameCodeNotEqualException(user_id=user.id, code=code)
+            raise ResetCodeNotEqualException(user_id=user.id, code=code)
 
         self.cache_service.delete_cached_data(key=cache_key)
 

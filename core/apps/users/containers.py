@@ -25,22 +25,20 @@ from core.apps.users.services.users import (
     ORMUserService,
     UserExistsValidatorService,
 )
-from core.apps.users.use_cases.auth import (
-    AuthorizeUserUseCase,
-    VerifyCodeUseCase,
-)
-from core.apps.users.use_cases.oauth2_connect import OAuth2ConnectUseCase
-from core.apps.users.use_cases.oauth2_connected_providers import OAuth2ConnectedProvidersUseCase
-from core.apps.users.use_cases.oauth2_disconnect import OAuth2DisconnectUseCase
-from core.apps.users.use_cases.oauth2_generate_url import OAuth2GenerateURLUseCase
-from core.apps.users.use_cases.user_create import UserCreateUseCase
-from core.apps.users.use_cases.user_reset_password import UserResetPasswordUseCase
-from core.apps.users.use_cases.user_reset_password_confirm import UserResetPasswordConfirmUseCase
-from core.apps.users.use_cases.user_reset_username import UserResetUsernameUseCase
-from core.apps.users.use_cases.user_reset_username_confirm import UserResetUsernameConfirmUseCase
-from core.apps.users.use_cases.user_set_email import UserSetEmailUseCase
-from core.apps.users.use_cases.user_set_email_confirm import UserSetEmailConfirmUseCase
-from core.apps.users.use_cases.user_set_password import UserSetPasswordUseCase
+from core.apps.users.use_cases.oauth2.oauth2_connect import OAuth2ConnectUseCase
+from core.apps.users.use_cases.oauth2.oauth2_connected_providers import OAuth2ConnectedProvidersUseCase
+from core.apps.users.use_cases.oauth2.oauth2_disconnect import OAuth2DisconnectUseCase
+from core.apps.users.use_cases.oauth2.oauth2_generate_url import OAuth2GenerateURLUseCase
+from core.apps.users.use_cases.users.auth_authorize import AuthorizeUserUseCase
+from core.apps.users.use_cases.users.auth_verify_code import VerifyCodeUseCase
+from core.apps.users.use_cases.users.user_create import UserCreateUseCase
+from core.apps.users.use_cases.users.user_reset_password import UserResetPasswordUseCase
+from core.apps.users.use_cases.users.user_reset_password_confirm import UserResetPasswordConfirmUseCase
+from core.apps.users.use_cases.users.user_reset_username import UserResetUsernameUseCase
+from core.apps.users.use_cases.users.user_reset_username_confirm import UserResetUsernameConfirmUseCase
+from core.apps.users.use_cases.users.user_set_email import UserSetEmailUseCase
+from core.apps.users.use_cases.users.user_set_email_confirm import UserSetEmailConfirmUseCase
+from core.apps.users.use_cases.users.user_set_password import UserSetPasswordUseCase
 
 
 def init_users(container: punq.Container) -> None:

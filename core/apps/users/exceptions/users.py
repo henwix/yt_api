@@ -19,3 +19,12 @@ class UserWithThisDataAlreadyExists(ServiceException):
     default_code = ErrorCodes.USER_WITH_DATA_ALREADY_EXISTS
     status_code = ERRORS[default_code]['status_code']
     default_detail = {'detail': ERRORS[default_code]['message']}
+
+
+@dataclass
+class InvalidUIDValueException(ServiceException):
+    default_code = ErrorCodes.IVALID_UID_VALUE
+    status_code = ERRORS[default_code]['status_code']
+    default_detail = {'detail': ERRORS[default_code]['message']}
+
+    error_msg: str = ''

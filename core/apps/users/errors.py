@@ -3,21 +3,20 @@ from rest_framework import status
 
 class ErrorCodes:
     # users/exceptions/codes.py
-    OTP_CODE_NOT_PROVIDED_OR_NOT_FOUND = "otp_code_not_provided"
-    CODE_NOT_EQUAL = "otp_code_not_equal"
-    SET_EMAIL_CODE_NOT_PROVIDED_OR_NOT_FOUND = "set_email_code_not_provided"
-    SET_EMAIL_USER_NOT_EQUAL = "set_email_user_not_equal"
-    RESET_PASSWORD_CODE_NOT_NOT_PROVIDED_OR_NOT_FOUND = "reset_password_code_not_provided"
-    RESET_PASSWORD_CODE_NOT_EQUAL = 'reset_password_not_equal'
-    RESET_USERNAME_CODE_NOT_NOT_PROVIDED_OR_NOT_FOUND = "reset_username_code_not_provided"
-    RESET_USERNAME_CODE_NOT_EQUAL = 'reset_username_not_equal'
+    OTP_CODE_NOT_PROVIDED_OR_NOT_FOUND = 'otp_code_not_provided'
+    CODE_NOT_EQUAL = 'otp_code_not_equal'
+    SET_EMAIL_CODE_NOT_PROVIDED_OR_NOT_FOUND = 'set_email_code_not_provided'
+    SET_EMAIL_USER_NOT_EQUAL = 'set_email_user_not_equal'
+    RESET_CODE_NOT_FOUND = 'reset_code_not_found'
+    RESET_CODE_NOT_EQUAL = 'reset_code_not_equal'
 
     # users/exceptions/oauth2.py
-    OAUTH2_PROVIDER_NOT_SUPPORTED = "oauth2_provider_not_supported"
+    OAUTH2_PROVIDER_NOT_SUPPORTED = 'oauth2_provider_not_supported'
 
     # users/exceptions/users.py
-    USER_NOT_FOUND = "user_not_found"
-    USER_WITH_DATA_ALREADY_EXISTS = "user_with_data_already_exists"
+    USER_NOT_FOUND = 'user_not_found'
+    USER_WITH_DATA_ALREADY_EXISTS = 'user_with_data_already_exists'
+    IVALID_UID_VALUE = 'invalid_uid_value'
 
 
 ERRORS = {
@@ -38,20 +37,12 @@ ERRORS = {
         'message': 'Set email user not equal',
         'status_code': status.HTTP_400_BAD_REQUEST,
     },
-    ErrorCodes.RESET_PASSWORD_CODE_NOT_NOT_PROVIDED_OR_NOT_FOUND: {
-        'message': 'Reset password code not provided or not found',
+    ErrorCodes.RESET_CODE_NOT_FOUND: {
+        'message': 'Reset code not found',
         'status_code': status.HTTP_404_NOT_FOUND,
     },
-    ErrorCodes.RESET_PASSWORD_CODE_NOT_EQUAL: {
-        'message': 'Reset password code not equal',
-        'status_code': status.HTTP_400_BAD_REQUEST,
-    },
-    ErrorCodes.RESET_USERNAME_CODE_NOT_NOT_PROVIDED_OR_NOT_FOUND: {
-        'message': 'Reset username code not provided or not found',
-        'status_code': status.HTTP_404_NOT_FOUND,
-    },
-    ErrorCodes.RESET_USERNAME_CODE_NOT_EQUAL: {
-        'message': 'Reset username code not equal',
+    ErrorCodes.RESET_CODE_NOT_EQUAL: {
+        'message': 'Reset code not equal',
         'status_code': status.HTTP_400_BAD_REQUEST,
     },
 
@@ -70,4 +61,9 @@ ERRORS = {
         'message': 'User with this data already exists',
         'status_code': status.HTTP_400_BAD_REQUEST,
     },
+    ErrorCodes.IVALID_UID_VALUE: {
+        'message': 'Invalid uid value',
+        'status_code': status.HTTP_400_BAD_REQUEST,
+    },
+
 }

@@ -30,4 +30,11 @@ class EncodingService(BaseEncodingService):
         return urlsafe_base64_encode(force_bytes(data))
 
     def base64_decode(self, data: bytes) -> str:
+        """Encodes data from base64 to string.
+
+        ***Be sure that you handle possible encoding exceptions outside
+        of this method***
+
+        """
+
         return force_str(urlsafe_base64_decode(data))

@@ -1,10 +1,8 @@
 import punq
 import pytest
 
-from core.apps.users.use_cases.auth import (
-    AuthorizeUserUseCase,
-    VerifyCodeUseCase,
-)
+from core.apps.users.use_cases.users.auth_authorize import AuthorizeUserUseCase
+from core.apps.users.use_cases.users.auth_verify_code import VerifyCodeUseCase
 
 
 @pytest.fixture

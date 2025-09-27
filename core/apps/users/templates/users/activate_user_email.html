@@ -1,4 +1,3 @@
-
 {% load static %}
 
 <!DOCTYPE html>
@@ -6,7 +5,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Password Reset</title>
+  <title>Activate Your Account</title>
   <style>
     body {
       margin: 0;
@@ -101,22 +100,24 @@
 
   <div class="container">
     <div class="header">
-      <h1>🔑 Username Reset Request</h1>
+      <h1>✅ Activate Your Account</h1>
     </div>
 
     <div class="content">
-      <p>Hello, <strong>{{ email }}</strong>!</p>
-      <p>You are receiving this message because you requested to reset your username on the account associated with this email.</p>
-      <p>Please use the following information to proceed:</p>
+      <p>Hello, <strong>{{ username }}</strong>!</p>
+
+      <p>Welcome — you recently created an account with us. To activate it, please use the information below.</p>
 
       <div class="otp">
         ID: {{ encoded_id }}<br>
         CODE: {{ code }}
       </div>
+
+      <p>This activation code is valid for 5 minutes. If you did not sign up, you can safely ignore this email.</p>
     </div>
 
     <div class="footer">
-      If you didn’t request this, you can safely ignore this email.
+      If you experience any issues, please contact our support team.
     </div>
   </div>
 
@@ -126,4 +127,3 @@
 
 </body>
 </html>
-

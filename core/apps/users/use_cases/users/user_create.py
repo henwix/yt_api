@@ -1,9 +1,14 @@
 from dataclasses import dataclass
 
 from django.db import transaction
+from django.db.utils import settings
 
 from core.apps.channels.services.channels import BaseChannelService
+from core.apps.common.services.encoding import BaseEncodingService
+from core.apps.common.services.smtp_email import BaseEmailService
+from core.apps.users.converters.users import user_to_entity
 from core.apps.users.models import CustomUser
+from core.apps.users.services.codes import BaseCodeService
 from core.apps.users.services.users import BaseUserService
 
 
@@ -11,31 +16,52 @@ from core.apps.users.services.users import BaseUserService
 class UserCreateUseCase:
     user_service: BaseUserService
     channel_service: BaseChannelService
+    code_service: BaseCodeService
+    email_service: BaseEmailService
+    encoding_service: BaseEncodingService
 
-    @transaction.atomic
-    def execute(self, validated_data: dict) -> CustomUser:
-        # create new user by provided data
-        user: CustomUser = self.user_service.create_by_data(
-            data={
-                'username': validated_data.get('username'),
-                'email': validated_data.get('email'),
-                'password': validated_data.get('password'),
-            },
-        )
+    def execute(self, validated_data: dict) -> CustomUser | dict:
+        activation_required = self.user_service.is_activation_required()
 
-        # check if the 'channel' dict was provided, if not, create an empty one
-        validated_data.setdefault('channel', {})
+        with transaction.atomic():
+            # create new user by provided data
+            user: CustomUser = self.user_service.create_by_data(
+                data={
+                    'username': validated_data.get('username'),
+                    'email': validated_data.get('email'),
+                    'password': validated_data.get('password'),
+                    'is_active': False if activation_required else True,
+                },
+            )
 
-        # add just created user to the 'channel' dict
-        validated_data['channel']['user'] = user
+            # check if the 'channel' dict was provided, if not, create an empty one
+            validated_data.setdefault('channel', {})
 
-        # create a channel for the new user
-        self.channel_service.create_by_data(data=validated_data)
+            # add just created user to the 'channel' dict
+            validated_data['channel']['user'] = user
 
-        # TODO: сделать отправку письма с активацией тут, или может быть перетащить отправку в service create_by_data
+            # create a channel for the new user
+            self.channel_service.create_by_data(data=validated_data)
 
-        # if settings.SEND_ACTIVATION_EMAIL:
-        #     user.is_active = False
-        #     user.save(update_fields=["is_active"])
+        # TODO: прописать везде комментарии
+        if activation_required:
+            user_entity = user_to_entity(user)
+
+            # self.user_service.update_by_data(user=user_entity, data={'is_active': False})
+
+            code = self.code_service.generate_user_email_code(
+                user=user_entity,
+                cache_prefix=settings.CACHE_KEYS.get('activate_user'),
+            )
+            encoded_id = self.encoding_service.base64_encode(data=user_entity.id)
+
+            self.email_service.send_email(
+                to=[user_entity.email],
+                context={'username': user_entity.username, 'encoded_id': encoded_id, 'code': code},
+                subject='Activate your account',
+                template=settings.EMAIL_SMTP_TEMPLATES.get('activate_user'),
+            )
+
+            return {'detail': 'Activation email successfully sent'}
 
         return user

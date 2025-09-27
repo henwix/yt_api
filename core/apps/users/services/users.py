@@ -4,13 +4,18 @@ from abc import (
 )
 from dataclasses import dataclass
 
-from django.db.utils import IntegrityError
+from django.db.utils import (
+    IntegrityError,
+    settings,
+)
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.apps.users.converters.users import user_from_entity
 from core.apps.users.entities import UserEntity
 from core.apps.users.exceptions.users import (
+    UserActivationNotAllowedError,
+    UserAlreadyActivatedError,
     UserNotFoundError,
     UserWithThisDataAlreadyExists,
 )
@@ -28,6 +33,33 @@ class UserExistsValidatorService(BaseUserValidatorService):
     def validate(self, user: UserEntity | None) -> None:
         if not user or user is None:
             raise UserNotFoundError()
+
+
+class BaseUserActivatedValidatorService(ABC):
+    @abstractmethod
+    def validate(self, user: UserEntity) -> None:
+        ...
+
+
+class UserActivatedValidatorService(BaseUserActivatedValidatorService):
+    def validate(self, user: UserEntity) -> None:
+        if user.is_active:
+            raise UserAlreadyActivatedError(user_id=user.id)
+
+
+@dataclass
+class BaseUserActivationRequiredValidatorService(ABC):
+    user_service: 'BaseUserService'
+
+    @abstractmethod
+    def validate(self) -> None:
+        ...
+
+
+class UserActivationRequiredValidatorService(BaseUserActivationRequiredValidatorService):
+    def validate(self) -> None:
+        if not self.user_service.is_activation_required():
+            raise UserActivationNotAllowedError()
 
 
 @dataclass
@@ -61,6 +93,10 @@ class BaseUserService(ABC):
 
     @abstractmethod
     def update_by_data(self, user: UserEntity, data: dict) -> bool:
+        ...
+
+    @abstractmethod
+    def is_activation_required(self) -> bool:
         ...
 
 
@@ -101,3 +137,6 @@ class ORMUserService(BaseUserService):
 
         except IntegrityError:
             raise UserWithThisDataAlreadyExists()
+
+    def is_activation_required(self) -> bool:
+        return settings.SEND_ACTIVATION_EMAIL

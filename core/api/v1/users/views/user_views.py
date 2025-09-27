@@ -43,6 +43,7 @@ from core.api.v1.users.serializers.users import (
     AuthUserSerializer,
     EmailUserSerializer,
     PasswordUserSerializer,
+    UIDAndCodeConfirmSerializer,
     UpdateUserSerializer,
     UsernameResetConfirmSerializer,
 )
@@ -64,7 +65,9 @@ from core.apps.users.tasks import (
 )
 from core.apps.users.use_cases.users.auth_authorize import AuthorizeUserUseCase
 from core.apps.users.use_cases.users.auth_verify_code import VerifyCodeUseCase
+from core.apps.users.use_cases.users.user_activation import UserActivationUseCase
 from core.apps.users.use_cases.users.user_create import UserCreateUseCase
+from core.apps.users.use_cases.users.user_resend_activation import UserResendActivationUseCase
 from core.apps.users.use_cases.users.user_reset_password import UserResetPasswordUseCase
 from core.apps.users.use_cases.users.user_reset_password_confirm import UserResetPasswordConfirmUseCase
 from core.apps.users.use_cases.users.user_reset_username import UserResetUsernameUseCase
@@ -107,12 +110,14 @@ class UserView(
             return EmailUserSerializer
         if self.action == 'set_email_confirm':
             return UUID4CodeSerializer
-        if self.action in ['reset_password', 'reset_username']:
+        if self.action in ['reset_password', 'reset_username', 'resend_activation']:
             return EmailSerializer
         if self.action == 'reset_password_confirm':
             return AuthPasswordResetConfirmSerializer
         if self.action == 'reset_username_confirm':
             return UsernameResetConfirmSerializer
+        if self.action == 'activation':
+            return UIDAndCodeConfirmSerializer
 
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -121,13 +126,16 @@ class UserView(
         use_case: UserCreateUseCase = self.container.resolve(UserCreateUseCase)
 
         try:
-            result: CustomUser = use_case.execute(validated_data=serializer.validated_data)
+            result: CustomUser | dict = use_case.execute(validated_data=serializer.validated_data)
 
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
 
-        return Response(self.get_serializer(result).data, status=status.HTTP_201_CREATED)
+        return Response(
+            data=self.get_serializer(result).data if isinstance(result, CustomUser) else result,
+            status=status.HTTP_201_CREATED,
+        )
 
     @action(['post'], detail=False)
     def set_password(self, request):
@@ -241,6 +249,41 @@ class UserView(
                 code=serializer.validated_data.get('code'),
                 new_username=serializer.validated_data.get('username'),
             )
+
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        return Response(result, status=status.HTTP_200_OK)
+
+    @action(['post'], detail=False)
+    def activation(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        use_case: UserActivationUseCase = self.container.resolve(UserActivationUseCase)
+
+        try:
+            result = use_case.execute(
+                encoded_id=serializer.validated_data.get('uid'),
+                code=serializer.validated_data.get('code'),
+            )
+
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        return Response(result, status=status.HTTP_200_OK)
+
+    @action(['post'], detail=False)
+    def resend_activation(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        use_case: UserResendActivationUseCase = self.container.resolve(UserResendActivationUseCase)
+
+        try:
+            result = use_case.execute(email=serializer.validated_data.get('email'))
 
         except ServiceException as error:
             self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})

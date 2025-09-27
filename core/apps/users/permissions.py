@@ -9,6 +9,8 @@ class AuthUserPermission(BasePermission):
         'reset_password_confirm',
         'reset_username',
         'reset_username_confirm',
+        'activation',
+        'resend_activation',
     ]
 
     # actions that require authentication

@@ -166,17 +166,17 @@ class EmailUserSerializer(serializers.ModelSerializer):
         fields = ['email']
 
 
-class BaseResetConfirmSerializer(UUID4CodeSerializer):
+class UIDAndCodeConfirmSerializer(UUID4CodeSerializer):
     uid = serializers.CharField(max_length=20)
 
 
-class AuthPasswordResetConfirmSerializer(BaseResetConfirmSerializer, PasswordUserSerializer):
+class AuthPasswordResetConfirmSerializer(UIDAndCodeConfirmSerializer, PasswordUserSerializer):
     class Meta:
         model = CustomUser
         fields = ['uid', 'code', 'password']
 
 
-class UsernameResetConfirmSerializer(BaseResetConfirmSerializer, serializers.ModelSerializer):
+class UsernameResetConfirmSerializer(UIDAndCodeConfirmSerializer, serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['uid', 'code', 'username']

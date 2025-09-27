@@ -22,7 +22,7 @@ class UserResetPasswordConfirmUseCase:
         except (ValueError, TypeError) as error:
             raise InvalidUIDValueException(error_msg=str(error))
 
-        self.code_service.validate_reset_code(
+        self.code_service.validate_user_email_code(
             user=user,
             code=code,
             cache_prefix=settings.CACHE_KEYS.get('password_reset'),

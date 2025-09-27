@@ -214,7 +214,7 @@ SPECTACULAR_SETTINGS = {
 
 DJOSER = {
     'SEND_ACTIVATION_EMAIL': True,
-    'SEND_CONFIRMATION_EMAIL': False,
+    'SEND_CONFIRMATION_EMAIL': True,
     'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': False,
     'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm?uid={uid}&token={token}',
     'USERNAME_RESET_CONFIRM_URL': 'username/reset/confirm?uid={uid}&token={token}',
@@ -334,6 +334,7 @@ CACHE_KEYS = {
     'otp_email': 'otp_code_',
     'set_email': 'set_email_code_',
     'password_reset': 'user_password_reset_',
+    'activate_user': 'activate_user_',
 }
 
 
@@ -412,6 +413,7 @@ EMAIL_SMTP_TEMPLATES = {
     'set_email': 'users/set_email.html',
     'password_reset': 'users/password_reset_email.html',
     'username_reset': 'users/username_reset_email.html',
+    'activate_user': 'users/activate_user_email.html',
 }
 
 

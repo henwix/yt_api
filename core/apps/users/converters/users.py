@@ -15,6 +15,7 @@ def user_from_entity(user: UserEntity) -> CustomUser:
         otp_enabled=user.otp_enabled,
         is_staff=user.is_staff,
         is_superuser=user.is_superuser,
+        is_active=user.is_active,
         date_joined=user.date_joined,
     )
 
@@ -30,5 +31,6 @@ def user_to_entity(user: CustomUser | AnonymousUser) -> UserEntity | AnonymousUs
         otp_enabled=user.otp_enabled,
         is_staff=user.is_staff,
         is_superuser=user.is_superuser,
+        is_active=user.is_active,
         date_joined=user.date_joined,
     )

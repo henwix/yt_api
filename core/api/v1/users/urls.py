@@ -32,7 +32,6 @@ app_name = 'users'
 router = DefaultRouter()
 router.register('users', CustomUserViewSet)
 
-# TODO: посмотреть, правильно ли задаются имена путей
 user_router = CustomUserRouter()
 user_router.register(r'users', UserView, basename='user')
 

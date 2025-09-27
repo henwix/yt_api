@@ -20,9 +20,13 @@ from core.apps.users.services.oauth2 import (
     OAuth2Service,
 )
 from core.apps.users.services.users import (
+    BaseUserActivatedValidatorService,
+    BaseUserActivationRequiredValidatorService,
     BaseUserService,
     BaseUserValidatorService,
     ORMUserService,
+    UserActivatedValidatorService,
+    UserActivationRequiredValidatorService,
     UserExistsValidatorService,
 )
 from core.apps.users.use_cases.oauth2.oauth2_connect import OAuth2ConnectUseCase
@@ -31,7 +35,9 @@ from core.apps.users.use_cases.oauth2.oauth2_disconnect import OAuth2DisconnectU
 from core.apps.users.use_cases.oauth2.oauth2_generate_url import OAuth2GenerateURLUseCase
 from core.apps.users.use_cases.users.auth_authorize import AuthorizeUserUseCase
 from core.apps.users.use_cases.users.auth_verify_code import VerifyCodeUseCase
+from core.apps.users.use_cases.users.user_activation import UserActivationUseCase
 from core.apps.users.use_cases.users.user_create import UserCreateUseCase
+from core.apps.users.use_cases.users.user_resend_activation import UserResendActivationUseCase
 from core.apps.users.use_cases.users.user_reset_password import UserResetPasswordUseCase
 from core.apps.users.use_cases.users.user_reset_password_confirm import UserResetPasswordConfirmUseCase
 from core.apps.users.use_cases.users.user_reset_username import UserResetUsernameUseCase
@@ -45,6 +51,8 @@ def init_users(container: punq.Container) -> None:
     #  services
     container.register(BaseUserService, ORMUserService)
     container.register(BaseUserValidatorService, UserExistsValidatorService)
+    container.register(BaseUserActivatedValidatorService, UserActivatedValidatorService)
+    container.register(BaseUserActivationRequiredValidatorService, UserActivationRequiredValidatorService)
     container.register(BaseCodeService, EmailCodeService)
     container.register(BaseOAuth2Service, OAuth2Service)
     container.register(BaseOAuth2ProviderValidatorService, OAuth2ProviderValidatorService)
@@ -65,6 +73,8 @@ def init_users(container: punq.Container) -> None:
     container.register(UserResetPasswordConfirmUseCase)
     container.register(UserResetUsernameUseCase)
     container.register(UserResetUsernameConfirmUseCase)
+    container.register(UserActivationUseCase)
+    container.register(UserResendActivationUseCase)
 
     container.register(OAuth2GenerateURLUseCase)
     container.register(OAuth2ConnectUseCase)

@@ -39,11 +39,11 @@ class BaseCodeService(ABC):
         ...
 
     @abstractmethod
-    def generate_reset_code(self, user: UserEntity, cache_prefix: str) -> str:
+    def generate_user_email_code(self, user: UserEntity, cache_prefix: str) -> str:
         ...
 
     @abstractmethod
-    def validate_reset_code(self, user: UserEntity, code: str, cache_prefix: str) -> bool:
+    def validate_user_email_code(self, user: UserEntity, code: str, cache_prefix: str) -> bool:
         ...
 
 
@@ -96,7 +96,7 @@ class EmailCodeService(BaseCodeService):
 
         return cached_data.get('new_email')
 
-    def generate_reset_code(self, user: UserEntity, cache_prefix: str) -> str:
+    def generate_user_email_code(self, user: UserEntity, cache_prefix: str) -> str:
         code = uuid.uuid4().hex
 
         self.cache_service.cache_data(
@@ -107,7 +107,7 @@ class EmailCodeService(BaseCodeService):
 
         return code
 
-    def validate_reset_code(self, user: UserEntity, code: str, cache_prefix: str) -> bool:
+    def validate_user_email_code(self, user: UserEntity, code: str, cache_prefix: str) -> bool:
         cache_key = f'{cache_prefix}{user.id}'
         cached_code = self.cache_service.get_cached_data(key=cache_key)
 

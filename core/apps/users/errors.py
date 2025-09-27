@@ -17,6 +17,8 @@ class ErrorCodes:
     USER_NOT_FOUND = 'user_not_found'
     USER_WITH_DATA_ALREADY_EXISTS = 'user_with_data_already_exists'
     IVALID_UID_VALUE = 'invalid_uid_value'
+    USER_ALREADY_ACTIVATED = 'user_already_activated'
+    USER_ACTIVATION_NOT_ALLOWED = 'user_activation_not_allowed'
 
 
 ERRORS = {
@@ -65,5 +67,12 @@ ERRORS = {
         'message': 'Invalid uid value',
         'status_code': status.HTTP_400_BAD_REQUEST,
     },
-
+    ErrorCodes.USER_ALREADY_ACTIVATED: {
+        'message': 'User already activated',
+        'status_code': status.HTTP_400_BAD_REQUEST,
+    },
+    ErrorCodes.USER_ACTIVATION_NOT_ALLOWED: {
+        'message': 'User activation not allowed',
+        'status_code': status.HTTP_400_BAD_REQUEST,
+    },
 }

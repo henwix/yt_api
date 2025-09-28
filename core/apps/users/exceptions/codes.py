@@ -8,7 +8,7 @@ from core.apps.users.errors import (
 
 
 @dataclass
-class OtpCodeNotProvidedOrNotFoundException(ServiceException):
+class OtpCodeNotProvidedOrNotFoundError(ServiceException):
     default_code = ErrorCodes.OTP_CODE_NOT_PROVIDED_OR_NOT_FOUND
     status_code = ERRORS[default_code]['status_code']
     default_detail = {'detail': ERRORS[default_code]['message']}
@@ -17,7 +17,7 @@ class OtpCodeNotProvidedOrNotFoundException(ServiceException):
 
 
 @dataclass
-class OtpCodeNotEqualException(ServiceException):
+class OtpCodeNotEqualError(ServiceException):
     default_code = ErrorCodes.CODE_NOT_EQUAL
     status_code = ERRORS[default_code]['status_code']
     default_detail = {'detail': ERRORS[default_code]['message']}
@@ -27,7 +27,7 @@ class OtpCodeNotEqualException(ServiceException):
 
 
 @dataclass
-class SetEmailCodeNotProvidedOrNotFoundException(ServiceException):
+class SetEmailCodeNotProvidedOrNotFoundError(ServiceException):
     default_code = ErrorCodes.SET_EMAIL_CODE_NOT_PROVIDED_OR_NOT_FOUND
     status_code = ERRORS[default_code]['status_code']
     default_detail = {'detail': ERRORS[default_code]['message']}
@@ -37,7 +37,7 @@ class SetEmailCodeNotProvidedOrNotFoundException(ServiceException):
 
 
 @dataclass
-class SetEmailUserNotEqualException(ServiceException):
+class SetEmailUserNotEqualError(ServiceException):
     default_code = ErrorCodes.SET_EMAIL_USER_NOT_EQUAL
     status_code = ERRORS[default_code]['status_code']
     default_detail = {'detail': ERRORS[default_code]['message']}
@@ -47,7 +47,7 @@ class SetEmailUserNotEqualException(ServiceException):
 
 
 @dataclass
-class ResetCodeNotNotFoundException(ServiceException):
+class ResetCodeNotNotFoundError(ServiceException):
     default_code = ErrorCodes.RESET_CODE_NOT_FOUND
     status_code = ERRORS[default_code]['status_code']
     default_detail = {'detail': ERRORS[default_code]['message']}
@@ -57,7 +57,7 @@ class ResetCodeNotNotFoundException(ServiceException):
 
 
 @dataclass
-class ResetCodeNotEqualException(ServiceException):
+class ResetCodeNotEqualError(ServiceException):
     default_code = ErrorCodes.RESET_CODE_NOT_EQUAL
     status_code = ERRORS[default_code]['status_code']
     default_detail = {'detail': ERRORS[default_code]['message']}

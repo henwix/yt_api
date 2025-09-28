@@ -16,19 +16,32 @@ class UserResetPasswordUseCase:
     email_service: BaseEmailService
 
     def execute(self, email: str) -> dict:
+        # retrieve user by email or raise 404 error
         user = self.user_service.get_by_email_or_404(email=email)
 
+        # generate password reset code and encoded user id
         code = self.code_service.generate_user_email_code(
             user=user,
             cache_prefix=settings.CACHE_KEYS.get('password_reset'),
         )
         encoded_id = self.encoding_service.base64_encode(data=user.id)
 
+        # send email with password reset code
         self.email_service.send_email(
             to=[user.email],
-            context={'username': user.username, 'encoded_id': encoded_id, 'code': code},
+            context={
+                'username': user.username,
+                'code': code,
+                'encoded_id': encoded_id,
+                'url': self.email_service.build_frontend_email_url_with_code_and_id(
+                    uri=settings.EMAIL_FRONTEND_PASSWORD_RESET_URI,
+                    encoded_id=encoded_id,
+                    code=code,
+                ),
+            },
             subject='Confirm your password reset',
             template=settings.EMAIL_SMTP_TEMPLATES.get('password_reset'),
         )
 
+        # retrn message that the email was sent
         return {'detail': 'Email successfully sent'}

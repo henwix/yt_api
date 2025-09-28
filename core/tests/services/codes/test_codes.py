@@ -1,8 +1,8 @@
 import pytest
 
 from core.apps.users.exceptions.codes import (
-    OtpCodeNotEqualException,
-    OtpCodeNotProvidedOrNotFoundException,
+    OtpCodeNotEqualError,
+    OtpCodeNotProvidedOrNotFoundError,
 )
 from core.apps.users.services.codes import BaseCodeService
 
@@ -33,7 +33,7 @@ def test_code_not_provided_error(code_service: BaseCodeService):
 
     email = 'test@test.com'
 
-    with pytest.raises(OtpCodeNotProvidedOrNotFoundException):
+    with pytest.raises(OtpCodeNotProvidedOrNotFoundError):
         code_service.validate_email_otp_code(email, None)
 
 
@@ -44,5 +44,5 @@ def test_code_not_equal_error(code_service: BaseCodeService):
     email = 'test@test.com'
     code_service.generate_email_otp_code(email)
 
-    with pytest.raises(OtpCodeNotEqualException):
+    with pytest.raises(OtpCodeNotEqualError):
         code_service.validate_email_otp_code(email, '123456')

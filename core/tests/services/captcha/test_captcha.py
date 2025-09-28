@@ -3,7 +3,7 @@ import pytest
 
 from core.apps.common.exceptions.captcha import (
     CaptchaTokenNotProvidedError,
-    CaptchaValidationFailed,
+    CaptchaValidationFailedError,
 )
 from core.apps.common.providers.captcha import BaseCaptchaProvider
 from core.apps.common.services.captcha import (
@@ -56,7 +56,7 @@ def test_captcha_v3_token_validation_failed_score(container: punq.Container, exp
 
     service: GoogleV3CaptchaService = container.resolve('GoogleV3CaptchaService')
 
-    with pytest.raises(CaptchaValidationFailed):
+    with pytest.raises(CaptchaValidationFailedError):
         service.validate_token(token='token', version='v3')
 
 
@@ -78,7 +78,7 @@ def test_captcha_v3_token_validation_failed_success(container: punq.Container, e
     )
     service: GoogleV3CaptchaService = container.resolve('GoogleV3CaptchaService')
 
-    with pytest.raises(CaptchaValidationFailed):
+    with pytest.raises(CaptchaValidationFailedError):
         service.validate_token(token='token', version='v3')
 
 
@@ -99,7 +99,7 @@ def test_captcha_v2_token_validation_failed_success(container: punq.Container):
     )
     service: GoogleV2CaptchaService = container.resolve('GoogleV2CaptchaService')
 
-    with pytest.raises(CaptchaValidationFailed):
+    with pytest.raises(CaptchaValidationFailedError):
         service.validate_token(token='token', version='v2_visible')
 
 

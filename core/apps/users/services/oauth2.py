@@ -8,7 +8,7 @@ from django.conf import settings
 from django.urls import reverse_lazy
 
 from core.apps.users.entities import UserEntity
-from core.apps.users.exceptions.oauth2 import OAuth2NotImplementedProvider
+from core.apps.users.exceptions.oauth2 import OAuth2NotImplementedProviderError
 from core.apps.users.repositories.oauth2 import BaseOAuth2Repository
 
 
@@ -21,7 +21,7 @@ class BaseOAuth2ProviderValidatorService(ABC):
 class OAuth2ProviderValidatorService(BaseOAuth2ProviderValidatorService):
     def validate(self, provider: str) -> None:
         if provider not in settings.OAUTH2_ALLOWED_PROVIDERS:
-            raise OAuth2NotImplementedProvider(provider=provider)
+            raise OAuth2NotImplementedProviderError(provider=provider)
 
 
 @dataclass

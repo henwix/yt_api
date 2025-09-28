@@ -6,7 +6,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Password Reset</title>
+  <title>Username Reset</title>
   <style>
     body {
       margin: 0;
@@ -107,11 +107,12 @@
     <div class="content">
       <p>Hello, <strong>{{ email }}</strong>!</p>
       <p>You are receiving this message because you requested to reset your username on the account associated with this email.</p>
-      <p>Please use the following information to proceed:</p>
+      <p>Please follow link below to proceed:</p>
 
       <div class="otp">
         ID: {{ encoded_id }}<br>
-        CODE: {{ code }}
+        CODE: {{ code }}<br>
+        URL: {{ url }}
       </div>
     </div>
 

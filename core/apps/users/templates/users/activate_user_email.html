@@ -106,14 +106,15 @@
     <div class="content">
       <p>Hello, <strong>{{ username }}</strong>!</p>
 
-      <p>Welcome — you recently created an account with us. To activate it, please use the information below.</p>
+      <p>Welcome — you recently created an account with us. To activate it, please follow link below.</p>
 
       <div class="otp">
         ID: {{ encoded_id }}<br>
-        CODE: {{ code }}
+        CODE: {{ code }}<br>
+        URL: {{ url }}
       </div>
 
-      <p>This activation code is valid for 5 minutes. If you did not sign up, you can safely ignore this email.</p>
+      <p>This activation email is valid for 5 minutes. If you did not sign up, you can safely ignore this.</p>
     </div>
 
     <div class="footer">

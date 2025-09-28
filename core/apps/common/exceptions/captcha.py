@@ -15,7 +15,7 @@ class CaptchaTokenNotProvidedError(ServiceException):
 
 
 @dataclass
-class CaptchaValidationFailed(ServiceException):
+class CaptchaValidationFailedError(ServiceException):
     default_code = ErrorCodes.CAPTCHA_VALIDATION_FAILED
     status_code = ERRORS[default_code]['status_code']
     default_detail = {'detail': ERRORS[default_code]['message']}
@@ -25,7 +25,7 @@ class CaptchaValidationFailed(ServiceException):
 
 
 @dataclass
-class CaptchaVersionNotSupported(ServiceException):
+class CaptchaVersionNotSupportedError(ServiceException):
     default_code = ErrorCodes.CAPTCHA_VERSION_NOT_SUPPORTED_OR_NOT_PROVIDED
     status_code = ERRORS[default_code]['status_code']
     default_detail = {'detail': ERRORS[default_code]['message']}

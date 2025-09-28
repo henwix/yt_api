@@ -15,14 +15,14 @@ class UserNotFoundError(ServiceException):
 
 
 @dataclass
-class UserWithThisDataAlreadyExists(ServiceException):
+class UserWithThisDataAlreadyExistsError(ServiceException):
     default_code = ErrorCodes.USER_WITH_DATA_ALREADY_EXISTS
     status_code = ERRORS[default_code]['status_code']
     default_detail = {'detail': ERRORS[default_code]['message']}
 
 
 @dataclass
-class InvalidUIDValueException(ServiceException):
+class InvalidUIDValueError(ServiceException):
     default_code = ErrorCodes.IVALID_UID_VALUE
     status_code = ERRORS[default_code]['status_code']
     default_detail = {'detail': ERRORS[default_code]['message']}
@@ -30,7 +30,6 @@ class InvalidUIDValueException(ServiceException):
     error_msg: str = ''
 
 
-# FIXME: нейминг exceptions: где-то exception, где-то error
 @dataclass
 class UserAlreadyActivatedError(ServiceException):
     default_code = ErrorCodes.USER_ALREADY_ACTIVATED

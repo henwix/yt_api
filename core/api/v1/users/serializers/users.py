@@ -130,12 +130,12 @@ class CustomUsernameResetConfirmSerializer(UsernameResetConfirmSerializer):
         fields = (settings.LOGIN_FIELD, 'uid', 'token')
 
 
-class AuthUserSerializer(serializers.ModelSerializer):
+class AuthUserSerializer(CaptchaSerializer, serializers.ModelSerializer):
     channel = ChannelSerializer(required=False)
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'email', 'username', 'otp_enabled', 'password', 'channel']
+        fields = ['id', 'email', 'username', 'otp_enabled', 'password', 'captcha_token', 'captcha_version', 'channel']
         read_only_fields = ['id', 'otp_enabled']
         extra_kwargs = {
             'password': {

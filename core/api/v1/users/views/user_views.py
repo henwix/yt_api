@@ -78,8 +78,6 @@ from core.apps.users.use_cases.users.user_set_password import UserSetPasswordUse
 from core.project.containers import get_container  # noqa
 
 
-# TODO: activation, resend_activation
-# TODO: add captcha in user creation
 # TODO: доку для всех endpoints
 # TODO: throttling для отправки почты на все эндпоинты
 class UserView(
@@ -89,7 +87,8 @@ class UserView(
         viewsets.GenericViewSet,
 ):
     queryset = get_user_model().objects.all()
-    permission_classes = [AuthUserPermission]
+    permission_classes = [CaptchaPermission, AuthUserPermission]
+    captcha_allowed_methods = ['create']
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)

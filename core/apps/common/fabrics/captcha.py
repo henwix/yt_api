@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from core.apps.common.exceptions.captcha import CaptchaVersionNotSupported
+from core.apps.common.exceptions.captcha import CaptchaVersionNotSupportedError
 
 
 def get_captcha_service_fabric(version: str) -> str:
@@ -21,6 +21,6 @@ def get_captcha_service_fabric(version: str) -> str:
     service = services.get(version)
 
     if not service:
-        raise CaptchaVersionNotSupported(version=version)
+        raise CaptchaVersionNotSupportedError(version=version)
 
     return service

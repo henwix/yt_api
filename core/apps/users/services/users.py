@@ -17,7 +17,7 @@ from core.apps.users.exceptions.users import (
     UserActivationNotAllowedError,
     UserAlreadyActivatedError,
     UserNotFoundError,
-    UserWithThisDataAlreadyExists,
+    UserWithThisDataAlreadyExistsError,
 )
 from core.apps.users.models import CustomUser
 from core.apps.users.repositories.users import BaseUserRepository
@@ -126,7 +126,7 @@ class ORMUserService(BaseUserService):
             return self.repository.create_by_data(data=data)
 
         except IntegrityError:
-            raise UserWithThisDataAlreadyExists()
+            raise UserWithThisDataAlreadyExistsError()
 
     def set_password(self, user: UserEntity, password: str) -> None:
         self.repository.set_password(user=user, password=password)
@@ -136,7 +136,7 @@ class ORMUserService(BaseUserService):
             return self.repository.update_by_data(user=user, data=data)
 
         except IntegrityError:
-            raise UserWithThisDataAlreadyExists()
+            raise UserWithThisDataAlreadyExistsError()
 
     def is_activation_required(self) -> bool:
-        return settings.SEND_ACTIVATION_EMAIL
+        return settings.AUTH_SEND_ACTIVATION_EMAIL

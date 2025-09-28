@@ -9,7 +9,7 @@ from django.conf import settings
 
 from core.apps.common.exceptions.captcha import (
     CaptchaTokenNotProvidedError,
-    CaptchaValidationFailed,
+    CaptchaValidationFailedError,
 )
 from core.apps.common.providers.captcha import BaseCaptchaProvider
 
@@ -50,10 +50,10 @@ class GoogleV3CaptchaService(BaseCaptchaService):
         if result.get('success', False):  # check if the 'success' is in the result and not equal to False
             if result.get('score', 0) > settings.V3_MIN_GOOGLE_RECAPTCHA_SCORE:  # check 'score' from the result
                 return True
-            raise CaptchaValidationFailed(score=result.get('score'))
+            raise CaptchaValidationFailedError(score=result.get('score'))
 
         # raise an error if the 'success' from the result equals to False
-        raise CaptchaValidationFailed(error_code=result.get('error-codes', ['unknown-error'])[0])
+        raise CaptchaValidationFailedError(error_code=result.get('error-codes', ['unknown-error'])[0])
 
 
 class GoogleV2CaptchaService(BaseCaptchaService):
@@ -78,4 +78,4 @@ class GoogleV2CaptchaService(BaseCaptchaService):
             return True
 
         # raise an error if the 'success' from the result equals to False
-        raise CaptchaValidationFailed(error_code=result.get('error-codes', ['unknown-error'])[0])
+        raise CaptchaValidationFailedError(error_code=result.get('error-codes', ['unknown-error'])[0])

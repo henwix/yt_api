@@ -11,6 +11,7 @@ class UserSetEmailConfirmUseCase:
     user_service: BaseUserService
 
     def execute(self, user: UserEntity, code: str) -> dict:
+        # validate the provided code and update the email for the user
         cached_new_email = self.code_service.validate_set_email_code(user_id=user.id, code=code)
         self.user_service.update_by_data(user=user, data={'email': cached_new_email})
 

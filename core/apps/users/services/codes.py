@@ -12,12 +12,12 @@ from django.db.utils import settings
 from core.apps.common.services.cache import BaseCacheService
 from core.apps.users.entities import UserEntity
 from core.apps.users.exceptions.codes import (
-    OtpCodeNotEqualException,
-    OtpCodeNotProvidedOrNotFoundException,
-    ResetCodeNotEqualException,
-    ResetCodeNotNotFoundException,
-    SetEmailCodeNotProvidedOrNotFoundException,
-    SetEmailUserNotEqualException,
+    OtpCodeNotEqualError,
+    OtpCodeNotProvidedOrNotFoundError,
+    ResetCodeNotEqualError,
+    ResetCodeNotNotFoundError,
+    SetEmailCodeNotProvidedOrNotFoundError,
+    SetEmailUserNotEqualError,
 )
 
 
@@ -64,10 +64,10 @@ class EmailCodeService(BaseCodeService):
         cached_code = self.cache_service.get_cached_data(key=self._OTP_CACHE_KEY_PREFIX + email)
 
         if cached_code is None:
-            raise OtpCodeNotProvidedOrNotFoundException(email=email)
+            raise OtpCodeNotProvidedOrNotFoundError(email=email)
 
         if cached_code != code:
-            raise OtpCodeNotEqualException(cached_code=cached_code, user_code=code)
+            raise OtpCodeNotEqualError(cached_code=cached_code, user_code=code)
 
         self.cache_service.delete_cached_data(key=self._OTP_CACHE_KEY_PREFIX + email)
 
@@ -87,10 +87,10 @@ class EmailCodeService(BaseCodeService):
         cached_data = self.cache_service.get_cached_data(key=cache_key)
 
         if cached_data is None:
-            raise SetEmailCodeNotProvidedOrNotFoundException(user_id=user_id, user_code=code)
+            raise SetEmailCodeNotProvidedOrNotFoundError(user_id=user_id, user_code=code)
 
         if cached_data.get('user_id') != user_id:
-            raise SetEmailUserNotEqualException(user_id=user_id, cached_user_id=cached_data.get('user_id'))
+            raise SetEmailUserNotEqualError(user_id=user_id, cached_user_id=cached_data.get('user_id'))
 
         self.cache_service.delete_cached_data(key=cache_key)
 
@@ -112,10 +112,10 @@ class EmailCodeService(BaseCodeService):
         cached_code = self.cache_service.get_cached_data(key=cache_key)
 
         if cached_code is None:
-            raise ResetCodeNotNotFoundException(user_id=user.id, code=code)
+            raise ResetCodeNotNotFoundError(user_id=user.id, code=code)
 
         if code != cached_code:
-            raise ResetCodeNotEqualException(user_id=user.id, code=code)
+            raise ResetCodeNotEqualError(user_id=user.id, code=code)
 
         self.cache_service.delete_cached_data(key=cache_key)
 

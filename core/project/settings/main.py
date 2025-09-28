@@ -325,19 +325,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
 
 
-CACHE_KEYS = {
-    's3_video_url': 's3_video_url_',
-    's3_avatar_url': 's3_avatar_url_',
-    'related_posts': 'channel_posts_',
-    'subs_list': 'subs_',
-    'retrieve_channel': 'retrieve_channel_',
-    'otp_email': 'otp_code_',
-    'set_email': 'set_email_code_',
-    'password_reset': 'user_password_reset_',
-    'activate_user': 'activate_user_',
-}
-
-
 # Files Storages
 
 
@@ -406,7 +393,13 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
-SEND_ACTIVATION_EMAIL = True
+AUTH_SEND_ACTIVATION_EMAIL = True
+
+EMAIL_FRONTEND_PROTOCOL = os.environ.get('EMAIL_FRONTEND_PROTOCOL', 'https')
+EMAIL_FRONTEND_DOMAIN = os.environ.get('EMAIL_FRONTEND_DOMAIN', 'example.com')
+EMAIL_FRONTEND_PASSWORD_RESET_URI = os.environ.get('EMAIL_FRONTEND_PASSWORD_RESET_URI')
+EMAIL_FRONTEND_USERNAME_RESET_URI = os.environ.get('EMAIL_FRONTEND_USERNAME_RESET_URI')
+EMAIL_FRONTEND_ACTIVATE_URI = os.environ.get('EMAIL_FRONTEND_ACTIVATE_URI')
 
 EMAIL_SMTP_TEMPLATES = {
     'otp_email': 'users/otp_email.html',
@@ -414,6 +407,21 @@ EMAIL_SMTP_TEMPLATES = {
     'password_reset': 'users/password_reset_email.html',
     'username_reset': 'users/username_reset_email.html',
     'activate_user': 'users/activate_user_email.html',
+}
+
+
+# Cache keys
+
+CACHE_KEYS = {
+    's3_video_url': 's3_video_url_',
+    's3_avatar_url': 's3_avatar_url_',
+    'related_posts': 'channel_posts_',
+    'subs_list': 'subs_',
+    'retrieve_channel': 'retrieve_channel_',
+    'otp_email': 'otp_code_',
+    'set_email': 'set_email_code_',
+    'password_reset': 'user_password_reset_',
+    'activate_user': 'activate_user_',
 }
 
 

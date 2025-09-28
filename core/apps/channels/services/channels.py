@@ -34,7 +34,7 @@ from core.apps.users.entities import (
     AnonymousUserEntity,
     UserEntity,
 )
-from core.apps.users.exceptions.users import UserWithThisDataAlreadyExists
+from core.apps.users.exceptions.users import UserWithThisDataAlreadyExistsError
 
 
 @dataclass(eq=False)
@@ -93,7 +93,7 @@ class ORMChannelService(BaseChannelService):
             return self.repository.create_by_data(data=channel_data)
 
         except IntegrityError:
-            raise UserWithThisDataAlreadyExists()
+            raise UserWithThisDataAlreadyExistsError()
 
     def create_channel_by_user_info(self, user: UserEntity) -> ChannelEntity:
         channel_data = {}

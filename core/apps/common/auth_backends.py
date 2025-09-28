@@ -8,7 +8,7 @@ class EmailAuthBackend(ModelBackend):
 
         try:
             user = user_model.objects.get(email=username)
-            if user.check_password(password):
+            if user.check_password(password) and self.user_can_authenticate(user):
                 return user
             return None
         except (user_model.DoesNotExist, user_model.MultipleObjectsReturned):

@@ -21,7 +21,7 @@ class CustomAuthStateMissing(AuthException):
 
 
 @dataclass
-class OAuth2NotImplementedProvider(ServiceException):
+class OAuth2NotImplementedProviderError(ServiceException):
     default_code = ErrorCodes.OAUTH2_PROVIDER_NOT_SUPPORTED
     status_code = ERRORS[default_code]['status_code']
     default_detail = {'detail': ERRORS[default_code]['message']}

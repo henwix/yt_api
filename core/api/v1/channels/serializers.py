@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
 from core.api.v1.videos.serializers.video_serializers import VideoPreviewSerializer
 from core.apps.channels.models import (
@@ -9,6 +10,12 @@ from core.apps.channels.models import (
 
 class ChannelSerializer(serializers.ModelSerializer):
     """Channel serializer for user creation and detail endpoints."""
+
+    slug = serializers.SlugField(
+        max_length=40,
+        required=False,
+        validators=[UniqueValidator(queryset=Channel.objects.all())],
+    )
 
     class Meta:
         model = Channel

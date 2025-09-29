@@ -10,7 +10,7 @@ from core.apps.common.services.captcha import (
     GoogleV2CaptchaService,
     GoogleV3CaptchaService,
 )
-from core.tests.mocks.captcha.captcha_provider import DummyCaptchaProvider
+from core.tests.mocks.common.providers.captcha import DummyCaptchaProvider
 
 
 @pytest.mark.django_db

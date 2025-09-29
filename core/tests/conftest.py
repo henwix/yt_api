@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from rest_framework.test import APIClient
 
 import punq
@@ -24,10 +25,16 @@ from core.tests.factories.posts import (
     PostModelFactory,
 )
 from core.tests.factories.videos import VideoModelFactory
-from core.tests.mocks.auth.email_provider import DummySenderProvider
+from core.tests.mocks.common.providers.senders import DummySenderProvider
+from core.tests.mocks.users.services.codes import DummyEmailCodeService
 
 
 User = get_user_model()
+
+
+@pytest.fixture(autouse=True)
+def clear_cache():
+    cache.clear()
 
 
 @pytest.fixture
@@ -40,6 +47,7 @@ def mock_container() -> Container:
     container: punq.Container = get_container()
 
     container.register(BaseSenderProvider, DummySenderProvider)
+    container.register(BaseCodeService, DummyEmailCodeService)
 
     return container
 

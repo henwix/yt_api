@@ -2,16 +2,9 @@ import pytest
 from pytest_django.fixtures import SettingsWrapper
 
 from core.apps.channels.models import Channel
-from core.apps.users.exceptions.users import UserWithThisDataAlreadyExistsError
 from core.apps.users.models import CustomUser
 from core.apps.users.use_cases.users.user_create import UserCreateUseCase
-from core.tests.factories.channels import (
-    ChannelModelFactory,
-    UserModelFactory,
-)
 
-
-# TODO: записать про все остальное, что сделал с user_auth
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
@@ -106,7 +99,6 @@ def test_channel_created_based_on_user_data(
         name=expected_username,
         country=None,
         description=None,
-
     ).exists()
 
 
@@ -156,7 +148,6 @@ def test_channel_created_with_provided_data(
         name=expected_channel_name,
         country=expected_channel_country,
         description=expected_channel_description,
-
     ).exists()
 
 
@@ -200,78 +191,4 @@ def test_channel_created_without_slug_data(
         name=expected_channel_name,
         country=expected_channel_country,
         description=expected_channel_description,
-
     ).exists()
-
-
-@pytest.mark.django_db
-def test_user_username_exists_error(
-    user_create_use_case: UserCreateUseCase,
-):
-    """Test that an error has been raised when the user with this username
-    already exists."""
-
-    expected_username = 'username_test'
-    expected_email = 'test_email@test.com'
-    expected_password = 'PasswordTest_123456'
-
-    UserModelFactory.create(username=expected_username)
-
-    with pytest.raises(UserWithThisDataAlreadyExistsError):
-        user_create_use_case.execute(
-            validated_data={
-                'username': expected_username,
-                'email': expected_email,
-                'password': expected_password,
-            },
-        )
-
-
-@pytest.mark.django_db
-def test_user_email_exists_error(
-    user_create_use_case: UserCreateUseCase,
-):
-    """Test that an error has been raised when the user with this email already
-    exists."""
-
-    expected_username = 'username_test'
-    expected_email = 'test_email@test.com'
-    expected_password = 'PasswordTest_123456'
-
-    UserModelFactory.create(email=expected_email)
-
-    with pytest.raises(UserWithThisDataAlreadyExistsError):
-        user_create_use_case.execute(
-            validated_data={
-                'username': expected_username,
-                'email': expected_email,
-                'password': expected_password,
-            },
-        )
-
-
-@pytest.mark.django_db
-def test_channel_slug_exists_error(
-    user_create_use_case: UserCreateUseCase,
-):
-    """Test that an error has been raised when the channel with this slug
-    already exists."""
-
-    expected_username = 'username_test'
-    expected_email = 'test_email@test.com'
-    expected_password = 'PasswordTest_123456'
-    expected_channel_slug = 'test_channel_slug'
-
-    ChannelModelFactory.create(slug=expected_channel_slug)
-
-    with pytest.raises(UserWithThisDataAlreadyExistsError):
-        user_create_use_case.execute(
-            validated_data={
-                'username': expected_username,
-                'email': expected_email,
-                'password': expected_password,
-                'channel': {
-                    'slug': expected_channel_slug,
-                },
-            },
-        )

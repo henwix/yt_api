@@ -74,6 +74,19 @@ class ORMChannelService(BaseChannelService):
         This data is a 'validated_data' dictionary from a serializer
         that includes a nested 'channel' dictionary.
 
+        data example:
+            data = {
+                'email': 'email',
+                'username': 'username',
+                'password': 'password',
+                'channel': {
+                    'name': 'name',
+                    'slug': 'slug',
+                    'country': 'country',
+                    'description': 'description',
+                }
+            }
+
         """
 
         channel_data = data.pop('channel')

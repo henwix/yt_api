@@ -5,7 +5,7 @@ from django.db import models
 class Channel(models.Model):
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, related_name='channel', db_index=True)
     name = models.CharField(max_length=100)
-    slug = models.SlugField(max_length=40, unique=True, blank=True)
+    slug = models.SlugField(max_length=40, unique=True)
     description = models.TextField(blank=True, null=True)
     country = models.CharField(max_length=40, blank=True, null=True)
     subscriptions = models.ManyToManyField(

@@ -6,6 +6,7 @@ from core.apps.channels.converters.channels import (
     channel_from_entity,
     channel_to_entity,
 )
+from core.apps.channels.entities.channels import ChannelEntity
 from core.apps.channels.exceptions.channels import ChannelNotFoundError
 from core.apps.channels.exceptions.subscriptions import (
     SelfSubscriptionError,
@@ -23,6 +24,8 @@ from core.apps.channels.services.channels import (
     BaseSubscriptionService,
 )
 from core.apps.users.converters.users import user_to_entity
+from core.apps.users.exceptions.users import UserWithThisDataAlreadyExistsError
+from core.apps.users.models import CustomUser
 from core.tests.factories.channels import (
     ChannelModelFactory,
     SubscriptionItemModelFactory,
@@ -188,3 +191,133 @@ def test_main_channel_page_correct(channel_main_service: BaseChannelMainService,
     assert response.videos.count() == expected_videos
     assert response.subs_count == expected_subs
     assert response.videos.count() == expected_videos
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    argnames='expected_channel_name, expected_channel_slug, expected_channel_description, expected_channel_country',
+    argvalues=(
+        ['Channel Test Name', 'Channel123.Name1235', 'channel_test_n@mete$t', 'this is my a test channel name'],
+        ['test_channel_slug', 'test.channel_slug-123', 'channel_slug_123-123', 'd-aghsldgf1akslnf1.sad'],
+        ['Test Channel description', 'Testchanneldescription', 'description', 'FN(*LASJKFHn'],
+        ['US', 'United States', 'Test Country', 'Channel Country Test'],
+    ),
+)
+def test_channel_created_by_provided_data(
+    channel_service: BaseChannelService,
+    user: CustomUser,
+    expected_channel_name: str,
+    expected_channel_slug: str,
+    expected_channel_description: str,
+    expected_channel_country: str,
+):
+    """Test that the channel has been created by provided data."""
+
+    result: ChannelEntity = channel_service.create_by_data(
+        data={
+            'channel': {
+                'user': user,
+                'name': expected_channel_name,
+                'slug': expected_channel_slug,
+                'description': expected_channel_description,
+                'country': expected_channel_country,
+            },
+        },
+    )
+
+    assert isinstance(result, ChannelEntity)
+    assert Channel.objects.filter(
+        user=user,
+        name=expected_channel_name,
+        slug=expected_channel_slug,
+        description=expected_channel_description,
+        country=expected_channel_country,
+    ).exists()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    argnames='expected_username',
+    argvalues=['test_username', 'my_TestUsername', 'hello_world', 'tHiS_is_mY_a_teSt_username'],
+)
+def test_channel_created_based_on_user_username(
+    channel_service: BaseChannelService,
+    expected_username: str,
+):
+    """Test that the channel has been created based on user's username."""
+
+    user = UserModelFactory.create(username=expected_username)
+
+    result: ChannelEntity = channel_service.create_by_data(
+        data={
+            'username': expected_username,
+            'channel': {
+                'user': user,
+            },
+        },
+    )
+
+    assert isinstance(result, ChannelEntity)
+    assert Channel.objects.filter(
+        user=user,
+        name=expected_username,
+        slug=expected_username,
+    ).exists()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    argnames='expected_channel_name',
+    argvalues=[
+        'Test Channel Name',
+        'test_channel_name',
+        'channel_123_4556_name-123kmasnbf',
+        'tHiS_is_mY_a_teSt_channel Name',
+    ],
+)
+def test_channel_created_based_on_channel_name(
+    channel_service: BaseChannelService,
+    expected_channel_name: str,
+):
+    """Test that the channel has been created with slug based on channel's
+    name."""
+
+    user = UserModelFactory.create()
+
+    result: ChannelEntity = channel_service.create_by_data(
+        data={
+            'channel': {
+                'user': user,
+                'name': expected_channel_name,
+            },
+        },
+    )
+
+    assert isinstance(result, ChannelEntity)
+    assert Channel.objects.filter(
+        user=user,
+        name=expected_channel_name,
+        slug=expected_channel_name.replace(' ', ''),
+    ).exists()
+
+
+@pytest.mark.django_db
+def test_channel_slug_exists_error(
+    channel_service: BaseChannelService,
+):
+    """Test that an error has been raised when the channel with this slug
+    already exists."""
+
+    expected_channel_slug = 'test_channel_slug'
+
+    ChannelModelFactory.create(slug=expected_channel_slug)
+
+    with pytest.raises(UserWithThisDataAlreadyExistsError):
+        channel_service.create_by_data(
+            data={
+                'channel': {
+                    'name': 'test_channel_name',
+                    'slug': expected_channel_slug,
+                },
+            },
+        )

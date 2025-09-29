@@ -57,7 +57,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_extensions',
     'django_filters',
-    'djoser',
     'drf_spectacular',
     'django.contrib.postgres',
     'django_celery_beat',
@@ -212,29 +211,6 @@ SPECTACULAR_SETTINGS = {
     'SWAGGER_UI_SETTINGS': {'deepLinking': True, 'persistAuthorization': True},
 }
 
-DJOSER = {
-    'SEND_ACTIVATION_EMAIL': True,
-    'SEND_CONFIRMATION_EMAIL': True,
-    'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': False,
-    'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm?uid={uid}&token={token}',
-    'USERNAME_RESET_CONFIRM_URL': 'username/reset/confirm?uid={uid}&token={token}',
-    'ACTIVATION_URL': 'activate/?uid={uid}&token={token}',
-    'EMAIL_FRONTEND_DOMAIN': 'api.henwix.space',
-    'EMAIL_FRONTEND_PROTOCOL': 'https',
-    'EMAIL_FRONTEND_SITE_NAME': 'YouTube-Like-API',
-    'SERIALIZERS': {
-        'user_create': 'core.api.v1.users.serializers.users.CustomUserCreateSerializer',
-        'user_create_password_retype': 'core.api.v1.users.serializers.users.CustomUserCreatePasswordRetypeSerializer',
-        'user': 'core.api.v1.users.serializers.users.CustomUserSerializer',
-        'current_user': 'core.api.v1.users.serializers.users.CustomUserSerializer',
-        'username_reset_confirm': 'core.api.v1.users.serializers.users.CustomUsernameResetConfirmSerializer',
-    },
-    'PERMISSIONS': {
-        'user_create': [
-            'core.apps.common.permissions.captcha.CaptchaPermission', 'rest_framework.permissions.AllowAny',
-        ],
-    },
-}
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=7),

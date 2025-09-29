@@ -834,27 +834,6 @@ python-jose = ["python-jose (==3.3.0)"]
 test = ["cryptography", "freezegun", "pytest", "pytest-cov", "pytest-django", "pytest-xdist", "tox"]
 
 [[package]]
-name = "djoser"
-version = "2.3.1"
-description = "REST implementation of Django authentication system."
-optional = false
-python-versions = "<4.0,>=3.8"
-groups = ["main"]
-files = [
-    {file = "djoser-2.3.1-py3-none-any.whl", hash = "sha256:386f337b9e05cb82354525fe2b6fec19fb1743e93e53b5b4b9dfaffccc38789f"},
-    {file = "djoser-2.3.1.tar.gz", hash = "sha256:4e7e2716b5b961f1289b5e49b2216ba5c18eb2a3b4b597dd6430638716ff5107"},
-]
-
-[package.dependencies]
-django = ">=3.0.0"
-djangorestframework-simplejwt = ">=5.0,<6.0"
-social-auth-app-django = ">=5.0.0,<6.0.0"
-
-[package.extras]
-djet = ["djet (>=0.3.0,<0.4.0)"]
-webauthn = ["webauthn (<1.0)"]
-
-[[package]]
 name = "drf-spectacular"
 version = "0.28.0"
 description = "Sane and flexible OpenAPI 3 schema generation for Django REST framework"
@@ -2342,4 +2321,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "df842ea0bb28137913fb242ae26f08c7c94c306c296f75e2a6322653947b0305"
+content-hash = "09731a7312077c55aaaf87c192092e32a4d3d14f51c2c22ca7bde49be4253046"

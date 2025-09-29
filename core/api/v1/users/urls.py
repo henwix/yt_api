@@ -1,9 +1,7 @@
 from django.urls import (
     include,
     path,
-    re_path,
 )
-from rest_framework.routers import DefaultRouter
 
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -19,7 +17,6 @@ from core.api.v1.users.views.oauth2_views import (
 )
 from core.api.v1.users.views.user_views import (
     CodeVerifyView,
-    CustomUserViewSet,
     UserLoginView,
     UserView,
 )
@@ -28,19 +25,15 @@ from core.apps.users.routers import CustomUserRouter
 
 app_name = 'users'
 
-# Register custom UserViewSet from Djoser
-router = DefaultRouter()
-router.register('users', CustomUserViewSet)
 
 user_router = CustomUserRouter()
 user_router.register(r'users', UserView, basename='user')
 
 urlpatterns = [
-    #  djoser user endpoints
-    re_path(r'^auth/', include(router.urls)),
-    path('auth_2/', include(user_router.urls)),
+    # Users endpoints
+    path('auth/', include(user_router.urls)),
 
-    #  JWT tokens endpoints
+    # JWT tokens endpoints
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),

@@ -14,6 +14,7 @@ from django.utils.http import (
 )
 
 
+# TODO: tests
 @dataclass
 class BaseEncodingService(ABC):
     @abstractmethod
@@ -21,7 +22,7 @@ class BaseEncodingService(ABC):
         ...
 
     @abstractmethod
-    def base64_decode(self, data: bytes) -> str:
+    def base64_decode(self, data: str) -> str:
         ...
 
 
@@ -29,7 +30,7 @@ class EncodingService(BaseEncodingService):
     def base64_encode(self, data: str | int) -> str:
         return urlsafe_base64_encode(force_bytes(data))
 
-    def base64_decode(self, data: bytes) -> str:
+    def base64_decode(self, data: str) -> str:
         """Encodes data from base64 to string.
 
         ***Be sure that you handle possible encoding exceptions outside

@@ -3,17 +3,22 @@ from rest_framework.test import APIClient
 
 import punq
 import pytest
+from pytest_django.fixtures import SettingsWrapper
 
 from core.apps.users.converters.users import (
     user_from_entity,
     user_to_entity,
 )
 from core.apps.users.exceptions.users import (
+    UserActivationNotAllowedError,
+    UserAlreadyActivatedError,
     UserNotFoundError,
     UserWithThisDataAlreadyExistsError,
 )
 from core.apps.users.models import CustomUser
 from core.apps.users.services.users import (
+    BaseUserActivatedValidatorService,
+    BaseUserActivationRequiredValidatorService,
     BaseUserService,
     BaseUserValidatorService,
 )
@@ -65,8 +70,32 @@ def test_get_user_by_email(user_service: BaseUserService, user: User):
     """Test that the user has been retrieved by email from database."""
 
     user_dto = user_from_entity(user_service.get_by_email_or_404(user.email))
-
     assert user == user_dto
+
+
+@pytest.mark.django_db
+def test_get_user_by_email_404_error(user_service: BaseUserService):
+    """Test that an error has been raised when the user is not found by
+    email."""
+
+    with pytest.raises(UserNotFoundError):
+        user_service.get_by_email_or_404(email='test')
+
+
+@pytest.mark.django_db
+def test_get_user_by_id(user_service: BaseUserService, user: User):
+    """Test that the user has been retrieved by id from database."""
+
+    user_dto = user_from_entity(user_service.get_by_id_or_404(user_id=user.pk))
+    assert user == user_dto
+
+
+@pytest.mark.django_db
+def test_get_user_by_id_404_error(user_service: BaseUserService):
+    """Test that an error has been raised when the user is not found by id."""
+
+    with pytest.raises(UserNotFoundError):
+        user_service.get_by_id_or_404(user_id=999)
 
 
 @pytest.mark.django_db
@@ -171,7 +200,110 @@ def test_password_updated(
     user: CustomUser,
     expected_new_password: str,
 ):
+    """Test that the password has been updated."""
+
     user_service.set_password(user=user_to_entity(user), password=expected_new_password)
     database_user = CustomUser.objects.get(username=user.username)
 
     assert database_user.check_password(expected_new_password)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    argnames='expected_username, expected_email, expected_otp_enabled',
+    argvalues=[
+        ('new_test_username', 'new_test_email@test.dev', True),
+        ('UsernameNewTest', 'ajfhaksjf@example.com', False),
+        ('123_567_user_name_new_test_123', 'example_email@example.com', True),
+    ],
+)
+def test_user_data_updated(
+    user_service: BaseUserService,
+    user: CustomUser,
+    expected_username: str,
+    expected_email: str,
+    expected_otp_enabled: bool,
+):
+    """Test that user data has been updated successfully."""
+
+    user_service.update_by_data(
+        user=user_to_entity(user), data={
+            'username': expected_username,
+            'email': expected_email,
+            'otp_enabled': expected_otp_enabled,
+        },
+    )
+
+    assert CustomUser.objects.filter(
+        pk=user.pk,
+        username=expected_username,
+        email=expected_email,
+        otp_enabled=expected_otp_enabled,
+    ).exists()
+
+
+@pytest.mark.django_db
+def test_user_activation_validator_allowed(
+    settings: SettingsWrapper,
+    user_activation_required_validator_service: BaseUserActivationRequiredValidatorService,
+):
+    """Test that AUTH_SEND_ACTIVATION_EMAIL is allowed."""
+
+    settings.AUTH_SEND_ACTIVATION_EMAIL = True
+    user_activation_required_validator_service.validate()
+
+
+@pytest.mark.django_db
+def test_user_activation_validator_not_allowed_error(
+    settings: SettingsWrapper,
+    user_activation_required_validator_service: BaseUserActivationRequiredValidatorService,
+):
+    """Test that AUTH_SEND_ACTIVATION_EMAIL is not allowed and an error has
+    been raised."""
+
+    settings.AUTH_SEND_ACTIVATION_EMAIL = False
+
+    with pytest.raises(UserActivationNotAllowedError):
+        user_activation_required_validator_service.validate()
+
+
+@pytest.mark.django_db
+def test_user_activated_validator(user_activated_validator_service: BaseUserActivatedValidatorService):
+    """Test that user is not activated and an error has not been raised."""
+
+    user = UserModelFactory.create(is_active=False)
+    user_activated_validator_service.validate(user=user_to_entity(user))
+
+
+@pytest.mark.django_db
+def test_user_activated_validator_error(user_activated_validator_service: BaseUserActivatedValidatorService):
+    """Test that user is already activated and an error has been raised."""
+
+    user = UserModelFactory.create(is_active=True)
+
+    with pytest.raises(UserAlreadyActivatedError):
+        user_activated_validator_service.validate(user=user_to_entity(user))
+
+
+@pytest.mark.django_db
+def test_activation_required(
+    settings: SettingsWrapper,
+    user_service: BaseUserService,
+):
+    """Test 'that is_activation_required' returns True if
+    AUTH_SEND_ACTIVATION_EMAIL is True."""
+
+    settings.AUTH_SEND_ACTIVATION_EMAIL = True
+    assert user_service.is_activation_required()
+
+
+@pytest.mark.django_db
+def test_activation_not_required(
+    settings: SettingsWrapper,
+    user_service: BaseUserService,
+):
+    """Test 'that is_activation_required' returns False if
+    AUTH_SEND_ACTIVATION_EMAIL is False."""
+
+    settings.AUTH_SEND_ACTIVATION_EMAIL = False
+    assert not user_service.is_activation_required()

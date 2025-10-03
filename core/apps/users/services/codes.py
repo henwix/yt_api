@@ -14,10 +14,10 @@ from core.apps.users.entities import UserEntity
 from core.apps.users.exceptions.codes import (
     OtpCodeNotEqualError,
     OtpCodeNotProvidedOrNotFoundError,
-    ResetCodeNotEqualError,
-    ResetCodeNotNotFoundError,
     SetEmailCodeNotProvidedOrNotFoundError,
     SetEmailUserNotEqualError,
+    UserEmailCodeNotEqualError,
+    UserEmailCodeNotFoundError,
 )
 
 
@@ -112,10 +112,10 @@ class EmailCodeService(BaseCodeService):
         cached_code = self.cache_service.get_cached_data(key=cache_key)
 
         if cached_code is None:
-            raise ResetCodeNotNotFoundError(user_id=user.id, code=code)
+            raise UserEmailCodeNotFoundError(user_id=user.id, code=code)
 
         if code != cached_code:
-            raise ResetCodeNotEqualError(user_id=user.id, code=code)
+            raise UserEmailCodeNotEqualError(user_id=user.id, code=code)
 
         self.cache_service.delete_cached_data(key=cache_key)
 

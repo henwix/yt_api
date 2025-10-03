@@ -7,8 +7,8 @@ class ErrorCodes:
     CODE_NOT_EQUAL = 'otp_code_not_equal'
     SET_EMAIL_CODE_NOT_PROVIDED_OR_NOT_FOUND = 'set_email_code_not_provided'
     SET_EMAIL_USER_NOT_EQUAL = 'set_email_user_not_equal'
-    RESET_CODE_NOT_FOUND = 'reset_code_not_found'
-    RESET_CODE_NOT_EQUAL = 'reset_code_not_equal'
+    USER_EMAIL_CODE_NOT_FOUND = 'user_email_code_not_found'
+    RESET_CODE_NOT_EQUAL = 'user_email_code_not_equal'
 
     # users/exceptions/oauth2.py
     OAUTH2_PROVIDER_NOT_SUPPORTED = 'oauth2_provider_not_supported'
@@ -39,7 +39,7 @@ ERRORS = {
         'message': 'Set email user not equal',
         'status_code': status.HTTP_400_BAD_REQUEST,
     },
-    ErrorCodes.RESET_CODE_NOT_FOUND: {
+    ErrorCodes.USER_EMAIL_CODE_NOT_FOUND: {
         'message': 'Reset code not found',
         'status_code': status.HTTP_404_NOT_FOUND,
     },

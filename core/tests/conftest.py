@@ -9,13 +9,17 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.apps.channels.models import Channel
 from core.apps.common.providers.senders import BaseSenderProvider
+from core.apps.common.services.encoding import BaseEncodingService
 from core.apps.posts.models import (
     Post,
     PostCommentItem,
 )
 from core.apps.users.services.codes import BaseCodeService
 from core.apps.videos.models import Video
-from core.project.containers import get_container
+from core.project.containers import (
+    _initialize_container,
+    get_container,
+)
 from core.tests.factories.channels import (
     ChannelModelFactory,
     UserModelFactory,
@@ -26,7 +30,6 @@ from core.tests.factories.posts import (
 )
 from core.tests.factories.videos import VideoModelFactory
 from core.tests.mocks.common.providers.senders import DummySenderProvider
-from core.tests.mocks.users.services.codes import DummyEmailCodeService
 
 
 User = get_user_model()
@@ -44,10 +47,18 @@ def container() -> Container:
 
 @pytest.fixture
 def mock_container() -> Container:
-    container: punq.Container = get_container()
+    """If we override something with mocks, it may affect the non-mock
+    container and lead to unpredictable results.
+
+    For this reason, we create a separate container object for mocks and
+    use it without touching the main one. If we use 'get_container', it
+    returns the cached container (singleton), whereas 'init_container'
+    creates a new one.
+
+    """
+    container: punq.Container = _initialize_container()
 
     container.register(BaseSenderProvider, DummySenderProvider)
-    container.register(BaseCodeService, DummyEmailCodeService)
 
     return container
 
@@ -111,3 +122,8 @@ def post_comment() -> PostCommentItem:
 @pytest.fixture
 def code_service(container: punq.Container) -> BaseCodeService:
     return container.resolve(BaseCodeService)
+
+
+@pytest.fixture
+def encoding_service(container: punq.Container) -> BaseEncodingService:
+    return container.resolve(BaseEncodingService)

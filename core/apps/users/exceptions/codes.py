@@ -47,8 +47,8 @@ class SetEmailUserNotEqualError(ServiceException):
 
 
 @dataclass
-class ResetCodeNotNotFoundError(ServiceException):
-    default_code = ErrorCodes.RESET_CODE_NOT_FOUND
+class UserEmailCodeNotFoundError(ServiceException):
+    default_code = ErrorCodes.USER_EMAIL_CODE_NOT_FOUND
     status_code = ERRORS[default_code]['status_code']
     default_detail = {'detail': ERRORS[default_code]['message']}
 
@@ -57,7 +57,7 @@ class ResetCodeNotNotFoundError(ServiceException):
 
 
 @dataclass
-class ResetCodeNotEqualError(ServiceException):
+class UserEmailCodeNotEqualError(ServiceException):
     default_code = ErrorCodes.RESET_CODE_NOT_EQUAL
     status_code = ERRORS[default_code]['status_code']
     default_detail = {'detail': ERRORS[default_code]['message']}

@@ -73,7 +73,7 @@ class UserCreateUseCase:
                 template=settings.EMAIL_SMTP_TEMPLATES.get('activate_user'),
             )
 
-            # return message that the email was sent
+            # return message that the email has been sent
             return {'detail': 'Activation email successfully sent'}
 
         # return the CustomUser instance if the activation is not required

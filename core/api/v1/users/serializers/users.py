@@ -4,6 +4,7 @@ from rest_framework import serializers
 from core.api.v1.channels.serializers import ChannelSerializer
 from core.api.v1.common.serializers.serializers import (
     CaptchaSerializer,
+    DetailOutSerializer,
     UUID4CodeSerializer,
 )
 from core.apps.users.models import CustomUser
@@ -40,13 +41,14 @@ class PasswordUserSerializer(serializers.ModelSerializer):
 
 
 class EmailUserSerializer(serializers.ModelSerializer):
+    """Email serializer with value unqiue validator."""
     class Meta:
         model = CustomUser
         fields = ['email']
 
 
 class UIDAndCodeConfirmSerializer(UUID4CodeSerializer):
-    uid = serializers.CharField(max_length=20)
+    uid = serializers.CharField(max_length=20, help_text='The user ID that was encoded in base64')
 
 
 class PasswordResetConfirmSerializer(UIDAndCodeConfirmSerializer, PasswordUserSerializer):
@@ -59,3 +61,7 @@ class UsernameResetConfirmSerializer(UIDAndCodeConfirmSerializer, serializers.Mo
     class Meta:
         model = CustomUser
         fields = ['uid', 'code', 'username']
+
+
+class EmailUserUpdatedSerializer(DetailOutSerializer):
+    new_email = serializers.CharField(max_length=256, help_text='New email that just been updated')

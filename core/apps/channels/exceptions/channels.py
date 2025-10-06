@@ -32,3 +32,12 @@ class AvatarDoesNotExistsError(ServiceException):
     default_detail = {'detail': ERRORS[default_code]['message']}
 
     channel_slug: str
+
+
+@dataclass
+class ChannelSlugInvalidValueError(ServiceException):
+    default_code = ErrorCodes.CHANNEL_SLUG_INVALID_VALUE
+    status_code = ERRORS[default_code]['status_code']
+    default_detail = {'detail': ERRORS[default_code]['message']}
+
+    slug: str

@@ -16,6 +16,7 @@ from core.tests.factories.videos import (
 @pytest.mark.django_db
 def test_playlist_created(client: APIClient, jwt_and_channel: str):
     """Test that playlist was created after POST request to the endpoint: /v1/playlists/."""
+
     jwt, channel = jwt_and_channel
     client.credentials(HTTP_AUTHORIZATION=jwt)
 
@@ -33,6 +34,7 @@ def test_playlist_created(client: APIClient, jwt_and_channel: str):
 @pytest.mark.django_db
 def test_playlist_deleted(client: APIClient, jwt_and_channel: str):
     """Test that playlist was deleted after DELETE request to the endpoint: /v1/playlists/{id}/."""
+
     jwt, channel = jwt_and_channel
     client.credentials(HTTP_AUTHORIZATION=jwt)
     playlist = PlaylistModelFactory.create(channel=channel)
@@ -49,6 +51,7 @@ def test_playlist_deleted(client: APIClient, jwt_and_channel: str):
 @pytest.mark.parametrize('expected_playlists', [2, 5])
 def test_playlists_retrieved(client: APIClient, jwt_and_channel: tuple, expected_playlists: int):
     """Test that playlists were retrieved after GET request to the endpoint: /v1/playlists/."""
+
     jwt, channel = jwt_and_channel
     client.credentials(HTTP_AUTHORIZATION=jwt)
     PlaylistModelFactory.create_batch(size=expected_playlists, channel=channel)
@@ -62,6 +65,7 @@ def test_playlists_retrieved(client: APIClient, jwt_and_channel: tuple, expected
 @pytest.mark.django_db
 def test_playlists_updated(client: APIClient, jwt_and_channel: tuple):
     """Test that playlist was updated after PATCH request to the endpoint: /v1/playlists/{id}/."""
+
     jwt, channel = jwt_and_channel
     client.credentials(HTTP_AUTHORIZATION=jwt)
     playlist = PlaylistModelFactory.create(channel=channel)
@@ -81,6 +85,7 @@ def test_playlists_updated(client: APIClient, jwt_and_channel: tuple):
 @pytest.mark.django_db
 def test_video_added_to_playlist(client: APIClient, jwt_and_channel: tuple):
     """Test that video was added to playlist after POST request to the endpoint: /v1/playlists/{id}/add-video/"""
+
     jwt, channel = jwt_and_channel
     client.credentials(HTTP_AUTHORIZATION=jwt)
     video = VideoModelFactory.create(author=channel)
@@ -97,6 +102,7 @@ def test_video_added_to_playlist(client: APIClient, jwt_and_channel: tuple):
 @pytest.mark.django_db
 def test_video_add_to_playlist_permission_error(client: APIClient, jwt_and_channel: tuple):
     """Test that an permission error was returned after POST request to the endpoint: /v1/playlists/{id}/add-video/"""
+
     jwt, channel = jwt_and_channel
     client.credentials(HTTP_AUTHORIZATION=jwt)
     video = VideoModelFactory.create(author=channel)
@@ -115,6 +121,7 @@ def test_video_deleted_from_playlist(client: APIClient, jwt_and_channel: tuple):
     """
     Test that video was deleted from playlist after DELETE request to the endpoint: /v1/playlists/{id}/delete-video/
     """
+
     jwt, channel = jwt_and_channel
     client.credentials(HTTP_AUTHORIZATION=jwt)
     video = VideoModelFactory.create(author=channel)
@@ -134,6 +141,7 @@ def test_video_deleted_from_playlist(client: APIClient, jwt_and_channel: tuple):
 def test_video_deleted_from_playlist_permission_denied(client: APIClient, jwt_and_channel: tuple):
     """Test that other user can't delete video from playlist if he is not
     author."""
+
     jwt, channel = jwt_and_channel
     client.credentials(HTTP_AUTHORIZATION=jwt)
     video = VideoModelFactory.create(author=channel)

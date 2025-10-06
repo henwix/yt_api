@@ -13,7 +13,7 @@ from core.apps.common.services.cache import BaseCacheService
 from core.apps.users.entities import UserEntity
 from core.apps.users.exceptions.codes import (
     OtpCodeNotEqualError,
-    OtpCodeNotProvidedOrNotFoundError,
+    OtpCodeNotFoundError,
     SetEmailCodeNotProvidedOrNotFoundError,
     SetEmailUserNotEqualError,
     UserEmailCodeNotEqualError,
@@ -64,7 +64,7 @@ class EmailCodeService(BaseCodeService):
         cached_code = self.cache_service.get_cached_data(key=self._OTP_CACHE_KEY_PREFIX + email)
 
         if cached_code is None:
-            raise OtpCodeNotProvidedOrNotFoundError(email=email)
+            raise OtpCodeNotFoundError(email=email)
 
         if cached_code != code:
             raise OtpCodeNotEqualError(cached_code=cached_code, user_code=code)

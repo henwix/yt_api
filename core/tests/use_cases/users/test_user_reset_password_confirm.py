@@ -27,6 +27,8 @@ def test_user_reset_password_confirmed(
     )
     encoded_id = encoding_service.base64_encode(data=user.pk)
 
+    assert not CustomUser.objects.get(pk=user.pk).check_password(expected_password)
+
     result = user_reset_password_confirm_use_case.execute(
         encoded_id=encoded_id,
         code=code,

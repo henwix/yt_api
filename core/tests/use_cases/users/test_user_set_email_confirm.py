@@ -7,7 +7,7 @@ from core.apps.users.use_cases.users.user_set_email_confirm import UserSetEmailC
 
 
 @pytest.mark.django_db
-def test_set_email_confimed_and_email_updated(
+def test_set_email_confirmed(
     user_set_email_confirm_use_case: UserSetEmailConfirmUseCase,
     code_service: BaseCodeService,
     user: CustomUser,
@@ -18,11 +18,13 @@ def test_set_email_confimed_and_email_updated(
         email=expected_email,
     )
 
-    assert not CustomUser.objects.filter(email=expected_email).exists()
+    assert not CustomUser.objects.filter(pk=user.pk, email=expected_email).exists()
+    assert CustomUser.objects.filter(pk=user.pk, email=user.email).exists()
 
     result = user_set_email_confirm_use_case.execute(user=user_to_entity(user), code=generated_code)
 
     assert isinstance(result, dict)
     assert result['detail'] == 'Success'
     assert result['new_email'] == expected_email
-    assert CustomUser.objects.filter(email=expected_email, username=user.username).exists()
+    assert CustomUser.objects.filter(pk=user.pk, email=expected_email).exists()
+    assert not CustomUser.objects.filter(pk=user.pk, email=user.email).exists()

@@ -14,7 +14,6 @@ from django.utils.http import (
 )
 
 
-# TODO: tests
 @dataclass
 class BaseEncodingService(ABC):
     @abstractmethod

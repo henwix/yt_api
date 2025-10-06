@@ -116,10 +116,11 @@ def test_jwt_generated_for_user(user_service: BaseUserService, client: APIClient
 @pytest.mark.parametrize(
     argnames='expected_username, expected_email, expected_password',
     argvalues=(
-        ['username_test', 'TestUsername', 'lkjhflh109234'],
-        ['test_email@test.com', 'testtesttest@example.com', '123984842@gmail.com'],
-        ['testpassword1283748124', 'ASfh1i1sf2h021', '9128479124asflkhasfASF'],
+        ['username_test', 'test_email@test.com', 'testpassword1283748124'],
+        ['TestUsername', 'testtesttest@example.com', 'ASfh1i1sf2h021'],
+        ['lkjhflh109234', '123984842@gmail.com', '9128479124asflkhasfASF'],
     ),
+
 )
 def test_user_created_by_data(
     user_service: BaseUserService,
@@ -129,7 +130,7 @@ def test_user_created_by_data(
 ):
     """Test that user has been created by provided data."""
 
-    result: CustomUser = user_service.create_by_data(
+    created_user: CustomUser = user_service.create_by_data(
         data={
             'username': expected_username,
             'email': expected_email,
@@ -137,11 +138,17 @@ def test_user_created_by_data(
         },
     )
 
-    database_user = CustomUser.objects.get(pk=result.pk)
+    database_user = CustomUser.objects.get(pk=created_user.pk)
 
     assert database_user.username == expected_username
     assert database_user.email == expected_email
     assert database_user.check_password(expected_password)
+    assert not database_user.otp_enabled
+
+    assert created_user.username == expected_username
+    assert created_user.email == expected_email
+    assert created_user.check_password(expected_password)
+    assert not created_user.otp_enabled
 
 
 @pytest.mark.django_db

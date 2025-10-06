@@ -6,6 +6,7 @@ class ErrorCodes:
     CHANNEL_NOT_FOUND = "channel_not_found"
     SLUG_CHANNEL_NOT_FOUND = "slug_channel_not_found"
     AVATAR_DOES_NOT_EXIST = "avatar_does_not_exist"
+    CHANNEL_SLUG_INVALID_VALUE = 'channel_slug_invalid_value'
 
     # channels/exceptions/subscriptions.py
     SELF_SUBSCRIPTION = "self_subscription"
@@ -30,6 +31,10 @@ ERRORS = {
     ErrorCodes.AVATAR_DOES_NOT_EXIST: {
         'message': 'Avatar does not exist',
         'status_code': status.HTTP_404_NOT_FOUND,
+    },
+    ErrorCodes.CHANNEL_SLUG_INVALID_VALUE: {
+        'message': 'Channel slug invalid value',
+        'status_code': status.HTTP_400_BAD_REQUEST,
     },
 
     # channels/exceptions/subscriptions.py

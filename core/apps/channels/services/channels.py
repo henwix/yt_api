@@ -7,11 +7,13 @@ from dataclasses import dataclass
 from typing import Iterable
 
 from django.db.utils import IntegrityError
+from django.utils.text import slugify
 
 from core.apps.channels.converters.channels import data_to_channel_entity
 from core.apps.channels.entities.channels import ChannelEntity
 from core.apps.channels.exceptions.channels import (
     ChannelNotFoundError,
+    ChannelSlugInvalidValueError,
     SlugChannelNotFoundError,
 )
 from core.apps.channels.exceptions.subscriptions import (
@@ -35,6 +37,18 @@ from core.apps.users.entities import (
     UserEntity,
 )
 from core.apps.users.exceptions.users import UserWithThisDataAlreadyExistsError
+
+
+class BaseChannelSlugValidatorService(ABC):
+    @abstractmethod
+    def validate(self, slug: str) -> None:
+        ...
+
+
+class ChannelSlugValidatorService(BaseChannelSlugValidatorService):
+    def validate(self, slug: str) -> None:
+        if slugify(slug) != slug:
+            raise ChannelSlugInvalidValueError(slug=slug)
 
 
 @dataclass(eq=False)
@@ -66,7 +80,10 @@ class BaseChannelService(ABC):
         ...
 
 
+@dataclass
 class ORMChannelService(BaseChannelService):
+    slug_validator_service: BaseChannelSlugValidatorService
+
     def create_by_data(self, data: dict) -> ChannelEntity:
         """This method creates a ChannelEntity based on the provided data
         dictionary.
@@ -94,13 +111,15 @@ class ORMChannelService(BaseChannelService):
         channel_data.setdefault('name', data.get('username'))
 
         if not channel_data.get('slug'):
-            base_slug = channel_data.get('name').replace(' ', '')
+            base_slug = slugify(channel_data.get('name'))
             unique_slug = base_slug
 
             if self.repository.is_slug_exists(slug=unique_slug):
                 unique_slug = base_slug + '_' + uuid.uuid4().hex[:8]
 
             channel_data['slug'] = unique_slug
+        else:
+            self.slug_validator_service.validate(slug=channel_data.get('slug'))
 
         try:
             return self.repository.create_by_data(data=channel_data)

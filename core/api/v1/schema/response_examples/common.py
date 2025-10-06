@@ -4,6 +4,7 @@ from core.apps.common.errors import (
     ErrorCodes,
     ERRORS,
 )
+from core.apps.common.exceptions.exceptions import ServiceException
 
 
 def detail_response_example(
@@ -20,6 +21,21 @@ def detail_response_example(
         value={'detail': value},
         response_only=True,
         status_codes=[status_code],
+        summary=summary,
+        description=description,
+    )
+
+
+def build_example_response_from_error(
+    error: ServiceException,
+    summary: str = '',
+    description: str = '',
+) -> OpenApiExample:
+    return OpenApiExample(
+        name=error.default_detail['detail'] + ' error',
+        value=error.default_detail,
+        response_only=True,
+        status_codes=[error.status_code],
         summary=summary,
         description=description,
     )
@@ -85,3 +101,11 @@ def created_response_example() -> OpenApiExample:
 def deleted_response_example() -> OpenApiExample:
     """Create response example for Deletion with 'Success' detail message."""
     return detail_response_example(name='Deleted', value='Success', status_code=200)
+
+
+def confirmation_email_sent_response_example() -> OpenApiExample:
+    return detail_response_example(
+        name='Confirmation email has been sent',
+        value='Confirmation email successfully sent',
+        status_code=200,
+    )

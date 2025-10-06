@@ -9,4 +9,4 @@ def test_user_reset_username_email_sent(user_reset_username_use_case: UserResetU
     result = user_reset_username_use_case.execute(email=user.email)
 
     assert isinstance(result, dict)
-    assert result == {'detail': 'Email successfully sent'}
+    assert result == {'detail': 'Confirmation email successfully sent'}

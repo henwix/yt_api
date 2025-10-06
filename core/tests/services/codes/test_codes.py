@@ -6,7 +6,7 @@ import pytest
 from core.apps.users.converters.users import user_to_entity
 from core.apps.users.exceptions.codes import (
     OtpCodeNotEqualError,
-    OtpCodeNotProvidedOrNotFoundError,
+    OtpCodeNotFoundError,
     SetEmailCodeNotProvidedOrNotFoundError,
     SetEmailUserNotEqualError,
     UserEmailCodeNotEqualError,
@@ -46,7 +46,7 @@ def test_otp_code_not_provided_error(code_service: BaseCodeService):
 
     email = 'test@test.com'
 
-    with pytest.raises(OtpCodeNotProvidedOrNotFoundError):
+    with pytest.raises(OtpCodeNotFoundError):
         code_service.validate_email_otp_code(email, None)
 
 
@@ -142,6 +142,7 @@ def test_user_email_code_generated_and_cached(code_service: BaseCodeService, use
 def test_user_email_code_validated(code_service: BaseCodeService, user: CustomUser):
     """Test that the user_email_code has been validated and deleted from
     cache."""
+
     cache_prefix = 'test_user_email_code_prefix_'
     code = code_service.generate_user_email_code(user=user_to_entity(user), cache_prefix=cache_prefix)
     assert len(cache.keys('*')) == 1

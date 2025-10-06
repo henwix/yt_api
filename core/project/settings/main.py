@@ -193,6 +193,7 @@ SPECTACULAR_SETTINGS = {
     'SORT_OPERATIONS': False,
     'SCHEMA_PATH_PREFIX': r'/v[1-2]/',
     'SWAGGER_UI_SETTINGS': {'deepLinking': True, 'persistAuthorization': True},
+    'AUTHENTICATION_WHITELIST': ['rest_framework_simplejwt.authentication.JWTAuthentication'],
 }
 
 
@@ -353,7 +354,7 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
-AUTH_SEND_ACTIVATION_EMAIL = True
+AUTH_SEND_ACTIVATION_EMAIL = False
 
 EMAIL_FRONTEND_PROTOCOL = os.environ.get('EMAIL_FRONTEND_PROTOCOL', 'https')
 EMAIL_FRONTEND_DOMAIN = os.environ.get('EMAIL_FRONTEND_DOMAIN', 'example.com')

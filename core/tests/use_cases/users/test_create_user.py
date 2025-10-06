@@ -1,3 +1,5 @@
+from django.utils.text import slugify
+
 import pytest
 from pytest_django.fixtures import SettingsWrapper
 
@@ -106,10 +108,10 @@ def test_channel_created_based_on_user_data(
 @pytest.mark.parametrize(
     argnames='expected_channel_name, expected_channel_slug, expected_channel_description, expected_channel_country',
     argvalues=(
-        ['Test Channel Name', 'Channel.name1235', 'channeln@mete$t', 'this is a test channel name'],
-        ['test_channel_slug', 'mytest.channel_slug-123', 'channel_slug-123', 'gfldsfsad-akslnf1.sad'],
-        ['Test Channel description', 'Testchanneldescription', 'description', 'FN(*LASJKFHn;ajkfho1b'],
-        ['US', 'United States', 'Test Country', 'Channel Country Test'],
+        ['Test Channel Name', 'test_channel_slug', 'Test Channel description', 'US'],
+        ['Channel.name1235', 'mytest_channel_slug-123', 'Testchanneldescription', 'United States'],
+        ['channeln@mete$t', 'channel_slug-123', 'description', 'Test Country'],
+        ['this is a test channel name', 'gfldsfsad-akslnf1_sad', 'FN(*LASJKFHn;ajkfho1b', 'Channel Country Test'],
     ),
 )
 def test_channel_created_with_provided_data(
@@ -187,7 +189,7 @@ def test_channel_created_without_slug_data(
     assert Channel.objects.filter(
         user__username=expected_username,
         user__email=expected_email,
-        slug=expected_channel_name.replace(' ', ''),
+        slug=slugify(expected_channel_name),
         name=expected_channel_name,
         country=expected_channel_country,
         description=expected_channel_description,

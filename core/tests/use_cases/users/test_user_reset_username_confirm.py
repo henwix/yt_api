@@ -27,6 +27,9 @@ def test_user_reset_username_confirmed(
     )
     encoded_id = encoding_service.base64_encode(data=user.pk)
 
+    assert CustomUser.objects.filter(pk=user.pk, username=user.username).exists()
+    assert not CustomUser.objects.filter(pk=user.pk, username=expected_username).exists()
+
     result = user_reset_username_confirm_use_case.execute(
         encoded_id=encoded_id,
         code=code,
@@ -35,7 +38,7 @@ def test_user_reset_username_confirmed(
 
     assert isinstance(result, dict)
     assert result == {'detail': 'Success'}
-    assert not CustomUser.objects.filter(username=user.username).exists()
+    assert not CustomUser.objects.filter(pk=user.pk, username=user.username).exists()
     assert CustomUser.objects.filter(pk=user.pk, username=expected_username).exists()
 
 

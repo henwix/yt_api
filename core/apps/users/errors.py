@@ -3,12 +3,12 @@ from rest_framework import status
 
 class ErrorCodes:
     # users/exceptions/codes.py
-    OTP_CODE_NOT_PROVIDED_OR_NOT_FOUND = 'otp_code_not_provided'
+    OTP_CODE_NOT_FOUND = 'otp_code_not_found'
     CODE_NOT_EQUAL = 'otp_code_not_equal'
     SET_EMAIL_CODE_NOT_PROVIDED_OR_NOT_FOUND = 'set_email_code_not_provided'
     SET_EMAIL_USER_NOT_EQUAL = 'set_email_user_not_equal'
     USER_EMAIL_CODE_NOT_FOUND = 'user_email_code_not_found'
-    RESET_CODE_NOT_EQUAL = 'user_email_code_not_equal'
+    USER_EMAIL_CODE_NOT_EQUAL = 'user_email_code_not_equal'
 
     # users/exceptions/oauth2.py
     OAUTH2_PROVIDER_NOT_SUPPORTED = 'oauth2_provider_not_supported'
@@ -23,8 +23,8 @@ class ErrorCodes:
 
 ERRORS = {
     # users/exceptions/codes.py
-    ErrorCodes.OTP_CODE_NOT_PROVIDED_OR_NOT_FOUND: {
-        'message': 'Otp code not provided or not found',
+    ErrorCodes.OTP_CODE_NOT_FOUND: {
+        'message': 'Otp code not found',
         'status_code': status.HTTP_404_NOT_FOUND,
     },
     ErrorCodes.CODE_NOT_EQUAL: {
@@ -40,11 +40,11 @@ ERRORS = {
         'status_code': status.HTTP_400_BAD_REQUEST,
     },
     ErrorCodes.USER_EMAIL_CODE_NOT_FOUND: {
-        'message': 'Reset code not found',
+        'message': 'Email code not found',
         'status_code': status.HTTP_404_NOT_FOUND,
     },
-    ErrorCodes.RESET_CODE_NOT_EQUAL: {
-        'message': 'Reset code not equal',
+    ErrorCodes.USER_EMAIL_CODE_NOT_EQUAL: {
+        'message': 'Email code not equal',
         'status_code': status.HTTP_400_BAD_REQUEST,
     },
 

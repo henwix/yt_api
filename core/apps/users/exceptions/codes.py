@@ -8,8 +8,8 @@ from core.apps.users.errors import (
 
 
 @dataclass
-class OtpCodeNotProvidedOrNotFoundError(ServiceException):
-    default_code = ErrorCodes.OTP_CODE_NOT_PROVIDED_OR_NOT_FOUND
+class OtpCodeNotFoundError(ServiceException):
+    default_code = ErrorCodes.OTP_CODE_NOT_FOUND
     status_code = ERRORS[default_code]['status_code']
     default_detail = {'detail': ERRORS[default_code]['message']}
 
@@ -58,7 +58,7 @@ class UserEmailCodeNotFoundError(ServiceException):
 
 @dataclass
 class UserEmailCodeNotEqualError(ServiceException):
-    default_code = ErrorCodes.RESET_CODE_NOT_EQUAL
+    default_code = ErrorCodes.USER_EMAIL_CODE_NOT_EQUAL
     status_code = ERRORS[default_code]['status_code']
     default_detail = {'detail': ERRORS[default_code]['message']}
 

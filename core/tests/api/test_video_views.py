@@ -16,6 +16,7 @@ from core.tests.factories.videos import VideoViewModelFactory
 @pytest.mark.django_db
 def test_video_view_created(client: APIClient, jwt: str, video: Video):
     """Test that video view was created after POST request to the endpoint: /v1/videos/{video_id}/view/."""
+
     client.credentials(HTTP_AUTHORIZATION=jwt)
 
     assert not VideoView.objects.filter(video=video).exists()
@@ -29,6 +30,7 @@ def test_video_view_created(client: APIClient, jwt: str, video: Video):
 @pytest.mark.django_db
 def test_video_view_exists_error(client: APIClient, jwt_and_channel: tuple, video: Video):
     """Test that video view was created after POST request to the endpoint: /v1/videos/{video_id}/view/."""
+
     jwt, channel = jwt_and_channel
     client.credentials(HTTP_AUTHORIZATION=jwt)
 

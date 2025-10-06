@@ -16,8 +16,10 @@ from core.apps.channels.services.channels import (
     BaseChannelAboutService,
     BaseChannelMainService,
     BaseChannelService,
+    BaseChannelSlugValidatorService,
     BaseChannelSubsService,
     BaseSubscriptionService,
+    ChannelSlugValidatorService,
     ORMChannelAboutService,
     ORMChannelMainService,
     ORMChannelService,
@@ -55,6 +57,8 @@ def init_channels(container: punq.Container) -> None:
     container.register(BaseSubscriptionRepository, ORMSubscriptionRepository)
 
     # services
+    container.register(BaseChannelSlugValidatorService, ChannelSlugValidatorService)
+
     container.register(BaseChannelService, ORMChannelService)
     container.register(BaseChannelSubsService, ORMChannelSubsService)
     container.register(BaseChannelMainService, ORMChannelMainService)

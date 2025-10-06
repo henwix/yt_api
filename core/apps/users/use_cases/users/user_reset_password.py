@@ -43,5 +43,5 @@ class UserResetPasswordUseCase:
             template=settings.EMAIL_SMTP_TEMPLATES.get('password_reset'),
         )
 
-        # retrn message that the email was sent
-        return {'detail': 'Email successfully sent'}
+        # return message that the email was sent
+        return {'detail': 'Confirmation email successfully sent'}

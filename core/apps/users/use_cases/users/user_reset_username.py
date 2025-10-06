@@ -43,4 +43,4 @@ class UserResetUsernameUseCase:
             template=settings.EMAIL_SMTP_TEMPLATES.get('username_reset'),
         )
 
-        return {'detail': 'Email successfully sent'}
+        return {'detail': 'Confirmation email successfully sent'}

@@ -12,12 +12,12 @@ class LikeCreateOutSerializer(serializers.Serializer):
 
 
 class JWTOutSerializer(serializers.Serializer):
-    access = serializers.CharField()
-    refresh = serializers.CharField()
+    access = serializers.CharField(help_text='JWT access token')
+    refresh = serializers.CharField(help_text='JWT refresh token')
 
 
 class DetailOutSerializer(serializers.Serializer):
-    detail = serializers.CharField()
+    detail = serializers.CharField(max_length=256, help_text='Detail response message')
 
 
 class UrlSerializer(serializers.Serializer):
@@ -33,7 +33,7 @@ class VParameterSerializer(serializers.Serializer):
 
 
 class UUID4CodeSerializer(serializers.Serializer):
-    code = serializers.CharField(max_length=32)
+    code = serializers.CharField(max_length=32, help_text='The UUID4 code that was generated for the user')
 
 
 class CaptchaSerializer(serializers.Serializer):

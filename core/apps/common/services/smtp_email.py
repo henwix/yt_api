@@ -3,6 +3,7 @@ from abc import (
     abstractmethod,
 )
 from dataclasses import dataclass
+from urllib.parse import urlencode
 
 from django.db.utils import settings
 
@@ -18,7 +19,7 @@ class BaseEmailService(ABC):
         ...
 
     @abstractmethod
-    def build_frontend_email_url_with_code_and_id(self, uri: str, encoded_id: str, code: str) -> str:
+    def build_email_frontend_url(self, uri: str, query_params: dict | None = None) -> str:
         ...
 
 
@@ -26,8 +27,9 @@ class EmailService(BaseEmailService):
     def send_email(self, to: list[str], context: dict, subject: str, template: str) -> None:
         self.email_sender.send_email(to=to, context=context, subject=subject, template=template)
 
-    def build_frontend_email_url_with_code_and_id(self, uri: str, encoded_id: str, code: str) -> str:
-        protocol = settings.EMAIL_FRONTEND_PROTOCOL
-        domain = settings.EMAIL_FRONTEND_DOMAIN
+    def build_email_frontend_url(self, uri: str, query_params: dict | None = None) -> str:
+        base_url = f'{settings.EMAIL_FRONTEND_PROTOCOL}://{settings.EMAIL_FRONTEND_DOMAIN}{uri}'
 
-        return f'{protocol}://{domain}{uri}?uid={encoded_id}&code={code}'
+        if query_params:
+            return base_url + '?' + urlencode(query_params)
+        return base_url

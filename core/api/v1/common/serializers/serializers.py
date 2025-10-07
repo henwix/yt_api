@@ -33,7 +33,11 @@ class VParameterSerializer(serializers.Serializer):
 
 
 class UUID4CodeSerializer(serializers.Serializer):
-    code = serializers.CharField(max_length=32, help_text='The UUID4 code that was generated for the user')
+    code = serializers.CharField(
+        min_length=32,
+        max_length=32,
+        help_text='The UUID4 code that was generated for the user',
+    )
 
 
 class CaptchaSerializer(serializers.Serializer):

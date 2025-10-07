@@ -27,7 +27,7 @@ class UserSerializer(CaptchaSerializer, serializers.ModelSerializer):
 class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['email', 'username', 'otp_enabled']
+        fields = ['username', 'otp_enabled']
 
 
 class PasswordUserSerializer(serializers.ModelSerializer):

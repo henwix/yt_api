@@ -152,13 +152,14 @@ def test_user_created_by_data(
 
 
 @pytest.mark.django_db
-def test_user_username_exists_error(
+@pytest.mark.parametrize('expected_username', ['test_username', 'TestUsername', '123_Username.Test'])
+def test_user_create_by_data_username_exists_error(
+    expected_username: str,
     user_service: BaseUserService,
 ):
     """Test that an error has been raised when the user with this username
     already exists."""
 
-    expected_username = 'username_test'
     expected_email = 'test_email@test.com'
     expected_password = 'PasswordTest_123456'
 
@@ -175,14 +176,15 @@ def test_user_username_exists_error(
 
 
 @pytest.mark.django_db
-def test_user_email_exists_error(
+@pytest.mark.parametrize('expected_email', ['test_email@test.com', 'user_email_123@test.dev', 'test_456@test.com'])
+def test_user_create_by_data_email_exists_error(
+    expected_email: str,
     user_service: BaseUserService,
 ):
     """Test that an error has been raised when the user with this email already
     exists."""
 
     expected_username = 'username_test'
-    expected_email = 'test_email@test.com'
     expected_password = 'PasswordTest_123456'
 
     UserModelFactory.create(email=expected_email)
@@ -224,7 +226,7 @@ def test_password_updated(
         ('123_567_user_name_new_test_123', 'example_email@example.com', True),
     ],
 )
-def test_user_data_updated(
+def test_user_updated_by_data(
     user_service: BaseUserService,
     user: CustomUser,
     expected_username: str,
@@ -247,6 +249,56 @@ def test_user_data_updated(
         email=expected_email,
         otp_enabled=expected_otp_enabled,
     ).exists()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('expected_username', ['username_test', 'Test.Username_123', 'UserName@Test.com'])
+def test_user_update_by_data_username_exists_error(
+    user_service: BaseUserService,
+    user: CustomUser,
+    expected_username: str,
+):
+    """Test that an error has been raised when the user with this username
+    already exists."""
+
+    expected_email = 'test_email@test.com'
+    expected_otp_enabled = False
+
+    UserModelFactory.create(username=expected_username)
+
+    with pytest.raises(UserWithThisDataAlreadyExistsError):
+        user_service.update_by_data(
+            user=user_to_entity(user), data={
+                'username': expected_username,
+                'email': expected_email,
+                'otp_enabled': expected_otp_enabled,
+            },
+        )
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('expected_email', ['email_test@gmail.com', 'email_123@gmail.com', 'emailemailtest@test.com'])
+def test_user_update_by_data_email_exists_error(
+    user_service: BaseUserService,
+    user: CustomUser,
+    expected_email: str,
+):
+    """Test that an error has been raised when the user with this email already
+    exists."""
+
+    expected_username = 'test_username'
+    expected_otp_enabled = False
+
+    UserModelFactory.create(email=expected_email)
+
+    with pytest.raises(UserWithThisDataAlreadyExistsError):
+        user_service.update_by_data(
+            user=user_to_entity(user), data={
+                'username': expected_username,
+                'email': expected_email,
+                'otp_enabled': expected_otp_enabled,
+            },
+        )
 
 
 @pytest.mark.django_db

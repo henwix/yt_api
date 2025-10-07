@@ -63,10 +63,9 @@ class UserCreateUseCase:
                     'username': user_entity.username,
                     'code': code,
                     'encoded_id': encoded_id,
-                    'url': self.email_service.build_frontend_email_url_with_code_and_id(
+                    'url': self.email_service.build_email_frontend_url(
                         uri=settings.EMAIL_FRONTEND_ACTIVATE_URI,
-                        encoded_id=encoded_id,
-                        code=code,
+                        query_params={'uid': encoded_id, 'code': code},
                     ),
                 },
                 subject='Activate your account',

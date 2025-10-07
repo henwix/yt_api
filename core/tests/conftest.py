@@ -5,6 +5,7 @@ from rest_framework.test import APIClient
 import punq
 import pytest
 from punq import Container
+from pytest_django.fixtures import SettingsWrapper
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.apps.channels.models import Channel
@@ -37,7 +38,22 @@ User = get_user_model()
 
 @pytest.fixture(autouse=True)
 def clear_cache():
+    """Clear the cache before each test to avoid unpredictable caching
+    behavior."""
     cache.clear()
+
+
+@pytest.fixture(autouse=True)
+def disable_silk_middleware(settings: SettingsWrapper):
+    """Fixture to disable Silk middleware when DEBUG == True.
+
+    If it's enabled, it may impact test results
+
+    """
+    silk_middleware = 'silk.middleware.SilkyMiddleware'
+
+    if silk_middleware in settings.MIDDLEWARE:
+        settings.MIDDLEWARE = [i for i in settings.MIDDLEWARE if i != silk_middleware]
 
 
 @pytest.fixture

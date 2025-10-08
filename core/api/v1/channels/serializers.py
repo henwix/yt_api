@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
 
 from core.api.v1.videos.serializers.video_serializers import VideoPreviewSerializer
 from core.apps.channels.models import (
@@ -11,18 +10,15 @@ from core.apps.channels.models import (
 class ChannelSerializer(serializers.ModelSerializer):
     """Channel serializer for user creation and detail endpoints."""
 
-    slug = serializers.SlugField(
-        max_length=40,
-        required=False,
-        validators=[UniqueValidator(queryset=Channel.objects.all())],
-    )
-
     class Meta:
         model = Channel
         fields = ['name', 'slug', 'description', 'country', 'avatar_s3_key']
         read_only_fields = ['user', 'avatar_s3_key']
         extra_kwargs = {
             'name': {
+                'required': False,
+            },
+            'slug': {
                 'required': False,
             },
         }
@@ -35,8 +31,8 @@ class ChannelAndVideosSerializer(ChannelSerializer):
 
     """
 
-    videos = VideoPreviewSerializer(read_only=True, many=True)
-    subs_count = serializers.IntegerField(read_only=True)
+    videos = VideoPreviewSerializer(read_only=True, many=True, help_text='Channel videos')
+    subs_count = serializers.IntegerField(read_only=True, help_text='Total number of subscribers')
 
     class Meta:
         model = ChannelSerializer.Meta.model
@@ -46,14 +42,19 @@ class ChannelAndVideosSerializer(ChannelSerializer):
 class ChannelAboutSerializer(serializers.ModelSerializer):
     """Channel serializer for /about/ page."""
 
-    total_videos = serializers.IntegerField(read_only=True)
-    total_views = serializers.IntegerField(read_only=True)
-    total_subs = serializers.IntegerField(read_only=True)
-    date_joined = serializers.DateTimeField(source='user.date_joined', read_only=True)
+    total_videos = serializers.IntegerField(read_only=True, help_text='Total number of videos')
+    total_views = serializers.IntegerField(read_only=True, help_text='Total number of views')
+    total_subs = serializers.IntegerField(read_only=True, help_text='Total number of subscribers')
+    date_joined = serializers.DateTimeField(
+        source='user.date_joined',
+        read_only=True,
+        help_text='Date when the channel was created',
+    )
     channel_link = serializers.HyperlinkedIdentityField(
         view_name='v1:channels:channels-show',
         lookup_field='slug',
         lookup_url_kwarg='slug',
+        help_text='Link to this channel',
     )
 
     class Meta:
@@ -62,7 +63,7 @@ class ChannelAboutSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
-    sub_slug = serializers.CharField(source='subscriber.slug', read_only=True)
+    sub_slug = serializers.CharField(source='subscriber.slug', read_only=True, help_text='Subscriber slug')
     sub_link = serializers.HyperlinkedRelatedField(
         view_name='v1:channels:channels-show',
         lookup_field='slug',
@@ -70,6 +71,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         source='subscriber',
         read_only=True,
         many=False,
+        help_text='Subscriber link',
     )
 
     class Meta:
@@ -78,4 +80,4 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionInSerializer(serializers.Serializer):
-    channel_slug = serializers.SlugField(max_length=40)
+    channel_slug = serializers.SlugField(max_length=40, help_text='Channel slug')

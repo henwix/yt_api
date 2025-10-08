@@ -9,8 +9,8 @@ class OAuth2ConnectSerializer(serializers.Serializer):
 
 
 class AuthUrlSerializer(serializers.Serializer):
-    auth_url = serializers.URLField()
+    auth_url = serializers.URLField(help_text='URL for oauth2 authorization')
 
 
 class OAuth2ConnectedProvidersSerializer(serializers.Serializer):
-    connected = serializers.DictField()
+    connected = serializers.DictField(help_text='All connected services via oauth2')

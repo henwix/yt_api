@@ -20,9 +20,8 @@ from core.api.v1.common.serializers.serializers import (
     UrlSerializer,
 )
 from core.api.v1.common.serializers.upload_serializers import (
-    AbortMultipartUploadInSerializer,
+    BaseMultipartUploadInSerializer,
     CompleteMultipartUploadInSerializer,
-    CompleteMultipartUploadOutSerializer,
     CreateMultipartUploadOutSerializer,
     GenerateMultipartUploadPartUrlInSerializer,
     KeySerializer,
@@ -259,7 +258,7 @@ class GenerateDownloadVideoUrlView(generics.GenericAPIView):
     summary='Abort multipart upload',
 )
 class AbortMultipartUploadView(generics.GenericAPIView):
-    serializer_class = AbortMultipartUploadInSerializer
+    serializer_class = BaseMultipartUploadInSerializer
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -303,7 +302,7 @@ class AbortMultipartUploadView(generics.GenericAPIView):
 
 @extend_schema(
     responses={
-        200: CompleteMultipartUploadOutSerializer,
+        200: DetailOutSerializer,
         400: DetailOutSerializer,
         404: DetailOutSerializer,
         500: DetailOutSerializer,

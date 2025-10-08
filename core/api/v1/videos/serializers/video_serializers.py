@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from core.api.v1.common.serializers.upload_serializers import FilenameSerializer
 from core.apps.videos.models import (
     Playlist,
     Video,
@@ -8,7 +9,12 @@ from core.apps.videos.models import (
 
 
 class VideoCommentSerializer(serializers.ModelSerializer):
-    video = serializers.SlugRelatedField(queryset=Video.objects.all(), slug_field='video_id', write_only=True)
+    video = serializers.SlugRelatedField(
+        queryset=Video.objects.all(),
+        slug_field='video_id',
+        write_only=True,
+        help_text='Video slug',
+    )
     author = serializers.HiddenField(default=None)
     author_link = serializers.HyperlinkedRelatedField(
         view_name='v1:channels:channels-show',
@@ -17,10 +23,11 @@ class VideoCommentSerializer(serializers.ModelSerializer):
         source='author',
         many=False,
         read_only=True,
+        help_text='Comment author channel link',
     )
-    author_slug = serializers.CharField(source='author.slug', read_only=True)
-    likes_count = serializers.IntegerField(read_only=True)
-    replies_count = serializers.IntegerField(read_only=True)
+    author_slug = serializers.CharField(source='author.slug', read_only=True, help_text='Comment author channel slug')
+    likes_count = serializers.IntegerField(read_only=True, help_text='Total number of likes')
+    replies_count = serializers.IntegerField(read_only=True, help_text='Total number of replies')
 
     class Meta:
         model = VideoComment
@@ -44,14 +51,12 @@ class VideoCommentSerializer(serializers.ModelSerializer):
 
 class CommentCreatedSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    text = serializers.CharField()
-    reply_level = serializers.IntegerField()
-    created_at = serializers.DateTimeField()
+    text = serializers.CharField(help_text='Comment content')
+    reply_level = serializers.IntegerField(help_text='Level of reply')
+    created_at = serializers.DateTimeField(help_text='Date when the comment was created')
 
 
-class VideoCreateSerializer(serializers.ModelSerializer):
-    filename = serializers.CharField()
-
+class VideoCreateSerializer(FilenameSerializer, serializers.ModelSerializer):
     class Meta:
         model = Video
         fields = [
@@ -65,23 +70,25 @@ class VideoCreateSerializer(serializers.ModelSerializer):
 class VideoSerializer(serializers.ModelSerializer):
     """Video serializer for video creation, updating and retrieving."""
 
-    author_name = serializers.StringRelatedField(source='author.name')
+    author_name = serializers.StringRelatedField(source='author.name', help_text='Video author name')
     author_link = serializers.HyperlinkedRelatedField(
         view_name='v1:channels:channels-show',
         lookup_field='slug',
         lookup_url_kwarg='slug',
         source='author',
         read_only=True,
+        help_text='Video author channel link',
     )
     video_link = serializers.HyperlinkedIdentityField(
         view_name='v1:videos:videos-detail',
         lookup_field='video_id',
         lookup_url_kwarg='video_id',
+        help_text='Video link',
     )
-    likes_count = serializers.IntegerField(read_only=True)
-    views_count = serializers.IntegerField(read_only=True)
-    comments_count = serializers.IntegerField(read_only=True)
-    subs_count = serializers.IntegerField(read_only=True)
+    likes_count = serializers.IntegerField(read_only=True, help_text='Total number of likes')
+    views_count = serializers.IntegerField(read_only=True, help_text='Total number of views')
+    comments_count = serializers.IntegerField(read_only=True, help_text='Total number of comments')
+    subs_count = serializers.IntegerField(read_only=True, help_text='Total number of subs')
 
     class Meta:
         model = Video
@@ -118,9 +125,10 @@ class VideoPreviewSerializer(serializers.ModelSerializer):
         view_name='v1:videos:videos-detail',
         lookup_field='video_id',
         lookup_url_kwarg='video_id',
+        help_text='Video link',
     )
-    views_count = serializers.IntegerField(read_only=True, required=False)
-    author_name = serializers.CharField(source='author.slug')
+    views_count = serializers.IntegerField(read_only=True, required=False, help_text='Total number of views')
+    author_name = serializers.CharField(source='author.slug', help_text='Video author name')
     author_link = serializers.HyperlinkedRelatedField(
         view_name='v1:channels:channels-show',
         source='author',
@@ -128,6 +136,7 @@ class VideoPreviewSerializer(serializers.ModelSerializer):
         read_only=True,
         lookup_field='slug',
         lookup_url_kwarg='slug',
+        help_text='Video author channel link',
     )
 
     class Meta:
@@ -146,7 +155,11 @@ class VideoPreviewSerializer(serializers.ModelSerializer):
 
 
 class PlaylistPreviewSerializer(serializers.ModelSerializer):
-    channel_name = serializers.CharField(source='channel.name', read_only=True)
+    channel_name = serializers.CharField(
+        source='channel.name',
+        read_only=True,
+        help_text='Playlist author channel name',
+    )
     channel_link = serializers.HyperlinkedRelatedField(
         view_name='v1:channels:channels-show',
         many=False,
@@ -154,14 +167,16 @@ class PlaylistPreviewSerializer(serializers.ModelSerializer):
         lookup_field='slug',
         lookup_url_kwarg='slug',
         source='channel',
+        help_text='Playlist author channel link',
     )
     playlist_link = serializers.HyperlinkedIdentityField(
         view_name='v1:videos:playlists-detail',
         lookup_field='id',
         lookup_url_kwarg='id',
         read_only=True,
+        help_text='Playlist link',
     )
-    videos_count = serializers.IntegerField(read_only=True)
+    videos_count = serializers.IntegerField(read_only=True, help_text='Total number of videos')
 
     class Meta:
         model = Playlist
@@ -176,13 +191,6 @@ class PlaylistPreviewSerializer(serializers.ModelSerializer):
 
 
 class PlaylistSerializer(PlaylistPreviewSerializer):
-    playlist_link = serializers.HyperlinkedIdentityField(
-        view_name='v1:videos:playlists-detail',
-        lookup_field='id',
-        lookup_url_kwarg='id',
-        read_only=True,
-    )
-
     class Meta:
         model = PlaylistPreviewSerializer.Meta.model
         fields = [

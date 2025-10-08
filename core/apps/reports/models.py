@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext as _
 
 from core.apps.channels.models import Channel
 from core.apps.videos.models import Video
@@ -20,8 +21,8 @@ class VideoReport(models.Model):
 
     video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='reports')
     author = models.ForeignKey(Channel, on_delete=models.SET_NULL, null=True)
-    reason = models.CharField(choices=ReportReasons.choices, max_length=28, db_index=True)
-    description = models.TextField()
+    reason = models.CharField(choices=ReportReasons.choices, max_length=28, db_index=True, help_text=_('Report reason'))
+    description = models.TextField(help_text=_('Report description'))
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -1,6 +1,7 @@
 import uuid
 
 from django.db import models
+from django.utils.translation import gettext as _
 
 from core.apps.channels.models import Channel
 from core.apps.common.models import Comment
@@ -8,9 +9,16 @@ from core.apps.common.models import Comment
 
 class Post(models.Model):
     post_id = models.UUIDField(unique=True, primary_key=True, default=uuid.uuid4, editable=False)
-    author = models.ForeignKey(to=Channel, on_delete=models.CASCADE, related_name='posts', db_index=True)
-    text = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    author = models.ForeignKey(
+        to=Channel,
+        on_delete=models.CASCADE,
+        related_name='posts',
+        db_index=True,
+        verbose_name=_('Author'),
+        help_text=_("Post's author"),
+    )
+    text = models.TextField(verbose_name=_('Text'), help_text=_('Post content'))
+    created_at = models.DateTimeField(auto_now_add=True, help_text='Date when the post was created')
     likes = models.ManyToManyField(Channel, through='PostLikeItem', related_name='liked_posts', blank=True)
     comments = models.ManyToManyField(Channel, through='PostCommentItem', related_name='posts_comments', blank=True)
 
@@ -21,7 +29,7 @@ class Post(models.Model):
 class PostLikeItem(models.Model):
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='liked_posts_items', db_index=True)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='likes_items', db_index=True)
-    is_like = models.BooleanField(default=True, db_index=True)
+    is_like = models.BooleanField(default=True, db_index=True, help_text=_('Post reaction'))
 
     class Meta:
         constraints = [
@@ -54,7 +62,7 @@ class PostCommentLikeItem(models.Model):
         related_name='liked_posts_comments_items',
         db_index=True,
     )
-    is_like = models.BooleanField(default=True, db_index=True)
+    is_like = models.BooleanField(default=True, db_index=True, help_text=_('Post comment reaction'))
 
     class Meta:
         constraints = [

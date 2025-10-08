@@ -17,10 +17,11 @@ class CommentRetrieveSerializer(serializers.ModelSerializer):
         source='author',
         many=False,
         read_only=True,
+        help_text='Comment author link',
     )
-    author_slug = serializers.CharField(source='author.slug', read_only=True)
-    likes_count = serializers.IntegerField(read_only=True)
-    replies_count = serializers.IntegerField(read_only=True)
+    author_slug = serializers.CharField(source='author.slug', read_only=True, help_text='Comment author slug')
+    likes_count = serializers.IntegerField(read_only=True, help_text='Total number of likes')
+    replies_count = serializers.IntegerField(read_only=True, help_text='Total number of replies')
 
     class Meta:
         model = PostCommentItem

@@ -8,12 +8,12 @@ from core.api.v1.common.serializers.serializers import CaptchaSerializer
 
 class EmailSerializer(serializers.Serializer):
     """Email serializer without value unique validator."""
-    email = serializers.EmailField(max_length=256, help_text="User\'s email address")
+    email = serializers.EmailField(max_length=256, help_text='User email address')
 
 
 class AuthInSerializer(CaptchaSerializer, serializers.Serializer):
-    login = serializers.CharField(max_length=256, help_text="User's email or username")
-    password = serializers.CharField(max_length=128, help_text="User's password")
+    login = serializers.CharField(max_length=256, help_text='User email or username')
+    password = serializers.CharField(max_length=128, help_text='User password')
 
     def validate_login(self, value):
         username_validator = UnicodeUsernameValidator()
@@ -27,4 +27,4 @@ class AuthInSerializer(CaptchaSerializer, serializers.Serializer):
 
 
 class AuthCodeVerifyInSerializer(EmailSerializer, serializers.Serializer):
-    code = serializers.CharField(max_length=256)
+    code = serializers.CharField(max_length=256, help_text='OTP code to confirm login')

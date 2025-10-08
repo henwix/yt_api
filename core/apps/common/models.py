@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext as _
 
 
 class Comment(models.Model):
@@ -8,7 +9,7 @@ class Comment(models.Model):
     ]
 
     id = models.BigAutoField(primary_key=True, unique=True, editable=False, db_index=True)
-    text = models.TextField()
+    text = models.TextField(help_text=_('Comment content'))
     created_at = models.DateTimeField(auto_now_add=True)
     is_updated = models.BooleanField(default=False)
     reply_comment = models.ForeignKey(
@@ -17,9 +18,14 @@ class Comment(models.Model):
         related_name='replies',
         null=True,
         blank=True,
-        help_text='Comment to reply',
+        help_text=_('Comment to reply'),
     )
-    reply_level = models.PositiveIntegerField(choices=reply_level_choices, default=0, db_index=True)
+    reply_level = models.PositiveIntegerField(
+        choices=reply_level_choices,
+        default=0,
+        db_index=True,
+        help_text=_('Level of reply'),
+    )
 
     class Meta:
         abstract = True

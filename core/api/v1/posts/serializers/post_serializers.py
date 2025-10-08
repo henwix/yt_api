@@ -3,14 +3,18 @@ from rest_framework import serializers
 from core.apps.posts.models import Post
 
 
-class PostInSerializer(serializers.Serializer):
-    text = serializers.CharField()
+class PostInSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ['text']
 
 
-class PostOutSerializer(serializers.Serializer):
-    pk = serializers.CharField()
-    text = serializers.CharField()
-    created_at = serializers.DateTimeField()
+class PostOutSerializer(serializers.ModelSerializer):
+    pk = serializers.UUIDField()
+
+    class Meta:
+        model = Post
+        fields = ['pk', 'text', 'created_at']
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -28,16 +32,21 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 class PostDetailedSerializer(PostSerializer):
-    likes_count = serializers.IntegerField(read_only=True)
-    comments_count = serializers.IntegerField(read_only=True)
-    author_name = serializers.CharField(source='author.name', read_only=True)
-    author_avatar_s3_key = serializers.CharField(source='author.avatar_s3_key', read_only=True)
+    likes_count = serializers.IntegerField(read_only=True, help_text='Total number of likes')
+    comments_count = serializers.IntegerField(read_only=True, help_text='Total number of comments')
+    author_name = serializers.CharField(source='author.name', read_only=True, help_text='Post author name')
+    author_avatar_s3_key = serializers.CharField(
+        source='author.avatar_s3_key',
+        read_only=True,
+        help_text='Author avatar S3 file key',
+    )
     author_link = serializers.HyperlinkedRelatedField(
         view_name='v1:channels:channels-show',
         lookup_field='slug',
         lookup_url_kwarg='slug',
         source='author',
         read_only=True,
+        help_text='Link to author channel',
     )
 
     class Meta:
@@ -53,4 +62,4 @@ class PostDetailedSerializer(PostSerializer):
 
 
 class PostUIDSerializer(serializers.Serializer):
-    p = serializers.UUIDField()
+    p = serializers.UUIDField(help_text='Parameter identifying post id')

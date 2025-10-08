@@ -144,7 +144,7 @@ class UserView(
                     serializers=[UserSerializer, DetailOutSerializer],
                     resource_type_field_name=None,
                 ),
-                description='Successfull user creation',
+                description='User has been created',
             ),
             400: OpenApiResponse(
                 response=DetailOutSerializer,
@@ -156,7 +156,7 @@ class UserView(
             user_activation_email_sent_response_example(status_code=201),
             build_example_response_from_error(error=UserWithThisDataAlreadyExistsError),
         ],
-        summary='create: Create new user and channel',
+        summary='create: Create a new user and channel',
     )
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -180,7 +180,7 @@ class UserView(
         responses={
             200: OpenApiResponse(
                 response=DetailOutSerializer,
-                description='Successfull password update',
+                description='Password has been updated',
             ),
         },
         examples=[
@@ -188,7 +188,6 @@ class UserView(
                 name='Password updated',
                 value='Success',
                 status_code=200,
-                description='Returns that response if the password has been updated successfully',
             ),
         ],
         summary='set_password: Update user password',
@@ -211,13 +210,13 @@ class UserView(
         responses={
             200: OpenApiResponse(
                 response=DetailOutSerializer,
-                description='Confirmation email has been successfully sent',
+                description='Confirmation email has been sent',
             ),
         },
         examples=[
             confirmation_email_sent_response_example(),
         ],
-        summary='set_email: Send confirmation email with code to update user email',
+        summary='set_email: Send a confirmation email with a code to update user email',
     )
     @action(['post'], detail=False)
     def set_email(self, request):
@@ -237,7 +236,7 @@ class UserView(
         responses={
             200: OpenApiResponse(
                 response=EmailUserUpdatedSerializer,
-                description='Successfull email update',
+                description='Email has been updated',
             ),
             400: OpenApiResponse(
                 response=DetailOutSerializer,
@@ -254,7 +253,7 @@ class UserView(
             build_example_response_from_error(error=SetEmailUserNotEqualError),
             build_example_response_from_error(error=UserWithThisDataAlreadyExistsError),
         ],
-        summary='set_email_confirm: Validate confirmation code and update user email',
+        summary='set_email_confirm: Validate the confirmation code and update user email',
     )
     @action(['post'], detail=False)
     def set_email_confirm(self, request):
@@ -279,7 +278,7 @@ class UserView(
         responses={
             200: OpenApiResponse(
                 response=DetailOutSerializer,
-                description='Confirmation email has been successfully sent',
+                description='Confirmation email has been sent',
             ),
             404: OpenApiResponse(
                 response=DetailOutSerializer,
@@ -290,7 +289,7 @@ class UserView(
             confirmation_email_sent_response_example(),
             build_example_response_from_error(error=UserNotFoundError),
         ],
-        summary='reset_password: Send confirmation email with code to reset user password',
+        summary='reset_password: Send a confirmation email with a code to reset user password',
     )
     @action(['post'], detail=False)
     def reset_password(self, request):
@@ -334,7 +333,7 @@ class UserView(
             build_example_response_from_error(error=UserEmailCodeNotFoundError),
             build_example_response_from_error(error=UserEmailCodeNotEqualError),
         ],
-        summary='reset_password_confirm: Validate confirmation code and reset user password',
+        summary='reset_password_confirm: Validate the confirmation code and reset user password',
     )
     @action(['post'], detail=False)
     def reset_password_confirm(self, request):
@@ -360,7 +359,7 @@ class UserView(
         responses={
             200: OpenApiResponse(
                 response=DetailOutSerializer,
-                description='Confirmation email has been successfully sent',
+                description='Confirmation email has been sent',
             ),
             404: OpenApiResponse(
                 response=DetailOutSerializer,
@@ -371,7 +370,7 @@ class UserView(
             confirmation_email_sent_response_example(),
             build_example_response_from_error(error=UserNotFoundError),
         ],
-        summary='reset_username: Send confirmation email with code to reset user username',
+        summary='reset_username: Send a confirmation email with a code to reset user username',
     )
     @action(['post'], detail=False)
     def reset_username(self, request):
@@ -415,7 +414,7 @@ class UserView(
             build_example_response_from_error(error=UserEmailCodeNotFoundError),
             build_example_response_from_error(error=UserEmailCodeNotEqualError),
         ],
-        summary='reset_username_confirm: Validate confirmation code and reset user username',
+        summary='reset_username_confirm: Validate the confirmation code and reset user username',
     )
     @action(['post'], detail=False)
     def reset_username_confirm(self, request):
@@ -454,7 +453,7 @@ class UserView(
         },
         examples=[
             detail_response_example(
-                name='User activated',
+                name='User has been activated',
                 value='Success',
                 status_code=200,
             ),
@@ -466,7 +465,7 @@ class UserView(
             build_example_response_from_error(error=UserEmailCodeNotEqualError),
 
         ],
-        summary='activation: Validate activation code and activate user',
+        summary='activation: Validate the activation code and activate user',
     )
     @action(['post'], detail=False)
     def activation(self, request):
@@ -491,7 +490,7 @@ class UserView(
         responses={
             200: OpenApiResponse(
                 response=DetailOutSerializer,
-                description='Activation email has been successfully sent',
+                description='Activation email has been sent',
             ),
             400: OpenApiResponse(
                 response=DetailOutSerializer,
@@ -508,7 +507,7 @@ class UserView(
             build_example_response_from_error(error=UserNotFoundError),
             build_example_response_from_error(error=UserAlreadyActivatedError),
         ],
-        summary='resend_activation: Resend activation email',
+        summary='resend_activation: Resend the activation email',
     )
     @action(['post'], detail=False)
     def resend_activation(self, request):
@@ -536,7 +535,7 @@ class UserView(
                 serializers=[JWTOutSerializer, DetailOutSerializer],
                 resource_type_field_name=None,
             ),
-            description='JWT tokens are generated or the confirmation email has been sent',
+            description='JWT tokens have been generated or a confirmation email has been sent',
         ),
         404: OpenApiResponse(
             response=DetailOutSerializer,
@@ -546,14 +545,13 @@ class UserView(
     examples=[
         jwt_response_example(),
         detail_response_example(
-            name='Email sent',
-            description='Sends an email with a code to verify OTP',
+            name='Email has been sent',
             value='Email successfully sent',
             status_code=200,
         ),
         build_example_response_from_error(UserNotFoundError),
     ],
-    summary='login: Login user and get JWT tokens or send OTP code',
+    summary='login: Log in and generate JWT tokens or send an OTP code',
 )
 class UserLoginView(APIView):
     """Returns access and refresh tokens if user does not have OTP enabled, or
@@ -587,7 +585,7 @@ class UserLoginView(APIView):
     responses={
         200: OpenApiResponse(
             response=JWTOutSerializer,
-            description='JWT tokens were created',
+            description='JWT tokens have been generated',
         ),
         400: OpenApiResponse(
             response=DetailOutSerializer,

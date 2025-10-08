@@ -2,13 +2,16 @@ from django.conf import settings
 from rest_framework import serializers
 
 
+class DetailOutSerializer(serializers.Serializer):
+    detail = serializers.CharField(max_length=256, help_text='Detail response message')
+
+
 class LikeCreateInSerializer(serializers.Serializer):
-    is_like = serializers.BooleanField(default=True)
+    is_like = serializers.BooleanField(default=True, help_text='Positive of negative reaction')
 
 
-class LikeCreateOutSerializer(serializers.Serializer):
-    detail = serializers.CharField()
-    is_like = serializers.BooleanField()
+class LikeCreateOutSerializer(DetailOutSerializer, LikeCreateInSerializer):
+    pass
 
 
 class JWTOutSerializer(serializers.Serializer):
@@ -16,20 +19,24 @@ class JWTOutSerializer(serializers.Serializer):
     refresh = serializers.CharField(help_text='JWT refresh token')
 
 
-class DetailOutSerializer(serializers.Serializer):
-    detail = serializers.CharField(max_length=256, help_text='Detail response message')
-
-
 class UrlSerializer(serializers.Serializer):
-    url = serializers.CharField()
+    url = serializers.CharField(help_text='URL')
 
 
 class SParameterSerializer(serializers.Serializer):
-    s = serializers.CharField(max_length=40, error_messages={'required': 'This query parameter is required.'})
+    s = serializers.CharField(
+        max_length=40,
+        error_messages={'required': 'This query parameter is required.'},
+        help_text="Parameter identifying channel's slug",
+    )
 
 
 class VParameterSerializer(serializers.Serializer):
-    v = serializers.CharField(max_length=11, error_messages={'required': 'This query parameter is required.'})
+    v = serializers.CharField(
+        max_length=11,
+        error_messages={'required': 'This query parameter is required.'},
+        help_text='Parameter identifying video id',
+    )
 
 
 class UUID4CodeSerializer(serializers.Serializer):

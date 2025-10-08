@@ -2,6 +2,7 @@ import random
 import string
 
 from django.db import models
+from django.utils.translation import gettext as _
 
 from core.apps.channels.models import Channel
 from core.apps.common.models import Comment
@@ -50,14 +51,41 @@ class Video(models.Model):
         editable=False,
     )
     author = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='videos', db_index=True)
-    name = models.CharField(max_length=100, db_index=True)
-    description = models.TextField(blank=True, null=True, db_index=True)
+    name = models.CharField(
+        max_length=100,
+        db_index=True,
+        verbose_name=_('Video name or title'),
+        help_text=_('Video name or title'),
+    )
+    description = models.TextField(
+        blank=True,
+        null=True,
+        db_index=True,
+        verbose_name=_('Video description'),
+        help_text=_('Video description'),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     upload_id = models.CharField(null=True, blank=True)
-    s3_key = models.CharField(null=True, blank=True)
-    status = models.CharField(max_length=10, choices=VideoStatus.choices, default=VideoStatus.PUBLIC)
-    upload_status = models.CharField(choices=UploadStatus.choices, default=UploadStatus.UPLOADING)
-    is_reported = models.BooleanField(default=False)
+    s3_key = models.CharField(
+        null=True,
+        blank=True,
+        verbose_name=_('Video S3 file key'),
+        help_text=_('Video S3 file key'),
+    )
+    status = models.CharField(
+        max_length=10,
+        choices=VideoStatus.choices,
+        default=VideoStatus.PUBLIC,
+        verbose_name=_('Video privacy status'),
+        help_text=_('Video privacy status'),
+    )
+    upload_status = models.CharField(
+        choices=UploadStatus.choices,
+        default=UploadStatus.UPLOADING,
+        verbose_name=_('Video upload status'),
+        help_text=_('Video upload status'),
+    )
+    is_reported = models.BooleanField(default=False, help_text=_('Indicates that the video has been reported'))
 
     # managers
     objects = models.Manager()
@@ -73,7 +101,7 @@ class Video(models.Model):
 class VideoLike(models.Model):
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='liked_videos', db_index=True)
     video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='likes', db_index=True)
-    is_like = models.BooleanField(default=True, db_index=True)
+    is_like = models.BooleanField(default=True, db_index=True, help_text=_('Video reaction'))
 
     class Meta:
         constraints = [
@@ -113,7 +141,7 @@ class VideoComment(Comment):
 class VideoCommentLikeItem(models.Model):
     author = models.ForeignKey(to=Channel, on_delete=models.CASCADE, related_name='liked_video_comments')
     comment = models.ForeignKey(to=VideoComment, on_delete=models.CASCADE, related_name='likes_items', db_index=True)
-    is_like = models.BooleanField(default=True, db_index=True)
+    is_like = models.BooleanField(default=True, db_index=True, help_text=_('Video comment reaction'))
 
     class Meta:
         constraints = [
@@ -151,9 +179,14 @@ class Playlist(models.Model):
     )
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='playlists', db_index=True)
     videos = models.ManyToManyField(Video, through='PlaylistItem', related_name='playlists', db_index=True)
-    title = models.CharField(max_length=150)
-    description = models.TextField(blank=True, null=True)
-    status = models.CharField(max_length=7, choices=StatusChoices.choices, default=StatusChoices.PRIVATE)
+    title = models.CharField(max_length=150, help_text=_('Playlist name or title'))
+    description = models.TextField(blank=True, null=True, help_text=_('Playlist description'))
+    status = models.CharField(
+        max_length=7,
+        choices=StatusChoices.choices,
+        default=StatusChoices.PRIVATE,
+        help_text=_('Playlist privacy status'),
+    )
 
     def __str__(self):
         return f'Playlist: {self.title}'

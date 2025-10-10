@@ -5,7 +5,7 @@ YT_API is a video sharing platform API created as a pet project.
 
 # Shortcuts
 
-* [Project technology stack](#project-technology-stack-and-features)
+* [Project technology stack and Features](#project-technology-stack-and-features)
 * [Requirements](#requirements)
 * [Clone the repository](#clone-the-repository)
 * [Development deployment](#development-deployment)
@@ -15,7 +15,7 @@ YT_API is a video sharing platform API created as a pet project.
 * [Development implemented commands](#development-implemented-commands)
 * [Production implemented commands](#production-implemented-commands)
 * [Most used Django specific commands](#most-used-django-specific-commands)
-* [Environment variables description](#environment-variables-description-from-env-file)
+* [Environment variables description](#environment-variables-description-for-env-file)
 
 <br />
 
@@ -28,6 +28,7 @@ YT_API is a video sharing platform API created as a pet project.
 * 🖧 [Nginx](https://nginx.org/en/) &ndash; web and proxy server.
 * ☁️ [AWS S3](https://aws.amazon.com/s3/) && [CloudFront](https://aws.amazon.com/cloudfront/) &ndash; cloud storage service and CDN.
 * 🤖 [Certbot](https://certbot.eff.org/) for SSL certificates.
+* 📜 [drf-spectacular](https://drf-spectacular.readthedocs.io/en/latest/readme.html) for API documentation
 * 📫 Email based password and username recovery.
 * 🔒 Secure password hashing by default.
 * ✅ [Pytest](https://docs.pytest.org/en/stable/) for testing.
@@ -194,12 +195,12 @@ yt-redis-prod             6379/tcp                                              
 
 ## Production implemented commands
 
-* `app-monitoring-p` - build images and up production application with Grafana Monitoring
-* `app-monitoring-down-p` - down production application and Grafana Monitoring
-* `monitoring` - up Grafana Monitoring without production application
-* `monitoring-down` - down Grafana Monitoring without production application
-* `monitoring-restart` - restart Grafana Monitoring without production application
-* `monitoring-logs` - follow the logs in Grafana Monitoring containers
+* `make app-monitoring-p` - build images and up production application with Grafana Monitoring
+* `make app-monitoring-down-p` - down production application and Grafana Monitoring
+* `make monitoring` - up Grafana Monitoring without production application
+* `make monitoring-down` - down Grafana Monitoring without production application
+* `make monitoring-restart` - restart Grafana Monitoring without production application
+* `make monitoring-logs` - follow the logs in Grafana Monitoring containers
 
 ---
 
@@ -226,7 +227,7 @@ yt-redis-prod             6379/tcp                                              
 
 <br />
 
-# Environment variables description from `.env` file
+# Environment variables description for `.env` file
 
 
 | Name                                        | Description                                                              | Notes                                                                                                          | Environment |
@@ -257,6 +258,12 @@ yt-redis-prod             6379/tcp                                              
 | `EMAIL_HOST_USER`                           | SMTP user                                                                | Provided by mail delivery service (Mailgun, Gmail, Sendgrid, etc.)                                             | DEV, PROD   |
 | `EMAIL_HOST_PASSWORD`                       | SMTP password                                                            | Provided by mail delivery service (Mailgun, Gmail, Sendgrid, etc.)                                             | DEV, PROD   |
 | `DEFAULT_FROM_EMAIL`                        | Default email sender                                                     | Depends on your domain or email registered in mail delivery service. Example: `"YT_API <noreply@example.com>"` | DEV, PROD   |
+| `EMAIL_FRONTEND_PROTOCOL` | HTTP protocol that will be used to build links to the frontend in emails | Choose between `http` or `https` | DEV, PROD
+| `EMAIL_FRONTEND_DOMAIN` | Domain that will be used to build links to the frontend in emails | Set manually | DEV, PROD
+| `EMAIL_FRONTEND_PASSWORD_RESET_URI` | URI that will be used to build links to the frontend in password reset emails  | Example: `/auth/password_reset_confirm/` | DEV, PROD
+| `EMAIL_FRONTEND_USERNAME_RESET_URI` | URI that will be used to build links to the frontend in username reset emails  | Example: `/auth/username_reset_confirm/` | DEV, PROD
+| `EMAIL_FRONTEND_ACTIVATE_URI` | URI that will be used to build links to the frontend in user activation emails  | Example: `/auth/activate/` | DEV, PROD
+| `AUTH_SEND_ACTIVATION_EMAIL`                | Determines whether an email should be sent when a user is created        | If True, then after registration the user will remain inactive until he/she activates the account via an email with a code. Set `True` to start sending activation emails.   | DEV, PROD
 | `CERTBOT_EMAIL`                             | Email for Certbot registration                                           | Used for certificate expiry notifications                                                                      | PROD        |
 | `CERTBOT_DOMAINS`                             | List of domains for which you want to create certificates                                           | Each domain in the list must have the -d flag. Example: `-d first.example.domain -d second.example.domain`                                                                      | PROD        |
 | `API_DOMAIN`                                | Domain for API                                                           | Example: `api.example.com`                                                                                     | PROD        |

@@ -13,7 +13,10 @@ from botocore.exceptions import (
     BotoCoreError,
     ClientError,
 )
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiResponse,
+)
 
 from core.api.v1.common.serializers.serializers import (
     DetailOutSerializer,
@@ -28,6 +31,7 @@ from core.api.v1.common.serializers.upload_serializers import (
     UploadUrlSerializer,
 )
 from core.api.v1.schema.response_examples.common import (
+    build_example_response_from_error,
     deleted_response_example,
     detail_response_example,
     error_response_example,
@@ -43,15 +47,29 @@ from core.apps.channels.errors import (
     ErrorCodes as ChannelsErrorCodes,
     ERRORS as CHANNELS_ERRORS,
 )
+from core.apps.channels.exceptions.channels import ChannelNotFoundError
 from core.apps.common.errors import (
     ErrorCodes as CommonErrorCodes,
     ERRORS as COMMON_ERRORS,
 )
-from core.apps.common.exceptions.exceptions import ServiceException
+from core.apps.common.exceptions.exceptions import (
+    S3FileWithKeyNotExistsError,
+    ServiceException,
+)
 from core.apps.users.converters.users import user_to_entity
 from core.apps.videos.errors import (
     ErrorCodes as VideosErrorCodes,
     ERRORS as VIDEOS_ERRORS,
+)
+from core.apps.videos.exceptions.upload import (
+    VideoFilenameFormatError,
+    VideoFilenameNotProvidedError,
+    VideoNotFoundByKeyError,
+    VideoNotFoundByUploadIdError,
+)
+from core.apps.videos.exceptions.videos import (
+    PrivateVideoPermissionError,
+    VideoAuthorNotMatchError,
 )
 from core.apps.videos.use_cases.videos_upload.abort_upload_video import AbortVideoMultipartUploadUseCase
 from core.apps.videos.use_cases.videos_upload.complete_upload_video import CompleteVideoMultipartUploadUseCase
@@ -63,17 +81,23 @@ from core.project.containers import get_container
 
 @extend_schema(
     responses={
-        201: CreateMultipartUploadOutSerializer,
-        400: DetailOutSerializer,
-        404: DetailOutSerializer,
-        500: DetailOutSerializer,
-        502: DetailOutSerializer,
+        201: OpenApiResponse(
+            response=CreateMultipartUploadOutSerializer,
+            description='Multipart upload has been created',
+        ),
+        400: OpenApiResponse(
+            response=DetailOutSerializer,
+            description='Video filename wrong format or was not provided',
+        ),
+        404: OpenApiResponse(response=DetailOutSerializer, description='Channel was not found'),
+        500: OpenApiResponse(response=DetailOutSerializer, description='S3 500 error'),
+        502: OpenApiResponse(response=DetailOutSerializer, description='S3 502 error'),
     },
     examples=[
         multipart_upload_created_response_example(),
-        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_FILENAME_NOT_PROVIDED]),
-        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_FILENAME_FORMAT_ERROR]),
-        error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
+        build_example_response_from_error(error=VideoFilenameFormatError),
+        build_example_response_from_error(error=VideoFilenameNotProvidedError),
+        build_example_response_from_error(error=ChannelNotFoundError),
         s3_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
         s3_error_response_example(code=status.HTTP_502_BAD_GATEWAY),
     ],
@@ -124,21 +148,21 @@ class CreateMultipartUploadView(generics.GenericAPIView):
 
 @extend_schema(
     responses={
-        201: UploadUrlSerializer,
-        400: DetailOutSerializer,
-        404: DetailOutSerializer,
-        500: DetailOutSerializer,
-        502: DetailOutSerializer,
+        201: OpenApiResponse(response=UploadUrlSerializer, description='Upload part URL has been generated'),
+        400: OpenApiResponse(response=DetailOutSerializer, description='Video author does not match'),
+        404: OpenApiResponse(response=DetailOutSerializer, description='Channel or video was not found'),
+        500: OpenApiResponse(response=DetailOutSerializer, description='S3 500 error'),
+        502: OpenApiResponse(response=DetailOutSerializer, description='S3 502 error'),
     },
     examples=[
         multipart_upload_part_url_response_example(),
-        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_AUTHOR_NOT_MATCH]),
-        error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
-        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_UPLOAD_ID]),
+        build_example_response_from_error(error=VideoAuthorNotMatchError),
+        build_example_response_from_error(error=ChannelNotFoundError),
+        build_example_response_from_error(error=VideoNotFoundByUploadIdError),
         s3_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
         s3_error_response_example(code=status.HTTP_502_BAD_GATEWAY),
     ],
-    summary='Generate upload part url for video',
+    summary='Generate upload part URL for video',
 )
 class GenerateUploadPartUrlView(generics.GenericAPIView):
     serializer_class = GenerateMultipartUploadPartUrlInSerializer
@@ -186,20 +210,23 @@ class GenerateUploadPartUrlView(generics.GenericAPIView):
 
 @extend_schema(
     responses={
-        201: UrlSerializer,
-        403: DetailOutSerializer,
-        404: DetailOutSerializer,
-        500: DetailOutSerializer,
-        502: DetailOutSerializer,
+        201: OpenApiResponse(response=UrlSerializer, description='Download URL has been generated'),
+        403: OpenApiResponse(response=DetailOutSerializer, description='Video permission denied'),
+        404: OpenApiResponse(
+            response=DetailOutSerializer,
+            description='Video was not found or file does not exists in S3',
+        ),
+        500: OpenApiResponse(response=DetailOutSerializer, description='S3 500 error'),
+        502: OpenApiResponse(response=DetailOutSerializer, description='S3 502 error'),
     },
     examples=[
-        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.PRIVATE_VIDEO_PERMISSION_ERROR]),
-        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_KEY]),
-        error_response_example(COMMON_ERRORS[CommonErrorCodes.S3_FILE_WITH_KEY_NOT_EXISTS]),
+        build_example_response_from_error(error=PrivateVideoPermissionError),
+        build_example_response_from_error(error=VideoNotFoundByKeyError),
+        build_example_response_from_error(error=S3FileWithKeyNotExistsError),
         s3_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
         s3_error_response_example(code=status.HTTP_502_BAD_GATEWAY),
     ],
-    summary='Generate presigned url for video download',
+    summary='Generate presigned URL for video download',
 )
 class GenerateDownloadVideoUrlView(generics.GenericAPIView):
     serializer_class = KeySerializer
@@ -244,9 +271,12 @@ class GenerateDownloadVideoUrlView(generics.GenericAPIView):
 
 @extend_schema(
     responses={
-        200: DetailOutSerializer,
-        400: DetailOutSerializer,
-        404: DetailOutSerializer,
+        200: OpenApiResponse(response=DetailOutSerializer, description='Multipart upload has been aborted'),
+        400: OpenApiResponse(response=DetailOutSerializer, description='Video author does not match'),
+        404: OpenApiResponse(
+            response=DetailOutSerializer,
+            description='Multipart upload does not exists, video or channel was not found',
+        ),
     },
     examples=[
         deleted_response_example(),
@@ -302,11 +332,11 @@ class AbortMultipartUploadView(generics.GenericAPIView):
 
 @extend_schema(
     responses={
-        200: DetailOutSerializer,
-        400: DetailOutSerializer,
-        404: DetailOutSerializer,
-        500: DetailOutSerializer,
-        502: DetailOutSerializer,
+        200: OpenApiResponse(response=DetailOutSerializer, description='Multipart upload has been completed'),
+        400: OpenApiResponse(response=DetailOutSerializer, description='Video author does not match'),
+        404: OpenApiResponse(response=DetailOutSerializer, description='Video or channel was not found'),
+        500: OpenApiResponse(response=DetailOutSerializer, description='S3 500 error'),
+        502: OpenApiResponse(response=DetailOutSerializer, description='S3 502 error'),
     },
     examples=[
         # request
@@ -318,11 +348,11 @@ class AbortMultipartUploadView(generics.GenericAPIView):
             value='Success',
             status_code=200,
         ),
-        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_AUTHOR_NOT_MATCH]),
-        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_UPLOAD_ID]),
-        error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
         s3_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
         s3_error_response_example(code=status.HTTP_502_BAD_GATEWAY),
+        build_example_response_from_error(error=VideoAuthorNotMatchError),
+        build_example_response_from_error(error=VideoNotFoundByUploadIdError),
+        build_example_response_from_error(error=ChannelNotFoundError),
     ],
     summary='Complete multipart upload',
 )

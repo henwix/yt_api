@@ -16,6 +16,7 @@ from botocore.exceptions import (
 from drf_spectacular.utils import (
     extend_schema,
     OpenApiExample,
+    OpenApiResponse,
 )
 
 from core.api.v1.common.serializers.serializers import (
@@ -28,34 +29,34 @@ from core.api.v1.common.serializers.upload_serializers import (
     KeySerializer,
 )
 from core.api.v1.schema.response_examples.common import (
+    build_example_response_from_error,
     deleted_response_example,
     detail_response_example,
-    error_response_example,
 )
 from core.api.v1.schema.response_examples.files_upload import s3_error_response_example
-from core.apps.channels.errors import (
-    ErrorCodes as ChannelsErrorCodes,
-    ERRORS as CHANNELS_ERRORS,
+from core.apps.channels.exceptions.channels import (
+    AvatarDoesNotExistsError,
+    ChannelNotFoundError,
 )
+from core.apps.channels.exceptions.upload import AvatarFilenameFormatError
 from core.apps.channels.use_cases.avatar_upload.complete_upload_avatar import CompleteUploadAvatarUseCase
 from core.apps.channels.use_cases.avatar_upload.delete_avatar import DeleteChannelAvatarUseCase
 from core.apps.channels.use_cases.avatar_upload.download_avatar_url import GenerateUrlForAvatarDownloadUseCase
 from core.apps.channels.use_cases.avatar_upload.upload_avatar_url import GenerateUploadAvatarUrlUseCase
-from core.apps.common.errors import (
-    ErrorCodes as CommonErrorCodes,
-    ERRORS as COMMON_ERRORS,
+from core.apps.common.exceptions.exceptions import (
+    S3FileWithKeyNotExistsError,
+    ServiceException,
 )
-from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.users.converters.users import user_to_entity
 from core.project.containers import get_container
 
 
 @extend_schema(
     responses={
-        201: GenerateUploadUrlOutSerializer,
-        400: DetailOutSerializer,
-        500: DetailOutSerializer,
-        502: DetailOutSerializer,
+        201: OpenApiResponse(response=GenerateUploadUrlOutSerializer, description='Upload URL has been generated'),
+        400: OpenApiResponse(response=DetailOutSerializer, description='Filename wrong format'),
+        500: OpenApiResponse(response=DetailOutSerializer, description='S3 500 error'),
+        502: OpenApiResponse(response=DetailOutSerializer, description='S3 502 error'),
     },
     examples=[
         OpenApiExample(
@@ -63,7 +64,7 @@ from core.project.containers import get_container
             value={'filename': 'avatar.png'},
             request_only=True,
         ),
-        error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.AVATAR_FILENAME_FORMAT_ERROR]),
+        build_example_response_from_error(error=AvatarFilenameFormatError),
         s3_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
         s3_error_response_example(code=status.HTTP_502_BAD_GATEWAY),
     ],
@@ -110,13 +111,13 @@ class GenerateUploadAvatarUrlView(generics.GenericAPIView):
 
 @extend_schema(
     responses={
-        201: UrlSerializer,
-        404: DetailOutSerializer,
-        500: DetailOutSerializer,
-        502: DetailOutSerializer,
+        201: OpenApiResponse(response=UrlSerializer, description='Download URL has been generated'),
+        404: OpenApiResponse(response=DetailOutSerializer, description='File does not exists in S3'),
+        500: OpenApiResponse(response=DetailOutSerializer, description='S3 500 error'),
+        502: OpenApiResponse(response=DetailOutSerializer, description='S3 502 error'),
     },
     examples=[
-        error_response_example(COMMON_ERRORS[CommonErrorCodes.S3_FILE_WITH_KEY_NOT_EXISTS]),
+        build_example_response_from_error(error=S3FileWithKeyNotExistsError),
         s3_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
         s3_error_response_example(code=status.HTTP_502_BAD_GATEWAY),
     ],
@@ -164,14 +165,16 @@ class GenerateDownloadAvatarUrlView(generics.GenericAPIView):
 
 @extend_schema(
     responses={
-        200: DetailOutSerializer,
-        404: DetailOutSerializer,
+        200: OpenApiResponse(response=DetailOutSerializer, description='Avatar has been deleted'),
+        404: OpenApiResponse(
+            response=DetailOutSerializer,
+            description='Channel was not found or avatar does not exists',
+        ),
     },
     examples=[
         deleted_response_example(),
-        error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
-        error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.AVATAR_DOES_NOT_EXIST]),
-
+        build_example_response_from_error(error=ChannelNotFoundError),
+        build_example_response_from_error(error=AvatarDoesNotExistsError),
     ],
     summary='Delete channel avatar',
 )
@@ -195,8 +198,11 @@ class DeleteChannelAvatarView(generics.GenericAPIView):
 
 @extend_schema(
     responses={
-        200: DetailOutSerializer,
-        404: DetailOutSerializer,
+        200: OpenApiResponse(response=DetailOutSerializer, description='Avatar uploading has been completed'),
+        404: OpenApiResponse(
+            response=DetailOutSerializer,
+            description='Channel was not found or file does not exists in S3',
+        ),
     },
     examples=[
         detail_response_example(
@@ -204,8 +210,8 @@ class DeleteChannelAvatarView(generics.GenericAPIView):
             value='Success',
             status_code=200,
         ),
-        error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
-        error_response_example(COMMON_ERRORS[CommonErrorCodes.S3_FILE_WITH_KEY_NOT_EXISTS]),
+        build_example_response_from_error(error=ChannelNotFoundError),
+        build_example_response_from_error(error=S3FileWithKeyNotExistsError),
     ],
     summary='Complete avatar file uploading',
 )

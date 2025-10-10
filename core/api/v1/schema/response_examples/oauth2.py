@@ -13,4 +13,9 @@ def oauth2_connected_providers_response_example() -> OpenApiExample:
 
 
 def social_auth_error_response_example() -> OpenApiExample:
-    return detail_response_example(name='Social Auth Error', value='string', status_code=400)
+    return detail_response_example(
+        name='OAuth2 Error',
+        value='string',
+        status_code=400,
+        description='Returns this response if something went wrong with the OAuth2 flow',
+    )

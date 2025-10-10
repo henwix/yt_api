@@ -14,7 +14,11 @@ from rest_framework.response import Response
 
 import orjson
 import punq
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+    OpenApiResponse,
+)
 
 from core.api.v1.channels.serializers import (
     ChannelAboutSerializer,
@@ -25,14 +29,16 @@ from core.api.v1.channels.serializers import (
 )
 from core.api.v1.common.serializers.serializers import DetailOutSerializer
 from core.api.v1.schema.response_examples.common import (
+    build_example_response_from_error,
     created_response_example,
     deleted_response_example,
-    error_response_example,
 )
 from core.apps.channels.converters.channels import channel_from_entity
-from core.apps.channels.errors import (
-    ErrorCodes as ChannelsErrorCodes,
-    ERRORS as CHANNELS_ERRORS,
+from core.apps.channels.exceptions.channels import SlugChannelNotFoundError
+from core.apps.channels.exceptions.subscriptions import (
+    SelfSubscriptionError,
+    SubscriptionDoesNotExistsError,
+    SubscriptionExistsError,
 )
 from core.apps.channels.models import (
     Channel,
@@ -53,6 +59,12 @@ from core.apps.users.converters.users import user_to_entity
 from core.project.containers import get_container
 
 
+@extend_schema_view(
+    get=extend_schema(summary="Retrieve channel"),
+    put=extend_schema(summary="Update channel PUT"),
+    patch=extend_schema(summary="Update channel PATCH"),
+    delete=extend_schema(summary="Delete channel"),
+)
 class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Channel.objects.all()
     serializer_class = ChannelSerializer
@@ -91,10 +103,6 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
 
         return Response(serializer.data, status.HTTP_200_OK)
 
-    def destroy(self, request, *args, **kwargs):
-        self.channel_service.delete_channel(user_to_entity(request.user))
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
 
 @extend_schema(summary='Get list of subscribers')
 class ChannelSubscribersView(generics.ListAPIView, CustomViewMixin):
@@ -111,8 +119,6 @@ class ChannelSubscribersView(generics.ListAPIView, CustomViewMixin):
         self.cache_service: BaseCacheService = container.resolve(BaseCacheService)
 
     def list(self, request, *args, **kwargs):
-        """Custom list method to cache the response for 2 minutes."""
-
         channel = self.channel_service.get_channel_by_user_or_404(user_to_entity(request.user))
 
         cache_key = f"{settings.CACHE_KEYS.get('subs_list')}{channel.id}_{request.query_params.get('c', '1')}"
@@ -178,18 +184,20 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
 
     @extend_schema(
         responses={
-            201: DetailOutSerializer,
-            400: DetailOutSerializer,
-            404: DetailOutSerializer,
+            201: OpenApiResponse(response=DetailOutSerializer, description='Subscription has been created'),
+            400: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Self subscription or subscription already exsists',
+            ),
+            404: OpenApiResponse(response=DetailOutSerializer, description='Channel was not found'),
         },
         examples=[
             created_response_example(),
-            error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.SLUG_CHANNEL_NOT_FOUND]),
-            error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.SELF_SUBSCRIPTION]),
-            error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.SUBSCRIPTION_EXISTS]),
-
+            build_example_response_from_error(error=SlugChannelNotFoundError),
+            build_example_response_from_error(error=SelfSubscriptionError),
+            build_example_response_from_error(error=SubscriptionExistsError),
         ],
-        summary='Subscribe to channel',
+        summary='Create subscription to channel',
     )
     @action(methods=['post'], url_path='subscribe', detail=False)
     def subscribe(self, request):
@@ -209,17 +217,20 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
 
     @extend_schema(
         responses={
-            200: DetailOutSerializer,
-            400: DetailOutSerializer,
-            404: DetailOutSerializer,
+            200: OpenApiResponse(response=DetailOutSerializer, description='Subscription has been deleted'),
+            400: OpenApiResponse(response=DetailOutSerializer, description='Self subscription'),
+            404: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Channel slug was not found or subscription does not exists',
+            ),
         },
         examples=[
             deleted_response_example(),
-            error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.SELF_SUBSCRIPTION]),
-            error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.SLUG_CHANNEL_NOT_FOUND]),
-            error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.SUBSCRIPTION_DOES_NOT_EXIST]),
+            build_example_response_from_error(error=SelfSubscriptionError),
+            build_example_response_from_error(error=SlugChannelNotFoundError),
+            build_example_response_from_error(error=SubscriptionDoesNotExistsError),
         ],
-        summary='Unsubscribe from channel',
+        summary='Delete subscription to channel',
     )
     @action(methods=['post'], url_path='unsubscribe', detail=False)
     def unsubscribe(self, request):

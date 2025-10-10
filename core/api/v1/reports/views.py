@@ -9,31 +9,28 @@ from rest_framework.response import Response
 
 import orjson
 import punq
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiResponse,
+)
 
 from core.api.v1.common.serializers.serializers import DetailOutSerializer
 from core.api.v1.reports.serializers import VideoReportSerializer
 from core.api.v1.schema.response_examples.common import (
+    build_example_response_from_error,
     created_response_example,
-    error_response_example,
 )
-from core.apps.channels.errors import (
-    ErrorCodes as ChannelsErrorCodes,
-    ERRORS as CHANNELS_ERRORS,
-)
+from core.apps.channels.exceptions.channels import ChannelNotFoundError
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.common.pagination import CustomCursorPagination
-from core.apps.reports.errors import (
-    ErrorCodes as ReportsErrorCodes,
-    ERRORS as REPORTS_ERRORS,
-)
+from core.apps.reports.exceptions.reports import ReportLimitError
 from core.apps.reports.permissions import IsStaffOrCreateOnly
 from core.apps.reports.services.reports import BaseVideoReportsService
 from core.apps.reports.use_cases.create import CreateReportUseCase
 from core.apps.users.converters.users import user_to_entity
-from core.apps.videos.errors import (
-    ErrorCodes as VideosErrorCodes,
-    ERRORS as VIDEOS_ERRORS,
+from core.apps.videos.exceptions.videos import (
+    PrivateVideoOrUploadingError,
+    VideoNotFoundByVideoIdError,
 )
 from core.project.containers import get_container
 
@@ -54,19 +51,31 @@ class VideoReportsView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIVi
             return self.service.get_report_list_related()
         return self.service.get_report_list()
 
+    @extend_schema(summary='Get list of video reports')
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @extend_schema(summary='Retrieve video report')
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @extend_schema(summary='Delete video report')
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
+
     @extend_schema(
         responses={
-            201: DetailOutSerializer,
-            400: DetailOutSerializer,
-            403: DetailOutSerializer,
-            404: DetailOutSerializer,
+            201: OpenApiResponse(response=DetailOutSerializer, description='Video report has been created'),
+            400: OpenApiResponse(response=DetailOutSerializer, description='Limit of reports has been reached'),
+            403: OpenApiResponse(response=DetailOutSerializer, description='Video access denied'),
+            404: OpenApiResponse(response=DetailOutSerializer, description='Video or channel was not found'),
         },
         examples=[
             created_response_example(),
-            error_response_example(REPORTS_ERRORS[ReportsErrorCodes.REPORT_LIMIT]),
-            error_response_example(VIDEOS_ERRORS[VideosErrorCodes.PRIVATE_VIDEO_OR_UPLOADING]),
-            error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_VIDEO_ID]),
-            error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
+            build_example_response_from_error(error=ReportLimitError),
+            build_example_response_from_error(error=PrivateVideoOrUploadingError),
+            build_example_response_from_error(error=VideoNotFoundByVideoIdError),
+            build_example_response_from_error(error=ChannelNotFoundError),
         ],
         summary='Create a new video report',
     )

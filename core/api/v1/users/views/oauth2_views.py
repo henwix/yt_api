@@ -9,6 +9,7 @@ import orjson
 import punq
 from drf_spectacular.utils import (
     extend_schema,
+    OpenApiResponse,
     PolymorphicProxySerializer,
 )
 from social_core.exceptions import SocialAuthBaseException
@@ -19,8 +20,8 @@ from core.api.v1.common.serializers.serializers import (
     JWTOutSerializer,
 )
 from core.api.v1.schema.response_examples.common import (
+    build_example_response_from_error,
     detail_response_example,
-    error_response_example,
     jwt_response_example,
 )
 from core.api.v1.schema.response_examples.oauth2 import (
@@ -34,10 +35,7 @@ from core.api.v1.users.serializers.oauth2 import (
 )
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.users.converters.users import user_to_entity
-from core.apps.users.errors import (
-    ErrorCodes as UsersErrorCodes,
-    ERRORS as USERS_ERRORS,
-)
+from core.apps.users.exceptions.oauth2 import OAuth2NotImplementedProviderError
 from core.apps.users.throttles import OAuth2ThrottleClass  # noqa
 from core.apps.users.use_cases.oauth2.oauth2_connect import OAuth2ConnectUseCase
 from core.apps.users.use_cases.oauth2.oauth2_connected_providers import OAuth2ConnectedProvidersUseCase
@@ -48,12 +46,18 @@ from core.project.containers import get_container
 
 @extend_schema(
     responses={
-        201: AuthUrlSerializer,
-        400: DetailOutSerializer,
+        201: OpenApiResponse(
+            response=AuthUrlSerializer,
+            description='URL for OAuth2 authorization has been generated',
+        ),
+        400: OpenApiResponse(
+            response=DetailOutSerializer,
+            description='OAuth2 provider is not implemented or something went wrong with the OAuth2 flow',
+        ),
     },
     examples=[
-        error_response_example(USERS_ERRORS[UsersErrorCodes.OAUTH2_PROVIDER_NOT_SUPPORTED]),
         social_auth_error_response_example(),
+        build_example_response_from_error(error=OAuth2NotImplementedProviderError),
     ],
     summary='Generate URL for OAuth2 authorization',
 )
@@ -84,24 +88,30 @@ class OAuth2GenerateURLView(APIView):
 @extend_schema(
     parameters=[OAuth2ConnectSerializer],
     responses={
-        200: PolymorphicProxySerializer(
-            component_name='OAuth2ConnectResponse',
-            serializers=[JWTOutSerializer, DetailOutSerializer],
-            resource_type_field_name=None,
+        200: OpenApiResponse(
+            response=PolymorphicProxySerializer(
+                component_name='OAuth2ConnectResponse',
+                serializers=[JWTOutSerializer, DetailOutSerializer],
+                resource_type_field_name=None,
+            ),
+            description='JWT tokens have been generated or the service has been connected to the user',
         ),
-        400: DetailOutSerializer,
+        400: OpenApiResponse(
+            response=DetailOutSerializer,
+            description='OAuth2 provider is not implemented or something went wrong with the OAuth2 flow',
+        ),
     },
     examples=[
-        jwt_response_example(),
+        jwt_response_example(description='Returns this response of the user is not authenticated'),
         detail_response_example(
             name='Connected',
             value='github successfully connected',
             status_code=200,
         ),
-        error_response_example(USERS_ERRORS[UsersErrorCodes.OAUTH2_PROVIDER_NOT_SUPPORTED]),
+        build_example_response_from_error(error=OAuth2NotImplementedProviderError),
         social_auth_error_response_example(),
     ],
-    summary='Verify SocialOAuth2 data and connect service to user',
+    summary='Verify OAuth2 data and generate JWT tokens or connect service to the user',
 )
 class OAuth2ConnectView(APIView):
     throttle_classes = [OAuth2ThrottleClass]
@@ -130,8 +140,11 @@ class OAuth2ConnectView(APIView):
 
 @extend_schema(
     responses={
-        200: DetailOutSerializer,
-        400: DetailOutSerializer,
+        200: OpenApiResponse(response=DetailOutSerializer, description='Service has been disconnected'),
+        400: OpenApiResponse(
+            response=DetailOutSerializer,
+            description='OAuth2 provider is not implemented or something went wrong with the OAuth2 flow',
+        ),
     },
     examples=[
         detail_response_example(
@@ -139,10 +152,10 @@ class OAuth2ConnectView(APIView):
             value='github successfully disconnected',
             status_code=200,
         ),
-        error_response_example(USERS_ERRORS[UsersErrorCodes.OAUTH2_PROVIDER_NOT_SUPPORTED]),
+        build_example_response_from_error(error=OAuth2NotImplementedProviderError),
         social_auth_error_response_example(),
     ],
-    summary='Disconnect OAuth2 provider',
+    summary='Disconnect OAuth2 service',
 )
 class OAuth2DisconnectView(APIView):
     permission_classes = [IsAuthenticated]
@@ -171,10 +184,13 @@ class OAuth2DisconnectView(APIView):
 
 @extend_schema(
     responses={
-        200: OAuth2ConnectedProvidersSerializer,
+        200: OpenApiResponse(
+            response=OAuth2ConnectedProvidersSerializer,
+            description='Connected services/providers have been retrived',
+        ),
     },
     examples=[oauth2_connected_providers_response_example()],
-    summary='Retrieve connected OAuth2 providers',
+    summary='Get list of connected OAuth2 providers/services',
 )
 class OAuth2ConnectedProvidersView(APIView):
     permission_classes = [IsAuthenticated]

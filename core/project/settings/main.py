@@ -186,10 +186,10 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'YouTube-Like-API',
-    'DESCRIPTION': '-',
+    'DESCRIPTION': '**YT_API is a video sharing platform API created as a pet project.**',
     'VERSION': VERSION,
     'SERVE_INCLUDE_SCHEMA': False,
-    'DISABLE_ERRORS_AND_WARNINGS': True,
+    'DISABLE_ERRORS_AND_WARNINGS': False,
     'SORT_OPERATIONS': False,
     'SCHEMA_PATH_PREFIX': r'/v[1-2]/',
     'SWAGGER_UI_SETTINGS': {'deepLinking': True, 'persistAuthorization': True},
@@ -257,12 +257,12 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            'level': 'DEBUG',  # TODO: change to error or info
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
         'logger_console': {
-            'level': 'DEBUG',  # TODO: change to error or info
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'logger',
             'filters': ['log_meta_filter'],
@@ -321,7 +321,7 @@ AWS_CLOUDFRONT_KEY = (
 
 CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_RESULT_BACKEND = 'redis://redis:6379/0'  # 'django-db'
-CELERY_RESULT_EXPIRES = 1  # 1 hour in seconds
+CELERY_RESULT_EXPIRES = 1  # 1 hour in seconds # TODO: change to normal value
 CELERY_TASK_TRACK_STARTED = True
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
@@ -354,7 +354,7 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
-AUTH_SEND_ACTIVATION_EMAIL = False
+AUTH_SEND_ACTIVATION_EMAIL = os.environ.get('AUTH_SEND_ACTIVATION_EMAIL') == 'True'
 
 EMAIL_FRONTEND_PROTOCOL = os.environ.get('EMAIL_FRONTEND_PROTOCOL', 'https')
 EMAIL_FRONTEND_DOMAIN = os.environ.get('EMAIL_FRONTEND_DOMAIN', 'example.com')

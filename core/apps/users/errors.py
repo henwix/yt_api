@@ -11,7 +11,7 @@ class ErrorCodes:
     USER_EMAIL_CODE_NOT_EQUAL = 'user_email_code_not_equal'
 
     # users/exceptions/oauth2.py
-    OAUTH2_PROVIDER_NOT_SUPPORTED = 'oauth2_provider_not_supported'
+    OAUTH2_PROVIDER_NOT_IMPLEMENTED = 'oauth2_provider_not_implemented'
 
     # users/exceptions/users.py
     USER_NOT_FOUND = 'user_not_found'
@@ -49,7 +49,7 @@ ERRORS = {
     },
 
     # users/exceptions/oauth2.py
-    ErrorCodes.OAUTH2_PROVIDER_NOT_SUPPORTED: {
+    ErrorCodes.OAUTH2_PROVIDER_NOT_IMPLEMENTED: {
         'message': 'This provider is not implemented for OAuth2 authorization',
         'status_code': status.HTTP_400_BAD_REQUEST,
     },

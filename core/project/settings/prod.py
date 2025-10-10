@@ -35,6 +35,8 @@ CORS_ALLOWED_ORIGINS = [
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+LOGGING['handlers']['console']['level'] = 'INFO'  # noqa
+LOGGING['handlers']['logger_console']['level'] = 'INFO'  # noqa
 
 if not DEBUG:
     STATIC_ROOT = BASE_DIR / 'static'  # noqa

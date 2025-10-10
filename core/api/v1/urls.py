@@ -2,16 +2,29 @@ from django.urls import (
     include,
     path,
 )
+from rest_framework import serializers
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
+from drf_spectacular.utils import (
+    extend_schema,
+    inline_serializer,
+)
 
 
 app_name = 'v1'
 
 
+@extend_schema(
+    responses=inline_serializer(
+        name='ping',
+        fields={'detail': serializers.CharField(default='pong')},
+    ),
+    summary='Ping API',
+)
 @api_view(['GET'])
 def ping(request):
-    return Response({'message': 'pong'})
+    return Response({'detail': 'pong'})
 
 
 urlpatterns = [

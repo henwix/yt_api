@@ -5,7 +5,7 @@ YT_API is a video sharing platform API created as a pet project.
 
 # Shortcuts
 
-* [Project technology stack](#project-technology-stack)
+* [Project technology stack](#project-technology-stack-and-features)
 * [Requirements](#requirements)
 * [Clone the repository](#clone-the-repository)
 * [Development deployment](#development-deployment)
@@ -19,16 +19,20 @@ YT_API is a video sharing platform API created as a pet project.
 
 <br />
 
-# Project technology stack
+# Project technology stack and Features
 
-**YT_API uses the following technologies and frameworks:**
-* Django and Django Rest Framework for backend and API
-* PostgreSQL &ndash; database server
-* Redis for caching
-* Celery and Celery Beat for task queuing and scheduling
-* Nginx &ndash; web and proxy server
-* AWS S3 &ndash; cloud storage service
-* Certbot for SSL certificates
+* 🐍 [Django](https://www.djangoproject.com/) and [Django Rest Framework](https://www.django-rest-framework.org/) for backend and API.
+* 💾 [PostgreSQL](https://www.postgresql.org/) &ndash; SQL database.
+* 🚀 [Redis](https://redis.io/) for caching.
+* 📝 [Celery](https://github.com/celery/celery) and [Celery Beat](https://github.com/celery/django-celery-beat) for task queuing and scheduling.
+* 🖧 [Nginx](https://nginx.org/en/) &ndash; web and proxy server.
+* ☁️ [AWS S3](https://aws.amazon.com/s3/) && [CloudFront](https://aws.amazon.com/cloudfront/) &ndash; cloud storage service and CDN.
+* 🤖 [Certbot](https://certbot.eff.org/) for SSL certificates.
+* 📫 Email based password and username recovery.
+* 🔒 Secure password hashing by default.
+* ✅ [Pytest](https://docs.pytest.org/en/stable/) for testing.
+* 🔑 JWT (JSON Web Token) authentication.
+* 🐋 [Docker Compose](https://www.docker.com/) for development and production.
 
 *<u>Note: the list above contains not all but the key items only</u>*
 

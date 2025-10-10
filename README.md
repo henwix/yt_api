@@ -22,18 +22,18 @@ YT_API is a video sharing platform API created as a pet project.
 # Project technology stack and Features
 
 * 🐍 [Django](https://www.djangoproject.com/) and [Django Rest Framework](https://www.django-rest-framework.org/) for backend and API.
+* 📜 [drf-spectacular](https://drf-spectacular.readthedocs.io/en/latest/readme.html) for API documentation
 * 💾 [PostgreSQL](https://www.postgresql.org/) &ndash; SQL database.
 * 🚀 [Redis](https://redis.io/) for caching.
 * 📝 [Celery](https://github.com/celery/celery) and [Celery Beat](https://github.com/celery/django-celery-beat) for task queuing and scheduling.
 * 🖧 [Nginx](https://nginx.org/en/) &ndash; web and proxy server.
+* 🐋 [Docker Compose](https://www.docker.com/) for development and production.
 * ☁️ [AWS S3](https://aws.amazon.com/s3/) && [CloudFront](https://aws.amazon.com/cloudfront/) &ndash; cloud storage service and CDN.
 * 🤖 [Certbot](https://certbot.eff.org/) for SSL certificates.
-* 📜 [drf-spectacular](https://drf-spectacular.readthedocs.io/en/latest/readme.html) for API documentation
+* ✅ [Pytest](https://docs.pytest.org/en/stable/) for testing.
 * 📫 Email based password and username recovery.
 * 🔒 Secure password hashing by default.
-* ✅ [Pytest](https://docs.pytest.org/en/stable/) for testing.
 * 🔑 JWT (JSON Web Token) authentication.
-* 🐋 [Docker Compose](https://www.docker.com/) for development and production.
 
 *<u>Note: the list above contains not all but the key items only</u>*
 

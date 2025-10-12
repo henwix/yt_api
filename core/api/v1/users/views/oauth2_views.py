@@ -36,7 +36,7 @@ from core.api.v1.users.serializers.oauth2 import (
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.users.converters.users import user_to_entity
 from core.apps.users.exceptions.oauth2 import OAuth2NotImplementedProviderError
-from core.apps.users.throttles import OAuth2ThrottleClass  # noqa
+from core.apps.users.throttles import OAuth2Throttle  # noqa
 from core.apps.users.use_cases.oauth2.oauth2_connect import OAuth2ConnectUseCase
 from core.apps.users.use_cases.oauth2.oauth2_connected_providers import OAuth2ConnectedProvidersUseCase
 from core.apps.users.use_cases.oauth2.oauth2_disconnect import OAuth2DisconnectUseCase
@@ -62,7 +62,7 @@ from core.project.containers import get_container
     summary='Generate URL for OAuth2 authorization',
 )
 class OAuth2GenerateURLView(APIView):
-    throttle_classes = [OAuth2ThrottleClass]
+    throttle_classes = [OAuth2Throttle]
 
     def get(self, request, provider):
         container: punq.Container = get_container()
@@ -114,7 +114,7 @@ class OAuth2GenerateURLView(APIView):
     summary='Verify OAuth2 data and generate JWT tokens or connect service to the user',
 )
 class OAuth2ConnectView(APIView):
-    throttle_classes = [OAuth2ThrottleClass]
+    throttle_classes = [OAuth2Throttle]
 
     def get(self, request, provider):
         container = get_container()

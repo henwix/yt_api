@@ -25,7 +25,7 @@ class CaptchaPermission(BasePermission):
     """
 
     def has_permission(self, request, view):
-        if 'test' in request.data.keys() and settings.DEBUG:
+        if 'test_captcha' in request.data.keys() and settings.DEBUG or not settings.CAPTCHA_VALIDATION_ENABLED:
             return True
 
         methods = getattr(view, 'captcha_allowed_methods', [])  # get list of allowed methods for captcha

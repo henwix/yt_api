@@ -1,6 +1,7 @@
 from logging import Logger
 
 from django.contrib.auth import get_user_model  # noqa
+from django.db.utils import settings
 from rest_framework import (  # noqa
     mixins,
     status,
@@ -74,6 +75,10 @@ from core.apps.users.exceptions.users import (
 )
 from core.apps.users.models import CustomUser
 from core.apps.users.permissions import AuthUserPermission
+from core.apps.users.throttles import (
+    UserAuthEmailSendThrottle,
+    UserAuthLoginThrottle,
+)
 from core.apps.users.use_cases.users.auth_authorize import AuthorizeUserUseCase
 from core.apps.users.use_cases.users.auth_verify_code import VerifyCodeUseCase
 from core.apps.users.use_cases.users.user_activation import UserActivationUseCase
@@ -89,7 +94,6 @@ from core.apps.users.use_cases.users.user_set_password import UserSetPasswordUse
 from core.project.containers import get_container  # noqa
 
 
-# TODO: throttling для отправки почты на все эндпоинты
 class UserView(
         mixins.CreateModelMixin,
         mixins.RetrieveModelMixin,
@@ -107,6 +111,15 @@ class UserView(
 
     def get_object(self):
         return self.request.user
+
+    def get_throttles(self):
+        email_throttle_actions = ['set_email', 'reset_password', 'reset_username', 'resend_activation']
+        if settings.AUTH_SEND_ACTIVATION_EMAIL:
+            email_throttle_actions.append('create')
+
+        if self.action in email_throttle_actions:
+            return [UserAuthEmailSendThrottle()]
+        return super().get_throttles()
 
     def get_serializer_class(self):
         if self.action in ['create', 'retrieve']:
@@ -564,6 +577,7 @@ class UserLoginView(APIView):
 
     permission_classes = [CaptchaPermission]
     captcha_allowed_methods = ['POST']
+    throttle_classes = [UserAuthLoginThrottle]
 
     def post(self, request):
         container: punq.Container = get_container()

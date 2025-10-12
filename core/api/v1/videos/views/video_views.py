@@ -124,7 +124,7 @@ class VideoViewSet(
     filterset_class = VideoFilter
     pagination_class = CustomCursorPagination
     search_fields = ['@name', '@description', '@author__name', '@author__slug']
-    ordering_fields = ['created_at', 'views_count']
+    ordering_fields = ['created_at']
     throttle_scope = 'video'
 
     def __init__(self, **kwargs):
@@ -278,7 +278,6 @@ class VideoViewSet(
         summary='Search video',
     )
     def list(self, request, *args, **kwargs):
-        # FIXME: error when ordering by 'views_count'
         if not request.query_params.get('search'):
             return Response(
                 data={'detail': 'No results found. Try different keywords or remove search filters'},

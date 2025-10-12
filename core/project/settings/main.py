@@ -189,7 +189,7 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': '**YT_API is a video sharing platform API created as a pet project.**',
     'VERSION': VERSION,
     'SERVE_INCLUDE_SCHEMA': False,
-    'DISABLE_ERRORS_AND_WARNINGS': False,
+    'DISABLE_ERRORS_AND_WARNINGS': True,
     'SORT_OPERATIONS': False,
     'SCHEMA_PATH_PREFIX': r'/v[1-2]/',
     'SWAGGER_UI_SETTINGS': {'deepLinking': True, 'persistAuthorization': True},
@@ -429,6 +429,8 @@ SOCIAL_AUTH_DISCONNECT_PIPELINE = (
 
 
 # Captcha
+
+CAPTCHA_VALIDATION_ENABLED = os.environ.get('CAPTCHA_VALIDATION_ENABLED') == 'True'
 
 V3_MIN_GOOGLE_RECAPTCHA_SCORE = 0.5
 

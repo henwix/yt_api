@@ -34,7 +34,6 @@ from core.api.v1.schema.response_examples.common import (
     build_example_response_from_error,
     deleted_response_example,
     detail_response_example,
-    error_response_example,
 )
 from core.api.v1.schema.response_examples.files_upload import (
     multipart_upload_complete_request_example,
@@ -43,24 +42,13 @@ from core.api.v1.schema.response_examples.files_upload import (
     s3_error_response_example,
 )
 from core.api.v1.videos.serializers import video_serializers
-from core.apps.channels.errors import (
-    ErrorCodes as ChannelsErrorCodes,
-    ERRORS as CHANNELS_ERRORS,
-)
 from core.apps.channels.exceptions.channels import ChannelNotFoundError
-from core.apps.common.errors import (
-    ErrorCodes as CommonErrorCodes,
-    ERRORS as COMMON_ERRORS,
-)
 from core.apps.common.exceptions.exceptions import (
+    MultipartUploadExistsError,
     S3FileWithKeyNotExistsError,
     ServiceException,
 )
 from core.apps.users.converters.users import user_to_entity
-from core.apps.videos.errors import (
-    ErrorCodes as VideosErrorCodes,
-    ERRORS as VIDEOS_ERRORS,
-)
 from core.apps.videos.exceptions.upload import (
     VideoFilenameFormatError,
     VideoFilenameNotProvidedError,
@@ -280,10 +268,10 @@ class GenerateDownloadVideoUrlView(generics.GenericAPIView):
     },
     examples=[
         deleted_response_example(),
-        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_AUTHOR_NOT_MATCH]),
-        error_response_example(COMMON_ERRORS[CommonErrorCodes.MULTIPART_UPLOAD_EXISTS_ERROR]),
-        error_response_example(VIDEOS_ERRORS[VideosErrorCodes.VIDEO_NOT_FOUND_BY_UPLOAD_ID]),
-        error_response_example(CHANNELS_ERRORS[ChannelsErrorCodes.CHANNEL_NOT_FOUND]),
+        build_example_response_from_error(error=VideoAuthorNotMatchError),
+        build_example_response_from_error(error=MultipartUploadExistsError),
+        build_example_response_from_error(error=VideoNotFoundByUploadIdError),
+        build_example_response_from_error(error=ChannelNotFoundError),
     ],
     summary='Abort multipart upload',
 )

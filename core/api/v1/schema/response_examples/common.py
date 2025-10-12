@@ -48,19 +48,6 @@ def build_example_response_from_error(
     )
 
 
-def error_response_example(error: dict, summary: str = '', description: str = '') -> OpenApiExample:
-    """Create response example using name, error message and status code from
-    provided Error dict."""
-
-    return detail_response_example(
-        name=error['message'] + ' error',
-        value=error['message'],
-        status_code=error['status_code'],
-        summary=summary,
-        description=description,
-    )
-
-
 def like_created_response_example() -> OpenApiExample:
     """Create response example for LikeCreation with 'Success' detail message
     and 'is_like' field."""

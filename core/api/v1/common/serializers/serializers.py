@@ -48,7 +48,7 @@ class UUID4CodeSerializer(serializers.Serializer):
 
 
 class CaptchaSerializer(serializers.Serializer):
-    captcha_token = serializers.CharField(help_text='Captcha token', write_only=True)
+    captcha_token = serializers.CharField(required=False, help_text='Captcha token', write_only=True)
     captcha_version = serializers.ChoiceField(
-        choices=settings.CAPTCHA_VERSIONS.choices, help_text='Captcha version', write_only=True,
+        required=False, choices=settings.CAPTCHA_VERSIONS.choices, help_text='Captcha version', write_only=True,
     )

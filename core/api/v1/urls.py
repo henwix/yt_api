@@ -35,4 +35,5 @@ urlpatterns = [
     path('', include('core.api.v1.videos.urls')),
     path('', include('core.api.v1.reports.urls')),
     path('', include('core.api.v1.posts.urls')),
+    path('', include('core.api.v1.payments.urls')),
 ]

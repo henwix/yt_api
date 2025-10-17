@@ -13,7 +13,7 @@ class BaseCacheProvider(ABC):
         ...
 
     @abstractmethod
-    def set(self, key: str, value: Any, timeout: int) -> None:
+    def set(self, key: str, value: Any, timeout: int | None = None) -> bool:
         ...
 
     @abstractmethod
@@ -33,7 +33,7 @@ class RedisCacheProvider(BaseCacheProvider):
     def get(self, key: str) -> Any:
         return cache.get(key)
 
-    def set(self, key: str, value: Any, timeout: int) -> None:
+    def set(self, key: str, value: Any, timeout: int | None = None) -> bool:
         return cache.set(key, value, timeout)
 
     def delete(self, key: str) -> None:

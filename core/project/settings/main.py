@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'core.apps.users.apps.UsersConfig',
     'core.apps.videos.apps.VideosConfig',
     'core.apps.reports.apps.ReportsConfig',
+    'core.apps.payments.apps.PaymentsConfig',
     # other
     'rest_framework',
     'django_extensions',
@@ -453,3 +454,10 @@ CAPTCHA_VERSION_SERVICES = {
     CAPTCHA_VERSIONS.GOOGLE_V2_VISIBLE.value: 'GoogleV2CaptchaService',
     CAPTCHA_VERSIONS.GOOGLE_V2_INVISIBLE.value: 'GoogleV2CaptchaService',
 }
+
+
+# Stripe
+
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+STRIPE_WEBHOOK_KEY = os.environ.get('STRIPE_WEBHOOK_KEY')

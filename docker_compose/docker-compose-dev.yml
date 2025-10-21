@@ -1,6 +1,6 @@
 services:
   web:
-    container_name: yt-web-dev  
+    container_name: yt-web-dev
     build:
       context: ..
       dockerfile: Dockerfile
@@ -21,7 +21,7 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-  
+
   postgres:
     container_name: yt-postgres-dev
     image: postgres:17.2-alpine
@@ -48,7 +48,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-  
+
   celery:
     container_name: yt-celery-dev
     image: yt-web-dev

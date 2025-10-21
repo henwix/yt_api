@@ -2,5 +2,5 @@ from django.db.models import TextChoices
 
 
 class StripeSubscriptionTiersEnum(TextChoices):
-    PLUS = 'plus', 'Plus'
+    PRO = 'pro', 'Pro'
     PREMIUM = 'premium', 'Premium'

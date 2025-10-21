@@ -1,43 +1,37 @@
 from dataclasses import dataclass
 
-from core.apps.channels.errors import (
-    ErrorCodes,
-    ERRORS,
-)
+from rest_framework import status
+
 from core.apps.common.exceptions.exceptions import ServiceException
 
 
 @dataclass
 class ChannelNotFoundError(ServiceException):
-    default_code = ErrorCodes.CHANNEL_NOT_FOUND
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_404_NOT_FOUND
+    default_detail = {'detail': 'Channel not found'}
 
     user_id: int | str
 
 
 @dataclass
 class SlugChannelNotFoundError(ServiceException):
-    default_code = ErrorCodes.SLUG_CHANNEL_NOT_FOUND
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_404_NOT_FOUND
+    default_detail = {'detail': 'Channel with this slug is not found'}
 
     channel_slug: str
 
 
 @dataclass
 class AvatarDoesNotExistsError(ServiceException):
-    default_code = ErrorCodes.AVATAR_DOES_NOT_EXIST
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_404_NOT_FOUND
+    default_detail = {'detail': 'Avatar does not exist'}
 
     channel_slug: str
 
 
 @dataclass
 class ChannelSlugInvalidValueError(ServiceException):
-    default_code = ErrorCodes.CHANNEL_SLUG_INVALID_VALUE
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = {'detail': 'Channel slug invalid value'}
 
     slug: str

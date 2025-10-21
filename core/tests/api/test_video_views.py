@@ -2,10 +2,7 @@ from rest_framework.test import APIClient
 
 import pytest
 
-from core.apps.videos.errors import (
-    ErrorCodes,
-    ERRORS,
-)
+from core.apps.videos.exceptions.videos import ViewExistsError
 from core.apps.videos.models import (
     Video,
     VideoView,
@@ -41,6 +38,6 @@ def test_video_view_exists_error(client: APIClient, jwt_and_channel: tuple, vide
 
     response = client.post(f'/v1/videos/{video.video_id}/view/')
 
-    assert response.status_code == ERRORS[ErrorCodes.VIEW_EXISTS]['status_code']
-    assert response.data.get('detail') == ERRORS[ErrorCodes.VIEW_EXISTS]['message']
+    assert response.status_code == ViewExistsError.status_code
+    assert response.data.get('detail') == ViewExistsError.default_detail['detail']
     assert VideoView.objects.filter(video=video, channel=channel).count() == 1

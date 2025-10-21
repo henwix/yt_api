@@ -1,18 +1,13 @@
 from dataclasses import dataclass
 
+from rest_framework import status
 from rest_framework.exceptions import APIException
-
-from core.apps.common.errors import (
-    ErrorCodes,
-    ERRORS,
-)
 
 
 @dataclass
 class ServiceException(APIException):
-    default_code = ErrorCodes.SERVICE_EXCEPTION
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = {'detail': 'Application exception occurred'}
 
     def __post_init__(self):
         super().__init__()
@@ -27,18 +22,16 @@ class ServiceException(APIException):
 
 @dataclass
 class S3FileWithKeyNotExistsError(ServiceException):
-    default_code = ErrorCodes.S3_FILE_WITH_KEY_NOT_EXISTS
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_404_NOT_FOUND
+    default_detail = {'detail': 'File with this key does not exist in S3'}
 
     key: str
 
 
 @dataclass
 class MultipartUploadExistsError(ServiceException):
-    default_code = ErrorCodes.MULTIPART_UPLOAD_EXISTS_ERROR
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_404_NOT_FOUND
+    default_detail = {'detail': 'Multipart upload with this key and upload_id does not exist in S3'}
 
     key: str
     upload_id: str

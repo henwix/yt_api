@@ -7,10 +7,6 @@ from drf_spectacular.utils import (
     OpenApiResponse,
 )
 
-from core.apps.common.errors import (
-    ErrorCodes,
-    ERRORS,
-)
 from core.apps.common.exceptions.exceptions import ServiceException
 
 
@@ -69,22 +65,6 @@ def jwt_response_example(description: str = '') -> OpenApiExample:
         response_only=True,
         status_codes=[200],
         description=description,
-    )
-
-
-def captcha_validation_failed_response_example() -> OpenApiExample:
-    return detail_response_example(
-        name='Captcha validation failed',
-        value=ERRORS[ErrorCodes.CAPTCHA_VALIDATION_FAILED]['message'],
-        status_code=ERRORS[ErrorCodes.CAPTCHA_VALIDATION_FAILED]['status_code'],
-    )
-
-
-def captcha_token_not_provided_error_response_example() -> OpenApiExample:
-    return detail_response_example(
-        name='Captcha token not provided error',
-        value=ERRORS[ErrorCodes.CAPTCHA_TOKEN_NOT_PROVIDED]['message'],
-        status_code=ERRORS[ErrorCodes.CAPTCHA_TOKEN_NOT_PROVIDED]['status_code'],
     )
 
 

@@ -1,33 +1,28 @@
 from dataclasses import dataclass
 
+from rest_framework import status
+
 from core.apps.common.exceptions.exceptions import ServiceException
-from core.apps.videos.errors import (
-    ErrorCodes,
-    ERRORS,
-)
 
 
 @dataclass
 class VideoNotFoundByVideoIdError(ServiceException):
-    default_code = ErrorCodes.VIDEO_NOT_FOUND_BY_VIDEO_ID
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_404_NOT_FOUND
+    default_detail = {'detail': 'Video not found by video_id'}
 
     video_id: str
 
 
 @dataclass
 class VideoIdNotProvidedError(ServiceException):
-    default_code = ErrorCodes.VIDEO_ID_NOT_PROVIDED
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = {'detail': '"video_id" was not provided'}
 
 
 @dataclass
 class VideoNotFoundInHistoryError(ServiceException):
-    default_code = ErrorCodes.VIDEO_NOT_FOUND_IN_HISTORY
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_404_NOT_FOUND
+    default_detail = {'detail': 'Video does not exist in history'}
 
     video_id: str
     channel_slug: str
@@ -35,9 +30,8 @@ class VideoNotFoundInHistoryError(ServiceException):
 
 @dataclass
 class VideoLikeNotFoundError(ServiceException):
-    default_code = ErrorCodes.VIDEO_LIKE_NOT_FOUND
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_404_NOT_FOUND
+    default_detail = {'detail': 'Video like/dislike not found'}
 
     channel_slug: str
     video_id: str
@@ -45,9 +39,8 @@ class VideoLikeNotFoundError(ServiceException):
 
 @dataclass
 class ViewExistsError(ServiceException):
-    default_code = ErrorCodes.VIEW_EXISTS
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = {'detail': 'View already exists, you can add 1 view per 24h'}
 
     channel_slug: str
     video_id: str
@@ -55,9 +48,8 @@ class ViewExistsError(ServiceException):
 
 @dataclass
 class VideoAuthorNotMatchError(ServiceException):
-    default_code = ErrorCodes.VIDEO_AUTHOR_NOT_MATCH
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = {'detail': 'Video author does not match the current user'}
 
     video_id: str
     author_id: str
@@ -65,9 +57,8 @@ class VideoAuthorNotMatchError(ServiceException):
 
 @dataclass
 class PrivateVideoPermissionError(ServiceException):
-    default_code = ErrorCodes.PRIVATE_VIDEO_PERMISSION_ERROR
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_403_FORBIDDEN
+    default_detail = {'detail': 'You do not have permission to access this video'}
 
     video_id: str
     channel_id: str | None
@@ -75,9 +66,8 @@ class PrivateVideoPermissionError(ServiceException):
 
 @dataclass
 class PrivateVideoOrUploadingError(ServiceException):
-    default_code = ErrorCodes.PRIVATE_VIDEO_OR_UPLOADING
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_403_FORBIDDEN
+    default_detail = {'detail': "You can't perform actions if the video is private or still uploading"}
 
     video_id: str
     channel_id: int

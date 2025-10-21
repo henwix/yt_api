@@ -1,24 +1,20 @@
 from dataclasses import dataclass
 
-from core.apps.common.errors import (
-    ErrorCodes,
-    ERRORS,
-)
+from rest_framework import status
+
 from core.apps.common.exceptions.exceptions import ServiceException
 
 
 @dataclass
 class CaptchaTokenNotProvidedError(ServiceException):
-    default_code = ErrorCodes.CAPTCHA_TOKEN_NOT_PROVIDED
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = {'detail': 'Captcha token not provided'}
 
 
 @dataclass
 class CaptchaValidationFailedError(ServiceException):
-    default_code = ErrorCodes.CAPTCHA_VALIDATION_FAILED
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = {'detail': 'Captcha validation failed'}
 
     error_code: str | None = None
     score: float | None = None
@@ -26,18 +22,16 @@ class CaptchaValidationFailedError(ServiceException):
 
 @dataclass
 class CaptchaVersionNotSupportedError(ServiceException):
-    default_code = ErrorCodes.CAPTCHA_VERSION_NOT_SUPPORTED_OR_NOT_PROVIDED
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = {'detail': 'Captcha version not supported or not provided'}
 
     version: str
 
 
 @dataclass
 class CaptchaVerifyRequestError(ServiceException):
-    default_code = ErrorCodes.CAPTCHA_VERIFY_REQUEST_ERROR
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    default_detail = {'detail': 'Captcha token verify request error'}
 
     version: str
     error: str

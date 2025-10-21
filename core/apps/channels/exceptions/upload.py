@@ -1,23 +1,19 @@
 from dataclasses import dataclass
 
-from core.apps.channels.errors import (
-    ErrorCodes,
-    ERRORS,
-)
+from rest_framework import status
+
 from core.apps.common.exceptions.exceptions import ServiceException
 
 
 @dataclass
 class AvatarFilenameNotProvidedError(ServiceException):
-    default_code = ErrorCodes.AVATAR_FILENAME_NOT_PROVIDED
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = {'detail': 'Avatar filename not provided'}
 
 
 @dataclass
 class AvatarFilenameFormatError(ServiceException):
-    default_code = ErrorCodes.AVATAR_FILENAME_FORMAT_ERROR
-    status_code = ERRORS[default_code]['status_code']
-    default_detail = {'detail': ERRORS[default_code]['message']}
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = {'detail': 'Unsupported avatar file format'}
 
     filename: str

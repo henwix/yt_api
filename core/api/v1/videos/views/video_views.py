@@ -238,11 +238,6 @@ class VideoViewSet(
 
     @action(url_path='view', methods=['post'], detail=True)
     def view_create(self, request, video_id):
-        """API endpoint for adding views to videos.
-
-        Have no required fields.
-
-        """
         try:
             result = self.service.view_create(
                 user=user_to_entity(request.user),
@@ -256,11 +251,6 @@ class VideoViewSet(
         return Response(result, status.HTTP_201_CREATED)
 
     def get_serializer_class(self):
-        """Custom 'get_serializer_class' method.
-
-        If action is list - return VideoPreviewSerializer else VideoSerializer
-
-        """
         if self.action == 'list':
             return VideoPreviewSerializer
         return VideoSerializer
@@ -299,26 +289,8 @@ class VideoViewSet(
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
-    serializer_class = VideoCommentSerializer
-    pagination_class = CustomCursorPagination
-    permission_classes = [IsAuthenticatedOrAuthorOrReadOnly]
-    filter_backends = [filters.OrderingFilter]
-    ordering_fields = ['created_at', 'likes_count', 'replies_count']
-    ordering = ['-likes_count']
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container: punq.Container = get_container()
-        self.service: BaseVideoCommentService = self.container.resolve(BaseVideoCommentService)
-        self.logger: Logger = self.container.resolve(Logger)
-
-    def get_queryset(self):
-        if self.action in ['destroy', 'update', 'partial_update']:
-            return self.service.get_annotated_queryset()
-        return self.service.get_related_queryset()
-
-    @extend_schema(
+@extend_schema_view(
+    create=extend_schema(
         responses={
             201: OpenApiResponse(response=CommentCreatedSerializer, description='Video comment has been created'),
             403: OpenApiResponse(response=DetailOutSerializer, description='Video access denied'),
@@ -329,27 +301,8 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
             build_example_response_from_error(error=ChannelNotFoundError),
         ],
         summary='Create a new video comment',
-    )
-    def create(self, request, *args, **kwargs):
-        use_case: CreateVideoCommentUseCase = self.container.resolve(CreateVideoCommentUseCase)
-
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        try:
-            result = use_case.execute(
-                user=user_to_entity(request.user),
-                video=video_to_entity(serializer.validated_data.get('video')),
-                text=serializer.validated_data.get('text'),
-                reply_comment_id=getattr(serializer.validated_data.get('reply_comment'), 'pk', None),
-            )
-
-        except ServiceException as error:
-            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
-            raise
-        return Response(CommentCreatedSerializer(result).data, status=status.HTTP_201_CREATED)
-
-    @extend_schema(
+    ),
+    list=extend_schema(
         parameters=[
             OpenApiParameter(
                 name='v',
@@ -371,7 +324,93 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
             build_example_response_from_error(error=PrivateVideoPermissionError),
         ],
         summary="Get video's comments",
-    )
+    ),
+    get_replies_list=extend_schema(
+        responses={
+            200: build_paginated_response_based_on_serializer(
+                serializer=VideoCommentSerializer,
+                pagination_type='cursor',
+                description='Replies have been retrieved',
+            ),
+            404: OpenApiResponse(response=DetailOutSerializer, description='Comment was not found'),
+        },
+        examples=[
+            build_example_response_from_error(error=CommentNotFoundError),
+        ],
+        summary="Get comment's replies",
+    ),
+    like_create=extend_schema(
+        request=LikeCreateInSerializer,
+        responses={
+            201: OpenApiResponse(response=LikeCreateOutSerializer, description='Reaction has been created'),
+            404: OpenApiResponse(response=DetailOutSerializer, description='Channel or comment was not found'),
+        },
+        examples=[
+            like_created_response_example(),
+            build_example_response_from_error(error=ChannelNotFoundError),
+            build_example_response_from_error(error=CommentNotFoundError),
+        ],
+        summary='Create reaction to a video comment',
+    ),
+    like_delete=extend_schema(
+        responses={
+            200: OpenApiResponse(response=DetailOutSerializer, description='Reaction has been deleted'),
+            404: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Channel, comment or comment reaction was not found',
+            ),
+        },
+        examples=[
+            deleted_response_example(),
+            build_example_response_from_error(error=ChannelNotFoundError),
+            build_example_response_from_error(error=CommentNotFoundError),
+            build_example_response_from_error(error=CommentLikeNotFoundError),
+        ],
+        summary='Delete reaction to a video comment',
+    ),
+    partial_update=extend_schema(summary='Update video comment PATCH'),
+    retrieve=extend_schema(summary='Retrieve video comment'),
+    destroy=extend_schema(summary='Delete video comment'),
+    update=extend_schema(summary='Update video comment PUT'),
+)
+class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
+    serializer_class = VideoCommentSerializer
+    pagination_class = CustomCursorPagination
+    permission_classes = [IsAuthenticatedOrAuthorOrReadOnly]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['created_at', 'likes_count', 'replies_count']
+    ordering = ['-likes_count']
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.container: punq.Container = get_container()
+        self.service: BaseVideoCommentService = self.container.resolve(BaseVideoCommentService)
+        self.logger: Logger = self.container.resolve(Logger)
+
+    def get_queryset(self):
+        if self.action in ['destroy', 'update', 'partial_update']:
+            return self.service.get_annotated_queryset()
+        return self.service.get_related_queryset()
+
+    def create(self, request, *args, **kwargs):
+        use_case: CreateVideoCommentUseCase = self.container.resolve(CreateVideoCommentUseCase)
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            result = use_case.execute(
+                user=user_to_entity(request.user),
+                video=video_to_entity(serializer.validated_data.get('video')),
+                text=serializer.validated_data.get('text'),
+                reply_comment_id=getattr(serializer.validated_data.get('reply_comment'), 'pk', None),
+            )
+
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+        return Response(CommentCreatedSerializer(result).data, status=status.HTTP_201_CREATED)
+
     def list(self, request, *args, **kwargs):
         use_case: GetVideoCommentsUseCase = self.container.resolve(GetVideoCommentsUseCase)
 
@@ -390,38 +429,11 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
         result = self.mixin_filtration_and_pagination(qs)
         return result
 
-    @extend_schema(summary='Update video comment PUT')
     def update(self, request, *args, **kwargs):
         response = super().update(request, *args, **kwargs)
         self.service.change_updated_status(comment_id=kwargs.get('pk'), is_updated=True)
         return response
 
-    @extend_schema(summary='Update video comment PATCH')
-    def partial_update(self, request, *args, **kwargs):
-        return super().partial_update(request, *args, **kwargs)
-
-    @extend_schema(summary='Retrieve video comment')
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
-    @extend_schema(summary='Delete video comment')
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
-
-    @extend_schema(
-        responses={
-            200: build_paginated_response_based_on_serializer(
-                serializer=VideoCommentSerializer,
-                pagination_type='cursor',
-                description='Replies have been retrieved',
-            ),
-            404: OpenApiResponse(response=DetailOutSerializer, description='Comment was not found'),
-        },
-        examples=[
-            build_example_response_from_error(error=CommentNotFoundError),
-        ],
-        summary="Get comment's replies",
-    )
     @action(url_path='replies', url_name='replies', detail=True)
     def get_replies_list(self, request, pk):
         serializer = PkParameterSerializer(data={'pk': pk})
@@ -436,19 +448,6 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
         result = self.mixin_filtration_and_pagination(qs)
         return result
 
-    @extend_schema(
-        request=LikeCreateInSerializer,
-        responses={
-            201: OpenApiResponse(response=LikeCreateOutSerializer, description='Reaction has been created'),
-            404: OpenApiResponse(response=DetailOutSerializer, description='Channel or comment was not found'),
-        },
-        examples=[
-            like_created_response_example(),
-            build_example_response_from_error(error=ChannelNotFoundError),
-            build_example_response_from_error(error=CommentNotFoundError),
-        ],
-        summary='Create reaction to a video comment',
-    )
     @action(methods=['post'], url_path='like', detail=True)
     def like_create(self, request, pk):
         use_case: VideoCommentLikeCreateUseCase = self.container.resolve(VideoCommentLikeCreateUseCase)
@@ -469,22 +468,6 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
 
         return Response(result, status.HTTP_201_CREATED)
 
-    @extend_schema(
-        responses={
-            200: OpenApiResponse(response=DetailOutSerializer, description='Reaction has been deleted'),
-            404: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Channel, comment or comment reaction was not found',
-            ),
-        },
-        examples=[
-            deleted_response_example(),
-            build_example_response_from_error(error=ChannelNotFoundError),
-            build_example_response_from_error(error=CommentNotFoundError),
-            build_example_response_from_error(error=CommentLikeNotFoundError),
-        ],
-        summary='Delete reaction to a video comment',
-    )
     @action(methods=['delete'], url_path='unlike', detail=True)
     def like_delete(self, request, pk):
         use_case: VideoCommentLikeDeleteUseCase = self.container.resolve(VideoCommentLikeDeleteUseCase)
@@ -504,28 +487,8 @@ class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
         return Response(result, status.HTTP_200_OK)
 
 
-class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
-    lookup_field = 'video_id'
-    permission_classes = [IsAuthenticated]
-    pagination_class = HistoryCursorPagination
-    serializer_class = VideoHistorySerializer
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container: punq.Container = get_container()
-        self.service: BaseVideoHistoryService = self.container.resolve(BaseVideoHistoryService)
-        self.logger: Logger = self.container.resolve(Logger)
-
-    def get_queryset(self):
-        if self.action == 'delete':
-            return self.service.get_channel_history(user=user_to_entity(self.request.user))
-        return self.service.get_history_for_retrieve(user=user_to_entity(self.request.user))
-
-    @extend_schema(summary='Get list of videos in history')
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
-
-    @extend_schema(
+@extend_schema_view(
+    clear_history=extend_schema(
         responses={
             200: OpenApiResponse(response=DetailOutSerializer, description='Video history has been cleared'),
             400: OpenApiResponse(response=DetailOutSerializer, description='History is empty'),
@@ -541,22 +504,8 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
             build_example_response_from_error(error=ChannelNotFoundError),
         ],
         summary='Clear video history',
-    )
-    @action(methods=['delete'], detail=False, url_path='clear')
-    def clear_history(self, request):
-        use_case: ClearVideoHistoryUseCase = self.container.resolve(ClearVideoHistoryUseCase)
-
-        try:
-            deleted, result = use_case.execute(
-                user=user_to_entity(request.user),
-            )
-        except ServiceException as error:
-            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
-            raise
-
-        return Response(result, status=status.HTTP_200_OK if deleted else status.HTTP_400_BAD_REQUEST)
-
-    @extend_schema(
+    ),
+    add_video_in_history=extend_schema(
         request=None,
         parameters=[
             video_id_openapi_parameter(),
@@ -584,24 +533,8 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
             build_example_response_from_error(error=VideoNotFoundByVideoIdError),
         ],
         summary='Add video to history',
-    )
-    @action(methods=['post'], detail=False, url_path='add', url_name='add')
-    def add_video_in_history(self, request):
-        serializer = VParameterSerializer(data=request.query_params)
-        serializer.is_valid(raise_exception=True)
-
-        try:
-            result = self.service.add_video_in_history(
-                user=user_to_entity(request.user),
-                video_id=serializer.validated_data.get('v'),
-            )
-        except ServiceException as error:
-            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
-            raise
-
-        return Response(result, status.HTTP_201_CREATED)
-
-    @extend_schema(
+    ),
+    delete_video_from_history=extend_schema(
         request=None,
         parameters=[
             video_id_openapi_parameter(),
@@ -621,7 +554,56 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
             build_example_response_from_error(error=VideoNotFoundByVideoIdError),
         ],
         summary='Delete video from history',
-    )
+    ),
+    list=extend_schema(summary='Get list of videos in history'),
+)
+class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
+    lookup_field = 'video_id'
+    permission_classes = [IsAuthenticated]
+    pagination_class = HistoryCursorPagination
+    serializer_class = VideoHistorySerializer
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.container: punq.Container = get_container()
+        self.service: BaseVideoHistoryService = self.container.resolve(BaseVideoHistoryService)
+        self.logger: Logger = self.container.resolve(Logger)
+
+    def get_queryset(self):
+        if self.action == 'delete':
+            return self.service.get_channel_history(user=user_to_entity(self.request.user))
+        return self.service.get_history_for_retrieve(user=user_to_entity(self.request.user))
+
+    @action(methods=['delete'], detail=False, url_path='clear')
+    def clear_history(self, request):
+        use_case: ClearVideoHistoryUseCase = self.container.resolve(ClearVideoHistoryUseCase)
+
+        try:
+            deleted, result = use_case.execute(
+                user=user_to_entity(request.user),
+            )
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        return Response(result, status=status.HTTP_200_OK if deleted else status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['post'], detail=False, url_path='add', url_name='add')
+    def add_video_in_history(self, request):
+        serializer = VParameterSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            result = self.service.add_video_in_history(
+                user=user_to_entity(request.user),
+                video_id=serializer.validated_data.get('v'),
+            )
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        return Response(result, status.HTTP_201_CREATED)
+
     @action(methods=['delete'], url_path='delete', url_name='delete', detail=False)
     def delete_video_from_history(self, request):
         serializer = VParameterSerializer(data=request.query_params)
@@ -685,55 +667,8 @@ class PlaylistVideosView(generics.ListAPIView, CustomViewMixin):
         return self.mixin_filtration_and_pagination(result)
 
 
-class PlaylistAPIView(viewsets.ModelViewSet):
-    lookup_field = 'id'
-    lookup_url_kwarg = 'id'
-    permission_classes = [IsAuthorOrReadOnlyPlaylist]
-    pagination_class = CustomPageNumberPagination
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        container: punq.Container = get_container()
-        self.service: BaseVideoPlaylistService = container.resolve(BaseVideoPlaylistService)
-        self.logger: Logger = container.resolve(Logger)
-
-    def get_serializer_class(self):
-        if self.action == 'list':
-            return PlaylistPreviewSerializer
-        if self.request.method in ['PUT', 'PATCH']:
-            return UpdatePlaylistSerializer
-        return PlaylistSerializer
-
-    def get_queryset(self):
-        if self.action == 'list':
-            return self.service.get_playlists_for_listing(user_to_entity(self.request.user))
-        return self.service.get_playlists_for_retrieving()
-
-    @extend_schema(summary='Create playlist')
-    def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
-
-    @extend_schema(summary='Delete playlist')
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
-
-    @extend_schema(summary='Update platlist PUT')
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
-
-    @extend_schema(summary='Update playlist PATCH')
-    def partial_update(self, request, *args, **kwargs):
-        return super().partial_update(request, *args, **kwargs)
-
-    @extend_schema(summary='Retrieve playlist')
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
-    @extend_schema(summary='Get all personal channel playlists')
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
-
-    @extend_schema(
+@extend_schema_view(
+    add_video_in_playlist=extend_schema(
         request=None,
         parameters=[
             video_id_openapi_parameter(),
@@ -765,36 +700,8 @@ class PlaylistAPIView(viewsets.ModelViewSet):
             build_example_response_from_error(error=PlaylistNotFoundError),
         ],
         summary='Add video in playlist',
-    )
-    @action(
-        methods=['post'],
-        url_name='add-video',
-        url_path='add-video',
-        detail=True,
-    )
-    def add_video_in_playlist(self, request, id):
-        """API endpoint to add video in playlist.
-
-        Requires 'playlist id' in URL and 'v' query param which contains
-        video_id.
-
-        """
-        serializer = VParameterSerializer(data=request.query_params)
-        serializer.is_valid(raise_exception=True)
-
-        try:
-            added, result = self.service.add_video_in_playlist(
-                user=user_to_entity(request.user),
-                playlist_id=id,
-                video_id=serializer.validated_data.get('v'),
-            )
-        except ServiceException as error:
-            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
-            raise
-
-        return Response(result, status.HTTP_201_CREATED if added else status.HTTP_400_BAD_REQUEST)
-
-    @extend_schema(
+    ),
+    delete_video_from_playlist=extend_schema(
         parameters=[
             OpenApiParameter(
                 name='v',
@@ -825,7 +732,60 @@ class PlaylistAPIView(viewsets.ModelViewSet):
             build_example_response_from_error(error=PlaylistNotFoundError),
         ],
         summary='Delete video from playlist',
+    ),
+    create=extend_schema(summary='Create playlist'),
+    destroy=extend_schema(summary='Delete playlist'),
+    update=extend_schema(summary='Update platlist PUT'),
+    partial_update=extend_schema(summary='Update playlist PATCH'),
+    retrieve=extend_schema(summary='Retrieve playlist'),
+    list=extend_schema(summary='Get all personal channel playlists'),
+)
+class PlaylistAPIView(viewsets.ModelViewSet):
+    lookup_field = 'id'
+    lookup_url_kwarg = 'id'
+    permission_classes = [IsAuthorOrReadOnlyPlaylist]
+    pagination_class = CustomPageNumberPagination
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        container: punq.Container = get_container()
+        self.service: BaseVideoPlaylistService = container.resolve(BaseVideoPlaylistService)
+        self.logger: Logger = container.resolve(Logger)
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return PlaylistPreviewSerializer
+        if self.request.method in ['PUT', 'PATCH']:
+            return UpdatePlaylistSerializer
+        return PlaylistSerializer
+
+    def get_queryset(self):
+        if self.action == 'list':
+            return self.service.get_playlists_for_listing(user_to_entity(self.request.user))
+        return self.service.get_playlists_for_retrieving()
+
+    @action(
+        methods=['post'],
+        url_name='add-video',
+        url_path='add-video',
+        detail=True,
     )
+    def add_video_in_playlist(self, request, id):
+        serializer = VParameterSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            added, result = self.service.add_video_in_playlist(
+                user=user_to_entity(request.user),
+                playlist_id=id,
+                video_id=serializer.validated_data.get('v'),
+            )
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        return Response(result, status.HTTP_201_CREATED if added else status.HTTP_400_BAD_REQUEST)
+
     @action(
         methods=['delete'],
         url_name='delete-video',

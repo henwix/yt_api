@@ -11,6 +11,7 @@ import orjson
 import punq
 from drf_spectacular.utils import (
     extend_schema,
+    extend_schema_view,
     OpenApiResponse,
 )
 
@@ -35,6 +36,27 @@ from core.apps.videos.exceptions.videos import (
 from core.project.containers import get_container
 
 
+@extend_schema_view(
+    create=extend_schema(
+        responses={
+            201: OpenApiResponse(response=DetailOutSerializer, description='Video report has been created'),
+            400: OpenApiResponse(response=DetailOutSerializer, description='Limit of reports has been reached'),
+            403: OpenApiResponse(response=DetailOutSerializer, description='Video access denied'),
+            404: OpenApiResponse(response=DetailOutSerializer, description='Video or channel was not found'),
+        },
+        examples=[
+            created_response_example(),
+            build_example_response_from_error(error=ReportLimitError),
+            build_example_response_from_error(error=PrivateVideoOrUploadingError),
+            build_example_response_from_error(error=VideoNotFoundByVideoIdError),
+            build_example_response_from_error(error=ChannelNotFoundError),
+        ],
+        summary='Create a new video report',
+    ),
+    list=extend_schema(summary='Get list of video reports'),
+    retrieve=extend_schema(summary='Retrieve video report'),
+    destroy=extend_schema(summary='Delete video report'),
+)
 class VideoReportsView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIView, viewsets.GenericViewSet):
     serializer_class = VideoReportSerializer
     pagination_class = CustomCursorPagination
@@ -51,34 +73,6 @@ class VideoReportsView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIVi
             return self.service.get_report_list_related()
         return self.service.get_report_list()
 
-    @extend_schema(summary='Get list of video reports')
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
-
-    @extend_schema(summary='Retrieve video report')
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
-    @extend_schema(summary='Delete video report')
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
-
-    @extend_schema(
-        responses={
-            201: OpenApiResponse(response=DetailOutSerializer, description='Video report has been created'),
-            400: OpenApiResponse(response=DetailOutSerializer, description='Limit of reports has been reached'),
-            403: OpenApiResponse(response=DetailOutSerializer, description='Video access denied'),
-            404: OpenApiResponse(response=DetailOutSerializer, description='Video or channel was not found'),
-        },
-        examples=[
-            created_response_example(),
-            build_example_response_from_error(error=ReportLimitError),
-            build_example_response_from_error(error=PrivateVideoOrUploadingError),
-            build_example_response_from_error(error=VideoNotFoundByVideoIdError),
-            build_example_response_from_error(error=ChannelNotFoundError),
-        ],
-        summary='Create a new video report',
-    )
     def create(self, request, *args, **kwargs):
         use_case: CreateReportUseCase = self.container.resolve(CreateReportUseCase)
         serializer = self.get_serializer(data=request.data)

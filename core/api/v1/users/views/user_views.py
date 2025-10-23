@@ -15,6 +15,7 @@ import orjson
 import punq
 from drf_spectacular.utils import (
     extend_schema,
+    extend_schema_view,
     OpenApiResponse,
     PolymorphicProxySerializer,
 )
@@ -94,6 +95,229 @@ from core.apps.users.use_cases.users.user_set_password import UserSetPasswordUse
 from core.project.containers import get_container  # noqa
 
 
+@extend_schema_view(
+    create=extend_schema(
+        request=UserSerializer,
+        responses={
+            201: OpenApiResponse(
+                response=PolymorphicProxySerializer(
+                    component_name='UserCreatedResponse',
+                    serializers=[UserSerializer, DetailOutSerializer],
+                    resource_type_field_name=None,
+                ),
+                description='User has been created',
+            ),
+            400: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='User with this data already exists',
+            ),
+        },
+        examples=[
+            user_created_response_example(),
+            user_activation_email_sent_response_example(status_code=201),
+            build_example_response_from_error(error=UserWithThisDataAlreadyExistsError),
+        ],
+        summary='Create a new user and channel',
+    ),
+    set_password=extend_schema(
+        responses={
+            200: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Password has been updated',
+            ),
+        },
+        examples=[
+            detail_response_example(
+                name='Password updated',
+                value='Success',
+                status_code=200,
+            ),
+        ],
+        summary='Update user password',
+    ),
+    set_email=extend_schema(
+        responses={
+            200: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Confirmation email has been sent',
+            ),
+        },
+        examples=[
+            confirmation_email_sent_response_example(),
+        ],
+        summary='Send a confirmation email with a code to update user email',
+    ),
+    set_email_confirm=extend_schema(
+        responses={
+            200: OpenApiResponse(
+                response=EmailUserUpdatedSerializer,
+                description='Email has been updated',
+            ),
+            400: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='User does not match or the email address is already taken by another user',
+            ),
+            404: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Confirmation code was not found or not provided',
+            ),
+        },
+        examples=[
+            user_email_updated_response_example(),
+            build_example_response_from_error(error=SetEmailCodeNotProvidedOrNotFoundError),
+            build_example_response_from_error(error=SetEmailUserNotEqualError),
+            build_example_response_from_error(error=UserWithThisDataAlreadyExistsError),
+        ],
+        summary='Validate the confirmation code and update user email',
+    ),
+    reset_password=extend_schema(
+        responses={
+            200: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Confirmation email has been sent',
+            ),
+            404: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='User was not found',
+            ),
+        },
+        examples=[
+            confirmation_email_sent_response_example(),
+            build_example_response_from_error(error=UserNotFoundError),
+        ],
+        summary='Send a confirmation email with a code to reset user password',
+    ),
+    reset_password_confirm=extend_schema(
+        responses={
+            200: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Password has been reset',
+            ),
+            400: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Confirmation code does not match or the provided UID value is not valid',
+            ),
+            404: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Confirmation code or user was not found',
+            ),
+        },
+        examples=[
+            detail_response_example(
+                name='Password has been reset',
+                value='Success',
+                status_code=200,
+            ),
+            build_example_response_from_error(error=UserNotFoundError),
+            build_example_response_from_error(error=InvalidUIDValueError),
+            build_example_response_from_error(error=UserEmailCodeNotFoundError),
+            build_example_response_from_error(error=UserEmailCodeNotEqualError),
+        ],
+        summary='Validate the confirmation code and reset user password',
+    ),
+    reset_username=extend_schema(
+        responses={
+            200: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Confirmation email has been sent',
+            ),
+            404: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='User was not found',
+            ),
+        },
+        examples=[
+            confirmation_email_sent_response_example(),
+            build_example_response_from_error(error=UserNotFoundError),
+        ],
+        summary='Send a confirmation email with a code to reset user username',
+    ),
+    reset_username_confirm=extend_schema(
+        responses={
+            200: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Username has been reset',
+            ),
+            400: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Confirmation code does not match or the provided UID value is not valid',
+            ),
+            404: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Confirmation code or user was not found',
+            ),
+        },
+        examples=[
+            detail_response_example(
+                name='Username has been reset',
+                value='Success',
+                status_code=200,
+            ),
+            build_example_response_from_error(error=UserNotFoundError),
+            build_example_response_from_error(error=InvalidUIDValueError),
+            build_example_response_from_error(error=UserEmailCodeNotFoundError),
+            build_example_response_from_error(error=UserEmailCodeNotEqualError),
+        ],
+        summary='Validate the confirmation code and reset user username',
+    ),
+    activation=extend_schema(
+        responses={
+            200: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='User has been activated',
+            ),
+            400: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Bad request error',
+            ),
+            404: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Activation code or user was not found',
+            ),
+        },
+        examples=[
+            detail_response_example(
+                name='User has been activated',
+                value='Success',
+                status_code=200,
+            ),
+            build_example_response_from_error(error=UserNotFoundError),
+            build_example_response_from_error(error=InvalidUIDValueError),
+            build_example_response_from_error(error=UserActivationNotAllowedError),
+            build_example_response_from_error(error=UserAlreadyActivatedError),
+            build_example_response_from_error(error=UserEmailCodeNotFoundError),
+            build_example_response_from_error(error=UserEmailCodeNotEqualError),
+
+        ],
+        summary='Validate the activation code and activate user',
+    ),
+    resend_activation=extend_schema(
+        responses={
+            200: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Activation email has been sent',
+            ),
+            400: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='User activation is not allowed or the user is already activated',
+            ),
+            404: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='User was not found',
+            ),
+        },
+        examples=[
+            user_activation_email_sent_response_example(status_code=200),
+            build_example_response_from_error(error=UserActivationNotAllowedError),
+            build_example_response_from_error(error=UserNotFoundError),
+            build_example_response_from_error(error=UserAlreadyActivatedError),
+        ],
+        summary='Resend the activation email',
+    ),
+    update=extend_schema(summary='Update user data PUT'),
+    partial_update=extend_schema(summary='Update user data PATCH'),
+    retrieve=extend_schema(summary='Retrieve user data'),
+)
 class UserView(
         mixins.CreateModelMixin,
         mixins.RetrieveModelMixin,
@@ -141,41 +365,6 @@ class UserView(
         if self.action == 'activation':
             return UIDAndCodeConfirmSerializer
 
-    @extend_schema(summary='Update user data PUT')
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
-
-    @extend_schema(summary='Update user data PATCH')
-    def partial_update(self, request, *args, **kwargs):
-        return super().partial_update(request, *args, **kwargs)
-
-    @extend_schema(summary='Retrieve user data')
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
-    @extend_schema(
-        request=UserSerializer,
-        responses={
-            201: OpenApiResponse(
-                response=PolymorphicProxySerializer(
-                    component_name='UserCreatedResponse',
-                    serializers=[UserSerializer, DetailOutSerializer],
-                    resource_type_field_name=None,
-                ),
-                description='User has been created',
-            ),
-            400: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='User with this data already exists',
-            ),
-        },
-        examples=[
-            user_created_response_example(),
-            user_activation_email_sent_response_example(status_code=201),
-            build_example_response_from_error(error=UserWithThisDataAlreadyExistsError),
-        ],
-        summary='Create a new user and channel',
-    )
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -194,22 +383,6 @@ class UserView(
             status=status.HTTP_201_CREATED,
         )
 
-    @extend_schema(
-        responses={
-            200: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Password has been updated',
-            ),
-        },
-        examples=[
-            detail_response_example(
-                name='Password updated',
-                value='Success',
-                status_code=200,
-            ),
-        ],
-        summary='Update user password',
-    )
     @action(['post'], detail=False)
     def set_password(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -224,18 +397,6 @@ class UserView(
 
         return Response({'detail': 'Success'})
 
-    @extend_schema(
-        responses={
-            200: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Confirmation email has been sent',
-            ),
-        },
-        examples=[
-            confirmation_email_sent_response_example(),
-        ],
-        summary='Send a confirmation email with a code to update user email',
-    )
     @action(['post'], detail=False)
     def set_email(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -250,29 +411,6 @@ class UserView(
 
         return Response(result, status=status.HTTP_200_OK)
 
-    @extend_schema(
-        responses={
-            200: OpenApiResponse(
-                response=EmailUserUpdatedSerializer,
-                description='Email has been updated',
-            ),
-            400: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='User does not match or the email address is already taken by another user',
-            ),
-            404: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Confirmation code was not found or not provided',
-            ),
-        },
-        examples=[
-            user_email_updated_response_example(),
-            build_example_response_from_error(error=SetEmailCodeNotProvidedOrNotFoundError),
-            build_example_response_from_error(error=SetEmailUserNotEqualError),
-            build_example_response_from_error(error=UserWithThisDataAlreadyExistsError),
-        ],
-        summary='Validate the confirmation code and update user email',
-    )
     @action(['post'], detail=False)
     def set_email_confirm(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -292,23 +430,6 @@ class UserView(
 
         return Response(result, status=status.HTTP_200_OK)
 
-    @extend_schema(
-        responses={
-            200: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Confirmation email has been sent',
-            ),
-            404: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='User was not found',
-            ),
-        },
-        examples=[
-            confirmation_email_sent_response_example(),
-            build_example_response_from_error(error=UserNotFoundError),
-        ],
-        summary='Send a confirmation email with a code to reset user password',
-    )
     @action(['post'], detail=False)
     def reset_password(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -325,34 +446,6 @@ class UserView(
 
         return Response(result, status=status.HTTP_200_OK)
 
-    @extend_schema(
-        responses={
-            200: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Password has been reset',
-            ),
-            400: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Confirmation code does not match or the provided UID value is not valid',
-            ),
-            404: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Confirmation code or user was not found',
-            ),
-        },
-        examples=[
-            detail_response_example(
-                name='Password has been reset',
-                value='Success',
-                status_code=200,
-            ),
-            build_example_response_from_error(error=UserNotFoundError),
-            build_example_response_from_error(error=InvalidUIDValueError),
-            build_example_response_from_error(error=UserEmailCodeNotFoundError),
-            build_example_response_from_error(error=UserEmailCodeNotEqualError),
-        ],
-        summary='Validate the confirmation code and reset user password',
-    )
     @action(['post'], detail=False)
     def reset_password_confirm(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -373,23 +466,6 @@ class UserView(
 
         return Response(result, status=status.HTTP_200_OK)
 
-    @extend_schema(
-        responses={
-            200: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Confirmation email has been sent',
-            ),
-            404: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='User was not found',
-            ),
-        },
-        examples=[
-            confirmation_email_sent_response_example(),
-            build_example_response_from_error(error=UserNotFoundError),
-        ],
-        summary='Send a confirmation email with a code to reset user username',
-    )
     @action(['post'], detail=False)
     def reset_username(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -406,34 +482,6 @@ class UserView(
 
         return Response(result, status=status.HTTP_200_OK)
 
-    @extend_schema(
-        responses={
-            200: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Username has been reset',
-            ),
-            400: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Confirmation code does not match or the provided UID value is not valid',
-            ),
-            404: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Confirmation code or user was not found',
-            ),
-        },
-        examples=[
-            detail_response_example(
-                name='Username has been reset',
-                value='Success',
-                status_code=200,
-            ),
-            build_example_response_from_error(error=UserNotFoundError),
-            build_example_response_from_error(error=InvalidUIDValueError),
-            build_example_response_from_error(error=UserEmailCodeNotFoundError),
-            build_example_response_from_error(error=UserEmailCodeNotEqualError),
-        ],
-        summary='Validate the confirmation code and reset user username',
-    )
     @action(['post'], detail=False)
     def reset_username_confirm(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -454,37 +502,6 @@ class UserView(
 
         return Response(result, status=status.HTTP_200_OK)
 
-    @extend_schema(
-        responses={
-            200: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='User has been activated',
-            ),
-            400: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Bad request error',
-            ),
-            404: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Activation code or user was not found',
-            ),
-        },
-        examples=[
-            detail_response_example(
-                name='User has been activated',
-                value='Success',
-                status_code=200,
-            ),
-            build_example_response_from_error(error=UserNotFoundError),
-            build_example_response_from_error(error=InvalidUIDValueError),
-            build_example_response_from_error(error=UserActivationNotAllowedError),
-            build_example_response_from_error(error=UserAlreadyActivatedError),
-            build_example_response_from_error(error=UserEmailCodeNotFoundError),
-            build_example_response_from_error(error=UserEmailCodeNotEqualError),
-
-        ],
-        summary='Validate the activation code and activate user',
-    )
     @action(['post'], detail=False)
     def activation(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -504,29 +521,6 @@ class UserView(
 
         return Response(result, status=status.HTTP_200_OK)
 
-    @extend_schema(
-        responses={
-            200: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Activation email has been sent',
-            ),
-            400: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='User activation is not allowed or the user is already activated',
-            ),
-            404: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='User was not found',
-            ),
-        },
-        examples=[
-            user_activation_email_sent_response_example(status_code=200),
-            build_example_response_from_error(error=UserActivationNotAllowedError),
-            build_example_response_from_error(error=UserNotFoundError),
-            build_example_response_from_error(error=UserAlreadyActivatedError),
-        ],
-        summary='Resend the activation email',
-    )
     @action(['post'], detail=False)
     def resend_activation(self, request):
         serializer = self.get_serializer(data=request.data)

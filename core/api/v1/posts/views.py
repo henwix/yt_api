@@ -13,6 +13,7 @@ import orjson
 import punq
 from drf_spectacular.utils import (
     extend_schema,
+    extend_schema_view,
     OpenApiExample,
     OpenApiParameter,
     OpenApiResponse,
@@ -81,6 +82,85 @@ from core.apps.users.converters.users import user_to_entity
 from core.project.containers import get_container
 
 
+@extend_schema_view(
+    create=extend_schema(
+        request=PostInSerializer,
+        responses={
+            201: OpenApiResponse(
+                response=PostOutSerializer,
+                description='Post has been created',
+            ),
+            404: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Channel is not found',
+            ),
+        },
+        examples=[
+            build_example_response_from_error(error=ChannelNotFoundError),
+        ],
+        summary='Create a new post',
+    ),
+    list=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='s',
+                description="Parameter identifying channel's slug",
+                required=True,
+                type=str,
+                examples=[
+                    OpenApiExample(
+                        name='ChannelSlugExample',
+                        value='henwix',
+                        summary="Channel's slug",
+                    ),
+                ],
+            ),
+        ],
+        summary="Get channel's posts",
+    ),
+    like_create=extend_schema(
+        request=LikeCreateInSerializer,
+        responses={
+            201: OpenApiResponse(
+                response=LikeCreateOutSerializer,
+                description='Reaction(like or dislike) has been created',
+            ),
+            404: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Post or Channel was not found',
+            ),
+        },
+        examples=[
+            like_created_response_example(),
+            build_example_response_from_error(error=PostNotFoundError),
+            build_example_response_from_error(error=ChannelNotFoundError),
+        ],
+        summary='Create reaction to a post',
+    ),
+    like_delete=extend_schema(
+        responses={
+            200: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Reaction(like or dislike) has been deleted',
+            ),
+            404: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Channel, Post or PostLike was not found',
+            ),
+        },
+        examples=[
+            deleted_response_example(),
+            build_example_response_from_error(error=ChannelNotFoundError),
+            build_example_response_from_error(error=PostNotFoundError),
+            build_example_response_from_error(error=PostLikeNotFoundError),
+        ],
+        summary='Delete reaction to a post',
+    ),
+    retrieve=extend_schema(summary='Retrieve post'),
+    update=extend_schema(summary='Update post PUT'),
+    partial_update=extend_schema(summary='Update post PATCH'),
+    destroy=extend_schema(summary='Delete post'),
+)
 class PostAPIViewset(ModelViewSet, CustomViewMixin):
     lookup_field = 'post_id'
     lookup_url_kwarg = 'post_id'
@@ -104,39 +184,6 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
             return self.post_service.get_posts_for_retrieving()
         return self.post_service.get_all_posts()
 
-    @extend_schema(summary='Retrieve post')
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
-    @extend_schema(summary='Update post PUT')
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
-
-    @extend_schema(summary='Update post PATCH')
-    def partial_update(self, request, *args, **kwargs):
-        return super().partial_update(request, *args, **kwargs)
-
-    @extend_schema(summary='Delete post')
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
-
-    @extend_schema(
-        request=PostInSerializer,
-        responses={
-            201: OpenApiResponse(
-                response=PostOutSerializer,
-                description='Post has been created',
-            ),
-            404: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Channel is not found',
-            ),
-        },
-        examples=[
-            build_example_response_from_error(error=ChannelNotFoundError),
-        ],
-        summary='Create a new post',
-    )
     def create(self, request):
         use_case: PostCreateUseCase = self.container.resolve(PostCreateUseCase)
 
@@ -155,24 +202,6 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
 
         return Response(PostOutSerializer(result).data, status=status.HTTP_201_CREATED)
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name='s',
-                description="Parameter identifying channel's slug",
-                required=True,
-                type=str,
-                examples=[
-                    OpenApiExample(
-                        name='ChannelSlugExample',
-                        value='henwix',
-                        summary="Channel's slug",
-                    ),
-                ],
-            ),
-        ],
-        summary="Get channel's posts",
-    )
     def list(self, request, *args, **kwargs):
         use_case: GetChannelPostsUseCase = self.container.resolve(GetChannelPostsUseCase)
 
@@ -199,25 +228,6 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
             queryset=qs,
         )
 
-    @extend_schema(
-        request=LikeCreateInSerializer,
-        responses={
-            201: OpenApiResponse(
-                response=LikeCreateOutSerializer,
-                description='Reaction(like or dislike) has been created',
-            ),
-            404: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Post or Channel was not found',
-            ),
-        },
-        examples=[
-            like_created_response_example(),
-            build_example_response_from_error(error=PostNotFoundError),
-            build_example_response_from_error(error=ChannelNotFoundError),
-        ],
-        summary='Create reaction to a post',
-    )
     @action(methods=['post'], detail=True, url_path='like')
     def like_create(self, request, post_id):
         use_case: PostLikeCreateUseCase = self.container.resolve(PostLikeCreateUseCase)
@@ -237,25 +247,6 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
 
         return Response(result, status.HTTP_201_CREATED)
 
-    @extend_schema(
-        responses={
-            200: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Reaction(like or dislike) has been deleted',
-            ),
-            404: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Channel, Post or PostLike was not found',
-            ),
-        },
-        examples=[
-            deleted_response_example(),
-            build_example_response_from_error(error=ChannelNotFoundError),
-            build_example_response_from_error(error=PostNotFoundError),
-            build_example_response_from_error(error=PostLikeNotFoundError),
-        ],
-        summary='Delete reaction to a post',
-    )
     @action(url_path='unlike', methods=['delete'], detail=True)
     def like_delete(self, request, post_id):
         use_case: PostLikeDeleteUseCase = self.container.resolve(PostLikeDeleteUseCase)
@@ -276,6 +267,98 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
         return Response(result, status.HTTP_200_OK)
 
 
+@extend_schema_view(
+    create=extend_schema(
+        responses={
+            201: OpenApiResponse(
+                response=CommentCreatedSerializer,
+                description='Comment has been created',
+            ),
+            404: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Channel was not found',
+            ),
+        },
+        examples=[
+            build_example_response_from_error(error=ChannelNotFoundError),
+        ],
+        summary='Create a new post comment',
+    ),
+    list=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='p',
+                description="Parameter identifying post id",
+                required=True,
+                type=str,
+            ),
+        ],
+        responses={
+            200: OpenApiResponse(
+                response=CommentRetrieveSerializer,
+                description='List of comments to the post has been retrived',
+            ),
+            404: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Post was not found',
+            ),
+        },
+        examples=[
+            build_example_response_from_error(error=PostNotFoundError),
+        ],
+        summary="Get post's comments",
+    ),
+    get_replies_list=extend_schema(
+        responses=build_paginated_response_based_on_serializer(
+            serializer=CommentRetrieveSerializer,
+            pagination_type='cursor',
+            description='Replies have been retrived',
+        ),
+        summary="Get post comment's replies",
+    ),
+    like_create=extend_schema(
+        request=LikeCreateInSerializer,
+        responses={
+            201: OpenApiResponse(
+                response=LikeCreateOutSerializer,
+                description='Reaction has been created',
+            ),
+            404: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Channel or comment was not found',
+            ),
+        },
+        examples=[
+            like_created_response_example(),
+            build_example_response_from_error(error=ChannelNotFoundError),
+            build_example_response_from_error(error=CommentNotFoundError),
+        ],
+        summary='Create reaction to a post comment',
+    ),
+    like_delete=extend_schema(
+        responses={
+            200: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Reaction has been deleted',
+            ),
+            404: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Channel, comment or comment reaction was not found',
+            ),
+        },
+        examples=[
+            deleted_response_example(),
+            build_example_response_from_error(error=ChannelNotFoundError),
+            build_example_response_from_error(error=CommentNotFoundError),
+            build_example_response_from_error(error=CommentLikeNotFoundError),
+        ],
+        summary='Delete reaction to a post comment',
+    ),
+    retrieve=extend_schema(summary='Retrieve post comment'),
+    update=extend_schema(summary='Update post comment PUT'),
+    partial_update=extend_schema(summary='Update post comment PATCH'),
+    destroy=extend_schema(summary='Delete post comment'),
+)
 class CommentPostAPIView(
     ModelViewSet,
     CustomViewMixin,
@@ -309,34 +392,6 @@ class CommentPostAPIView(
             return super().filter_queryset(queryset)
         return queryset
 
-    @extend_schema(summary='Retrieve post comment')
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
-    @extend_schema(summary='Update post comment PATCH')
-    def partial_update(self, request, *args, **kwargs):
-        return super().partial_update(request, *args, **kwargs)
-
-    @extend_schema(summary='Delete post comment')
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
-
-    @extend_schema(
-        responses={
-            201: OpenApiResponse(
-                response=CommentCreatedSerializer,
-                description='Comment has been created',
-            ),
-            404: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Channel was not found',
-            ),
-        },
-        examples=[
-            build_example_response_from_error(error=ChannelNotFoundError),
-        ],
-        summary='Create a new post comment',
-    )
     def create(self, request, *args, **kwargs):
         use_case: CreatePostCommentUseCase = self.container.resolve(CreatePostCommentUseCase)
         serializer = self.get_serializer(data=request.data)
@@ -355,36 +410,11 @@ class CommentPostAPIView(
             raise
         return Response(CommentCreatedSerializer(result).data, status=status.HTTP_201_CREATED)
 
-    @extend_schema(summary='Update post comment PUT')
     def update(self, request, *args, **kwargs):
         response = super().update(request, *args, **kwargs)
         self.post_service.change_updated_status(comment_id=kwargs.get('pk'), is_updated=True)
         return response
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name='p',
-                description="Parameter identifying post id",
-                required=True,
-                type=str,
-            ),
-        ],
-        responses={
-            200: OpenApiResponse(
-                response=CommentRetrieveSerializer,
-                description='List of comments to the post has been retrived',
-            ),
-            404: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Post was not found',
-            ),
-        },
-        examples=[
-            build_example_response_from_error(error=PostNotFoundError),
-        ],
-        summary="Get post's comments",
-    )
     def list(self, request, *args, **kwargs):
         use_case: GetPostCommentsUseCase = self.container.resolve(GetPostCommentsUseCase)
 
@@ -402,14 +432,6 @@ class CommentPostAPIView(
         result = self.mixin_filtration_and_pagination(qs)
         return result
 
-    @extend_schema(
-        responses=build_paginated_response_based_on_serializer(
-            serializer=CommentRetrieveSerializer,
-            pagination_type='cursor',
-            description='Replies have been retrived',
-        ),
-        summary="Get post comment's replies",
-    )
     @action(url_path='replies', url_name='replies', detail=True)
     def get_replies_list(self, request, pk):
         use_case: GetPostCommentRepliesUseCase = self.container.resolve(GetPostCommentRepliesUseCase)
@@ -426,25 +448,6 @@ class CommentPostAPIView(
         result = self.mixin_filtration_and_pagination(qs)
         return result
 
-    @extend_schema(
-        request=LikeCreateInSerializer,
-        responses={
-            201: OpenApiResponse(
-                response=LikeCreateOutSerializer,
-                description='Reaction has been created',
-            ),
-            404: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Channel or comment was not found',
-            ),
-        },
-        examples=[
-            like_created_response_example(),
-            build_example_response_from_error(error=ChannelNotFoundError),
-            build_example_response_from_error(error=CommentNotFoundError),
-        ],
-        summary='Create reaction to a post comment',
-    )
     @action(methods=['post'], url_path='like', detail=True)
     def like_create(self, request, pk):
         use_case: PostCommentLikeCreateUseCase = self.container.resolve(PostCommentLikeCreateUseCase)
@@ -464,25 +467,6 @@ class CommentPostAPIView(
 
         return Response(result, status.HTTP_201_CREATED)
 
-    @extend_schema(
-        responses={
-            200: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Reaction has been deleted',
-            ),
-            404: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Channel, comment or comment reaction was not found',
-            ),
-        },
-        examples=[
-            deleted_response_example(),
-            build_example_response_from_error(error=ChannelNotFoundError),
-            build_example_response_from_error(error=CommentNotFoundError),
-            build_example_response_from_error(error=CommentLikeNotFoundError),
-        ],
-        summary='Delete reaction to a post comment',
-    )
     @action(methods=['delete'], url_path='unlike', detail=True)
     def like_delete(self, request, pk):
         use_case: PostCommentLikeDeleteUseCase = self.container.resolve(PostCommentLikeDeleteUseCase)

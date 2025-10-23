@@ -171,18 +171,8 @@ class ChannelAboutView(generics.RetrieveAPIView):
         return super().retrieve(request, *args, **kwargs)
 
 
-class SubscriptionAPIView(viewsets.GenericViewSet):
-    queryset = SubscriptionItem.objects.all()
-    serializer_class = SubscriptionInSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        container: punq.Container = get_container()
-        self.service: BaseSubscriptionService = container.resolve(BaseSubscriptionService)
-        self.logger: Logger = container.resolve(Logger)
-
-    @extend_schema(
+@extend_schema_view(
+    subscribe=extend_schema(
         responses={
             201: OpenApiResponse(response=DetailOutSerializer, description='Subscription has been created'),
             400: OpenApiResponse(
@@ -197,8 +187,37 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
             build_example_response_from_error(error=SelfSubscriptionError),
             build_example_response_from_error(error=SubscriptionExistsError),
         ],
-        summary='Create subscription to channel',
-    )
+        summary='Create channel subscription',
+    ),
+    unsubscribe=extend_schema(
+        responses={
+            200: OpenApiResponse(response=DetailOutSerializer, description='Subscription has been deleted'),
+            400: OpenApiResponse(response=DetailOutSerializer, description='Self subscription'),
+            404: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Channel slug was not found or subscription does not exists',
+            ),
+        },
+        examples=[
+            deleted_response_example(),
+            build_example_response_from_error(error=SelfSubscriptionError),
+            build_example_response_from_error(error=ChannelWithSlugNotFoundError),
+            build_example_response_from_error(error=SubscriptionDoesNotExistError),
+        ],
+        summary='Delete channel subscription',
+    ),
+)
+class SubscriptionAPIView(viewsets.GenericViewSet):
+    queryset = SubscriptionItem.objects.all()
+    serializer_class = SubscriptionInSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        container: punq.Container = get_container()
+        self.service: BaseSubscriptionService = container.resolve(BaseSubscriptionService)
+        self.logger: Logger = container.resolve(Logger)
+
     @action(methods=['post'], url_path='subscribe', detail=False)
     def subscribe(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -215,23 +234,6 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
         else:
             return Response(result, status.HTTP_201_CREATED)
 
-    @extend_schema(
-        responses={
-            200: OpenApiResponse(response=DetailOutSerializer, description='Subscription has been deleted'),
-            400: OpenApiResponse(response=DetailOutSerializer, description='Self subscription'),
-            404: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='Channel slug was not found or subscription does not exists',
-            ),
-        },
-        examples=[
-            deleted_response_example(),
-            build_example_response_from_error(error=SelfSubscriptionError),
-            build_example_response_from_error(error=ChannelWithSlugNotFoundError),
-            build_example_response_from_error(error=SubscriptionDoesNotExistError),
-        ],
-        summary='Delete subscription to channel',
-    )
     @action(methods=['post'], url_path='unsubscribe', detail=False)
     def unsubscribe(self, request):
         serializer = self.get_serializer(data=request.data)

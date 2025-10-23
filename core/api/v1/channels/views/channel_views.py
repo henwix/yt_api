@@ -1,6 +1,5 @@
 from logging import Logger
 
-from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework import (
@@ -51,6 +50,7 @@ from core.apps.channels.services.channels import (
     BaseChannelSubsService,
     BaseSubscriptionService,
 )
+from core.apps.common.constants import CACHE_KEYS
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.common.mixins import CustomViewMixin
 from core.apps.common.pagination import CustomCursorPagination
@@ -85,7 +85,7 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         user = user_to_entity(request.user)
-        cache_key = f"{settings.CACHE_KEYS.get('retrieve_channel')}{user.id}"
+        cache_key = f"{CACHE_KEYS.get('retrieve_channel')}{user.id}"
 
         cached_data = self.cache_service.get(cache_key)
 
@@ -121,7 +121,7 @@ class ChannelSubscribersView(generics.ListAPIView, CustomViewMixin):
     def list(self, request, *args, **kwargs):
         channel = self.channel_service.get_channel_by_user_or_404(user_to_entity(request.user))
 
-        cache_key = f"{settings.CACHE_KEYS.get('subs_list')}{channel.id}_{request.query_params.get('c', '1')}"
+        cache_key = f"{CACHE_KEYS.get('subs_list')}{channel.id}_{request.query_params.get('c', '1')}"
         cached_data = self.cache_service.get(cache_key)
 
         if cached_data:

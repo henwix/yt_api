@@ -2,6 +2,10 @@ from dataclasses import dataclass
 
 from django.db.utils import settings
 
+from core.apps.common.constants import (
+    CACHE_KEYS,
+    EMAIL_SMTP_TEMPLATES,
+)
 from core.apps.common.services.encoding import BaseEncodingService
 from core.apps.common.services.smtp_email import BaseEmailService
 from core.apps.users.services.codes import BaseCodeService
@@ -22,7 +26,7 @@ class UserResetUsernameUseCase:
         # generate username reset code and encoded user id
         code = self.code_service.generate_user_email_code(
             user=user,
-            cache_prefix=settings.CACHE_KEYS.get('username_reset'),
+            cache_prefix=CACHE_KEYS.get('username_reset'),
         )
         encoded_id = self.encoding_service.base64_encode(data=user.id)
 
@@ -39,7 +43,7 @@ class UserResetUsernameUseCase:
                 ),
             },
             subject='Confirm your username reset',
-            template=settings.EMAIL_SMTP_TEMPLATES.get('username_reset'),
+            template=EMAIL_SMTP_TEMPLATES.get('username_reset'),
         )
 
         return {'detail': 'Confirmation email successfully sent'}

@@ -7,8 +7,7 @@ from abc import (
 from dataclasses import dataclass
 from logging import Logger
 
-from django.db.utils import settings
-
+from core.apps.common.constants import CACHE_KEYS
 from core.apps.common.services.cache import BaseCacheService
 from core.apps.users.entities import UserEntity
 from core.apps.users.exceptions.codes import (
@@ -52,8 +51,8 @@ class EmailCodeService(BaseCodeService):
     logger: Logger
     cache_service: BaseCacheService
 
-    _OTP_CACHE_KEY_PREFIX = settings.CACHE_KEYS.get('otp_email')
-    _SET_EMAIL_CACHE_KEY_PREFIX = settings.CACHE_KEYS.get('set_email')
+    _OTP_CACHE_KEY_PREFIX = CACHE_KEYS.get('otp_email')
+    _SET_EMAIL_CACHE_KEY_PREFIX = CACHE_KEYS.get('set_email')
 
     def generate_email_otp_code(self, email: str) -> str:
         code = str(random.randint(100000, 999999))  # noqa

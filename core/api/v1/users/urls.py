@@ -30,14 +30,14 @@ urlpatterns = [
     # Users endpoints
     path('auth/', include(user_router.urls)),
 
+    # Login endpoints
+    path('auth/login/', UserLoginView.as_view(), name='user_login'),
+    path('auth/verify_code/', CodeVerifyView.as_view(), name='user_verify_code'),
+
     # JWT tokens endpoints
     path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
     path('token/verify/', CustomTokenVerifyView.as_view(), name='token_verify'),
-
-    # Login endpoints
-    path('auth/login/', UserLoginView.as_view(), name='user_login'),
-    path('auth/verify_code/', CodeVerifyView.as_view(), name='user_verify_code'),
 
     # Social auth endpoints
     path(

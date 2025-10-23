@@ -1,6 +1,5 @@
 from logging import Logger
 
-from django.conf import settings
 from django.db.models.signals import (
     post_delete,
     post_save,
@@ -15,6 +14,7 @@ from core.apps.channels.models import (
     Channel,
     SubscriptionItem,
 )
+from core.apps.common.constants import CACHE_KEYS
 from core.apps.common.providers.cache import BaseCacheProvider
 from core.apps.common.providers.files import BaseCeleryFileProvider
 from core.apps.posts.models import Post
@@ -32,7 +32,7 @@ def invalidate_channel_cache(instance, created, **kwargs):
     cache_provider: BaseCacheProvider = container.resolve(BaseCacheProvider)
 
     if not created:
-        cache_provider.delete(f"{settings.CACHE_KEYS.get('retrieve_channel')}{instance.user.pk}")
+        cache_provider.delete(f"{CACHE_KEYS.get('retrieve_channel')}{instance.user.pk}")
         logger.info(
             'Cache for Channel deleted',
             extra={'log_meta': orjson.dumps({'user_id': instance.user.pk}).decode()},
@@ -48,7 +48,7 @@ def invalidate_posts_cache(instance, **kwargs):
     logger: Logger = container.resolve(Logger)
     cache_provider: BaseCacheProvider = container.resolve(BaseCacheProvider)
 
-    cache_provider.delete_pattern(f"{settings.CACHE_KEYS.get('related_posts')}{instance.author.slug}*")
+    cache_provider.delete_pattern(f"{CACHE_KEYS.get('related_posts')}{instance.author.slug}*")
     logger.info(
         'Posts cache for listing deleted',
         extra={'log_meta': orjson.dumps({'channel_slug': instance.author.slug}).decode()},
@@ -64,7 +64,7 @@ def invalidate_subs_cache(instance, **kwargs):
     logger: Logger = container.resolve(Logger)
     cache_provider: BaseCacheProvider = container.resolve(BaseCacheProvider)
 
-    cache_provider.delete_pattern(f"{settings.CACHE_KEYS.get('subs_list')}{instance.subscribed_to.pk}*")
+    cache_provider.delete_pattern(f"{CACHE_KEYS.get('subs_list')}{instance.subscribed_to.pk}*")
     logger.info(
         'Subs cache for listing deleted',
         extra={'log_meta': orjson.dumps({'channel_pk': instance.subscribed_to.slug}).decode()},
@@ -88,12 +88,12 @@ def delete_channel_files_signal(instance, **kwargs):
     for v in instance.videos.all():
         if v.s3_key is not None and v.upload_status == Video.UploadStatus.FINISHED:
             files.append({'Key': v.s3_key})
-            cache_keys.append(settings.CACHE_KEYS['s3_video_url'] + v.s3_key)
+            cache_keys.append(CACHE_KEYS['s3_video_url'] + v.s3_key)
 
     # If avatar_s3_key exists it'll append to 'files' list and 'cache_keys' list
     if instance.avatar_s3_key is not None:
         files.append({'Key': instance.avatar_s3_key})
-        cache_keys.append(settings.CACHE_KEYS['s3_avatar_url'] + instance.avatar_s3_key)
+        cache_keys.append(CACHE_KEYS['s3_avatar_url'] + instance.avatar_s3_key)
 
     if files:
         celery_provider.delete_objects(objects=files, cache_keys=cache_keys)

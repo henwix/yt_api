@@ -1,8 +1,7 @@
-from django.db.utils import settings as django_settings
-
 import pytest
 from pytest_django.fixtures import SettingsWrapper
 
+from core.apps.common.constants import CACHE_KEYS
 from core.apps.common.services.encoding import BaseEncodingService
 from core.apps.users.converters.users import user_to_entity
 from core.apps.users.exceptions.users import InvalidUIDValueError
@@ -25,7 +24,7 @@ def test_user_activated(
 
     code = code_service.generate_user_email_code(
         user=user_to_entity(user),
-        cache_prefix=django_settings.CACHE_KEYS.get('activate_user'),
+        cache_prefix=CACHE_KEYS.get('activate_user'),
     )
     encoded_id = encoding_service.base64_encode(data=user.pk)
 

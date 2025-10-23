@@ -755,30 +755,6 @@ gprof2dot = ">=2017.09.19"
 sqlparse = "*"
 
 [[package]]
-name = "django-storages"
-version = "1.14.5"
-description = "Support for many storage backends in Django"
-optional = false
-python-versions = ">=3.7"
-groups = ["main"]
-files = [
-    {file = "django_storages-1.14.5-py3-none-any.whl", hash = "sha256:5ce9c69426f24f379821fd688442314e4aa03de87ae43183c4e16915f4c165d4"},
-    {file = "django_storages-1.14.5.tar.gz", hash = "sha256:ace80dbee311258453e30cd5cfd91096b834180ccf09bc1f4d2cb6d38d68571a"},
-]
-
-[package.dependencies]
-Django = ">=3.2"
-
-[package.extras]
-azure = ["azure-core (>=1.13)", "azure-storage-blob (>=12)"]
-boto3 = ["boto3 (>=1.4.4)"]
-dropbox = ["dropbox (>=7.2.1)"]
-google = ["google-cloud-storage (>=1.32)"]
-libcloud = ["apache-libcloud"]
-s3 = ["boto3 (>=1.4.4)"]
-sftp = ["paramiko (>=1.15)"]
-
-[[package]]
 name = "django-timezone-field"
 version = "7.1"
 description = "A Django app providing DB, form, and REST framework fields for zoneinfo and pytz timezone objects."
@@ -2321,4 +2297,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "09731a7312077c55aaaf87c192092e32a4d3d14f51c2c22ca7bde49be4253046"
+content-hash = "5fa8f631c54d7c6f23f2ab3d4032f2d33b9d701f693242dffa1e00b0b6597485"

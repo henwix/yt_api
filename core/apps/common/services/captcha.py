@@ -5,8 +5,7 @@ from abc import (
 from dataclasses import dataclass
 from logging import Logger
 
-from django.conf import settings
-
+from core.apps.common.constants import V3_MIN_GOOGLE_RECAPTCHA_SCORE
 from core.apps.common.exceptions.captcha import (
     CaptchaTokenNotProvidedError,
     CaptchaValidationFailedError,
@@ -48,7 +47,7 @@ class GoogleV3CaptchaService(BaseCaptchaService):
         )
 
         if result.get('success', False):  # check if the 'success' is in the result and not equal to False
-            if result.get('score', 0) > settings.V3_MIN_GOOGLE_RECAPTCHA_SCORE:  # check 'score' from the result
+            if result.get('score', 0) > V3_MIN_GOOGLE_RECAPTCHA_SCORE:  # check 'score' from the result
                 return True
             raise CaptchaValidationFailedError(score=result.get('score'))
 

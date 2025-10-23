@@ -15,7 +15,7 @@ class BaseSenderProvider(ABC):
 class EmailSenderProvider(BaseSenderProvider):
     def send_email(self, to: list[str], context: dict, subject: str, template: str) -> None:
         app.send_task(
-            'core.apps.users.tasks.send_email',
+            'core.apps.common.tasks.send_email',
             args=[to, context, subject, template],
             queue='email-queue',
             ignore_result=True,

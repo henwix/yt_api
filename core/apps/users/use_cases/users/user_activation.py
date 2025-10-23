@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
-from django.db.utils import settings
-
+from core.apps.common.constants import CACHE_KEYS
 from core.apps.common.services.encoding import BaseEncodingService
 from core.apps.users.exceptions.users import InvalidUIDValueError
 from core.apps.users.services.codes import BaseCodeService
@@ -39,7 +38,7 @@ class UserActivationUseCase:
         self.code_service.validate_user_email_code(
             user=user,
             code=code,
-            cache_prefix=settings.CACHE_KEYS.get('activate_user'),
+            cache_prefix=CACHE_KEYS.get('activate_user'),
         )
         self.user_service.update_by_data(user=user, data={'is_active': True})
 

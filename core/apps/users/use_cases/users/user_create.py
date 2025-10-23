@@ -4,6 +4,10 @@ from django.db import transaction
 from django.db.utils import settings
 
 from core.apps.channels.services.channels import BaseChannelService
+from core.apps.common.constants import (
+    CACHE_KEYS,
+    EMAIL_SMTP_TEMPLATES,
+)
 from core.apps.common.services.encoding import BaseEncodingService
 from core.apps.common.services.smtp_email import BaseEmailService
 from core.apps.users.converters.users import user_to_entity
@@ -52,7 +56,7 @@ class UserCreateUseCase:
             # generate activation code and encoded user id
             code = self.code_service.generate_user_email_code(
                 user=user_entity,
-                cache_prefix=settings.CACHE_KEYS.get('activate_user'),
+                cache_prefix=CACHE_KEYS.get('activate_user'),
             )
             encoded_id = self.encoding_service.base64_encode(data=user_entity.id)
 
@@ -69,7 +73,7 @@ class UserCreateUseCase:
                     ),
                 },
                 subject='Activate your account',
-                template=settings.EMAIL_SMTP_TEMPLATES.get('activate_user'),
+                template=EMAIL_SMTP_TEMPLATES.get('activate_user'),
             )
 
             # return message that the email has been sent

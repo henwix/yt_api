@@ -1,7 +1,6 @@
 import os
 
 from django.conf import settings
-from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import (
     include,
@@ -33,11 +32,8 @@ urlpatterns = [
 
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
     urlpatterns.extend(
         [
-            path('auth/', include('rest_framework.urls')),  # add auth urls if DEBUG is True
-            path('silk/', include('silk.urls', namespace='silk')),  # add silk urls if DEBUG is True
+            path('silk/', include('silk.urls', namespace='silk')),
         ],
     )

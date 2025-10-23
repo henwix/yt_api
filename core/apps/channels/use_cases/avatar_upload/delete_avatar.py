@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 
-from django.conf import settings
-
 from core.apps.channels.services.channels import BaseChannelService
 from core.apps.channels.services.s3_channels import BaseAvatarValidatorService
+from core.apps.common.constants import CACHE_KEYS
 from core.apps.common.services.files import BaseS3FileService
 from core.apps.users.entities import UserEntity
 
@@ -20,7 +19,7 @@ class DeleteChannelAvatarUseCase:
 
         self.files_service.delete_object_by_key(
             key=channel.avatar_s3_key,
-            cache_key=settings.CACHE_KEYS['s3_avatar_url'] + channel.avatar_s3_key,
+            cache_key=CACHE_KEYS['s3_avatar_url'] + channel.avatar_s3_key,
         )
 
         self.channel_service.set_avatar_s3_key(

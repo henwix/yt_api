@@ -1,8 +1,8 @@
 from django.core.cache import cache
-from django.db.utils import settings
 
 import pytest
 
+from core.apps.common.constants import CACHE_KEYS
 from core.apps.users.converters.users import user_to_entity
 from core.apps.users.exceptions.codes import (
     OtpCodeNotEqualError,
@@ -69,7 +69,7 @@ def test_set_email_code_generated_and_cached(code_service: BaseCodeService, user
     expected_new_email = 'new_test_email123456@test.com'
 
     code = code_service.generate_set_email_code(user_id=user.id, email=expected_new_email)
-    cached_data_using_code = cache.get(settings.CACHE_KEYS.get('set_email') + code)
+    cached_data_using_code = cache.get(CACHE_KEYS.get('set_email') + code)
 
     assert isinstance(code, str)
     assert len(code) == 32

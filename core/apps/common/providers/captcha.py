@@ -4,10 +4,9 @@ from abc import (
 )
 from dataclasses import dataclass
 
-from django.conf import settings
-
 import requests
 
+from core.apps.common.constants import CAPTCHA_SECRET_KEYS
 from core.apps.common.exceptions.captcha import CaptchaTokenVerifyRequestError
 
 
@@ -33,7 +32,7 @@ class GoogleCaptchaProvider(BaseCaptchaProvider):
         try:
             response = requests.post(
                 url='https://www.google.com/recaptcha/api/siteverify', data={
-                    'secret': settings.CAPTCHA_SECRET_KEYS.get(version),
+                    'secret': CAPTCHA_SECRET_KEYS.get(version),
                     'response': token,
                     'remoteip': remoteip,
                 },

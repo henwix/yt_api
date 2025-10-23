@@ -1,6 +1,5 @@
 from logging import Logger
 
-from django.conf import settings
 from rest_framework import (
     filters,
     status,
@@ -50,6 +49,7 @@ from core.api.v1.schema.response_examples.common import (
 )
 from core.api.v1.videos.serializers.video_serializers import CommentCreatedSerializer
 from core.apps.channels.exceptions.channels import ChannelNotFoundError
+from core.apps.common.constants import CACHE_KEYS
 from core.apps.common.exceptions.comments import (
     CommentLikeNotFoundError,
     CommentNotFoundError,
@@ -209,7 +209,7 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
         serializer.is_valid(raise_exception=True)
 
         slug = serializer.validated_data.get('s')
-        cache_key = f"{settings.CACHE_KEYS.get('related_posts')}{slug}_{request.query_params.get('c', '1')}"
+        cache_key = f"{CACHE_KEYS.get('related_posts')}{slug}_{request.query_params.get('c', '1')}"
 
         cached_data = self.cache_service.get(cache_key)
         if cached_data:

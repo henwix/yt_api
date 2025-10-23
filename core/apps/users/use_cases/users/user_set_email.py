@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
-from django.db.utils import settings
-
+from core.apps.common.constants import EMAIL_SMTP_TEMPLATES
 from core.apps.common.services.smtp_email import BaseEmailService
 from core.apps.users.entities import UserEntity
 from core.apps.users.services.codes import BaseCodeService
@@ -21,7 +20,7 @@ class UserSetEmailUseCase:
             to=[email],
             context={'email': email, 'username': user.username, 'code': code},
             subject='Confirm Your Email Change',
-            template=settings.EMAIL_SMTP_TEMPLATES.get('set_email'),
+            template=EMAIL_SMTP_TEMPLATES.get('set_email'),
         )
 
         # return message that the email was sent

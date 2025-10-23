@@ -2,8 +2,6 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
-from django.db import models
-
 from kombu import Queue
 
 
@@ -96,7 +94,6 @@ DATABASES = {
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
         'HOST': os.environ.get('POSTGRES_HOST'),
         'PORT': '5432',
-        'DISABLE_SERVER_SIDE_CURSORS': True,
     },
 }
 
@@ -150,11 +147,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = '/static/'
-
-if DEBUG:
-    STATICFILES_DIRS = [
-        BASE_DIR / 'static',
-    ]
+STATIC_ROOT = BASE_DIR / 'static'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -232,8 +225,6 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer',
 }
 
-LOGIN_REDIRECT_URL = 'v1:users:customuser-me'
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -258,12 +249,12 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            'level': 'DEBUG',
+            'level': os.environ.get('LOGGING_LEVEL'),
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
         'logger_console': {
-            'level': 'DEBUG',
+            'level': os.environ.get('LOGGING_LEVEL'),
             'class': 'logging.StreamHandler',
             'formatter': 'logger',
             'filters': ['log_meta_filter'],
@@ -271,31 +262,16 @@ LOGGING = {
     },
     'loggers': {
         'django.request': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'handlers': ['console'],
             'propagate': False,
         },
         'django.logger': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'handlers': ['logger_console'],
             'propagate': False,
         },
     },
-}
-
-MEDIA_ROOT = BASE_DIR / 'media'
-MEDIA_URL = '/media/'
-
-
-# Files Storages
-
-
-STORAGES = {
-    'default': {
-        'BACKEND': 'storages.backends.s3.S3Storage',
-    },
-    'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
-    'local': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
 }
 
 
@@ -305,8 +281,6 @@ AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
 AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME')
-AWS_S3_FILE_OVERWRITE = False
-AWS_QUERYSTRING_AUTH = False
 
 AWS_S3_VIDEO_BUCKET_PREFIX = os.environ.get('AWS_S3_VIDEO_BUCKET_PREFIX')
 AWS_S3_AVATAR_BUCKET_PREFIX = os.environ.get('AWS_S3_AVATAR_BUCKET_PREFIX')
@@ -322,7 +296,7 @@ AWS_CLOUDFRONT_KEY = (
 
 CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_RESULT_BACKEND = 'redis://redis:6379/0'  # 'django-db'
-CELERY_RESULT_EXPIRES = 1  # 1 hour in seconds # TODO: change to normal value
+CELERY_RESULT_EXPIRES = 1  # value in seconds # TODO: change to normal value
 CELERY_TASK_TRACK_STARTED = True
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
@@ -363,39 +337,8 @@ EMAIL_FRONTEND_PASSWORD_RESET_URI = os.environ.get('EMAIL_FRONTEND_PASSWORD_RESE
 EMAIL_FRONTEND_USERNAME_RESET_URI = os.environ.get('EMAIL_FRONTEND_USERNAME_RESET_URI')
 EMAIL_FRONTEND_ACTIVATE_URI = os.environ.get('EMAIL_FRONTEND_ACTIVATE_URI')
 
-EMAIL_SMTP_TEMPLATES = {
-    'otp_email': 'users/otp_email.html',
-    'set_email': 'users/set_email.html',
-    'password_reset': 'users/password_reset_email.html',
-    'username_reset': 'users/username_reset_email.html',
-    'activate_user': 'users/activate_user_email.html',
-}
-
-
-# Cache keys
-
-CACHE_KEYS = {
-    's3_video_url': 's3_video_url_',
-    's3_avatar_url': 's3_avatar_url_',
-    'related_posts': 'channel_posts_',
-    'subs_list': 'subs_',
-    'retrieve_channel': 'retrieve_channel_',
-    'otp_email': 'otp_code_',
-    'set_email': 'set_email_code_',
-    'password_reset': 'user_password_reset_',
-    'activate_user': 'activate_user_',
-    'stripe_customer_id': 'stripe:user:',
-    'stripe_sub_data': 'stripe:customer:',
-}
-
 
 # OAuth2-social
-
-OAUTH2_ALLOWED_PROVIDERS = {
-    'github': 'github',
-    'google': 'google-oauth2',
-    'x': 'twitter-oauth2',
-}
 
 SOCIAL_AUTH_JSONFIELD_ENABLED = True
 SOCIAL_AUTH_SLUGIFY_USERNAMES = True
@@ -435,27 +378,9 @@ SOCIAL_AUTH_DISCONNECT_PIPELINE = (
 
 CAPTCHA_VALIDATION_ENABLED = os.environ.get('CAPTCHA_VALIDATION_ENABLED') == 'True'
 
-V3_MIN_GOOGLE_RECAPTCHA_SCORE = 0.5
-
-
-class CAPTCHA_VERSIONS(models.TextChoices):
-    GOOGLE_V3 = 'v3'
-    GOOGLE_V2_VISIBLE = 'v2_visible'
-    GOOGLE_V2_INVISIBLE = 'v2_invisible'
-
-
-CAPTCHA_SECRET_KEYS = {
-    CAPTCHA_VERSIONS.GOOGLE_V3.value: os.environ.get('V3_GOOGLE_RECAPTCHA_PRIVATE_KEY'),
-    CAPTCHA_VERSIONS.GOOGLE_V2_VISIBLE.value: os.environ.get('V2_VISIBLE_GOOGLE_RECAPTCHA_PRIVATE_KEY'),
-    CAPTCHA_VERSIONS.GOOGLE_V2_INVISIBLE.value: os.environ.get('V2_INVISIBLE_GOOGLE_RECAPTCHA_PRIVATE_KEY'),
-}
-
-
-CAPTCHA_VERSION_SERVICES = {
-    CAPTCHA_VERSIONS.GOOGLE_V3.value: 'GoogleV3CaptchaService',
-    CAPTCHA_VERSIONS.GOOGLE_V2_VISIBLE.value: 'GoogleV2CaptchaService',
-    CAPTCHA_VERSIONS.GOOGLE_V2_INVISIBLE.value: 'GoogleV2CaptchaService',
-}
+V3_GOOGLE_RECAPTCHA_PRIVATE_KEY = os.environ.get('V3_GOOGLE_RECAPTCHA_PRIVATE_KEY')
+V2_VISIBLE_GOOGLE_RECAPTCHA_PRIVATE_KEY = os.environ.get('V2_VISIBLE_GOOGLE_RECAPTCHA_PRIVATE_KEY')
+V2_INVISIBLE_GOOGLE_RECAPTCHA_PRIVATE_KEY = os.environ.get('V2_INVISIBLE_GOOGLE_RECAPTCHA_PRIVATE_KEY')
 
 
 # Stripe
@@ -464,28 +389,5 @@ STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
 STRIPE_WEBHOOK_KEY = os.environ.get('STRIPE_WEBHOOK_KEY')
 
-STRIPE_SUBSCRIPTION_TIERS = {
-    'pro': os.environ.get('STRIPE_SUB_PRICE_PRO'),
-    'premium': os.environ.get('STRIPE_SUB_PRICE_PREMIUM'),
-}
-
-STRIPE_ALLOWED_EVENTS = [
-    "checkout.session.completed",
-    "customer.subscription.created",
-    "customer.subscription.updated",
-    "customer.subscription.deleted",
-    "customer.subscription.paused",
-    "customer.subscription.resumed",
-    "customer.subscription.pending_update_applied",
-    "customer.subscription.pending_update_expired",
-    "customer.subscription.trial_will_end",
-    "invoice.paid",
-    "invoice.payment_failed",
-    "invoice.payment_action_required",
-    "invoice.upcoming",
-    "invoice.marked_uncollectible",
-    "invoice.payment_succeeded",
-    "payment_intent.succeeded",
-    "payment_intent.payment_failed",
-    "payment_intent.canceled",
-]
+STRIPE_SUB_PRICE_PRO = os.environ.get('STRIPE_SUB_PRICE_PRO')
+STRIPE_SUB_PRICE_PREMIUM = os.environ.get('STRIPE_SUB_PRICE_PREMIUM')

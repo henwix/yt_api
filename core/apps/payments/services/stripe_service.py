@@ -6,12 +6,15 @@ from dataclasses import dataclass
 from logging import Logger
 from typing import Iterable
 
-from django.db.utils import settings
-
 import orjson
 import stripe
 
+from core.apps.common.constants import CACHE_KEYS
 from core.apps.common.services.cache import BaseCacheService
+from core.apps.payments.constants import (
+    STRIPE_ALLOWED_EVENTS,
+    STRIPE_SUBSCRIPTION_TIERS,
+)
 from core.apps.payments.exceptions import (
     StripeCustomerIdNotStringError,
     StripeInvalidSubPriceError,
@@ -31,7 +34,7 @@ class BaseStripeEventValidatorService(ABC):
 
 class StripeEventValidatorService(BaseStripeEventValidatorService):
     def validate(self, event: stripe.Event) -> None:
-        allowed_events = settings.STRIPE_ALLOWED_EVENTS
+        allowed_events = STRIPE_ALLOWED_EVENTS
         if event['type'] not in allowed_events:
             raise StripeNotAllowedEventTypeError(event_type=event['type'])
 
@@ -114,9 +117,9 @@ class BaseStripeService(ABC):
 
 
 class StripeService(BaseStripeService):
-    _STRIPE_CUSTOMER_ID_CACHE_KEY_PREFIX = settings.CACHE_KEYS['stripe_customer_id']
-    _STRIPE_SUB_DATA_CACHE_KEY_PREFIX = settings.CACHE_KEYS['stripe_sub_data']
-    _STRIPE_SUBSCRIPTION_TIERS = settings.STRIPE_SUBSCRIPTION_TIERS
+    _STRIPE_CUSTOMER_ID_CACHE_KEY_PREFIX = CACHE_KEYS['stripe_customer_id']
+    _STRIPE_SUB_DATA_CACHE_KEY_PREFIX = CACHE_KEYS['stripe_sub_data']
+    _STRIPE_SUBSCRIPTION_TIERS = STRIPE_SUBSCRIPTION_TIERS
 
     def save_customer_id(self, user_id: int, customer_id: str) -> bool:
         customer_id_cache_key = f'{self._STRIPE_CUSTOMER_ID_CACHE_KEY_PREFIX}{user_id}'

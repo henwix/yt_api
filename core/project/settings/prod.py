@@ -5,6 +5,7 @@ from .main import *  # noqa
 
 DEBUG = False
 
+# setup DATABASES for pgbouncer
 DATABASES = {
     'default': {
         'ENGINE': 'django_prometheus.db.backends.postgresql',
@@ -14,6 +15,7 @@ DATABASES = {
         'HOST': os.environ.get('PGBOUNCER_HOST'),  # pgbouncer host
         'PORT': '5432',  # pgbouncer port
         'CONN_MAX_AGE': 0,
+        'DISABLE_SERVER_SIDE_CURSORS': True,
     },
 }
 
@@ -35,11 +37,7 @@ CORS_ALLOWED_ORIGINS = [
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-LOGGING['handlers']['console']['level'] = 'INFO'  # noqa
-LOGGING['handlers']['logger_console']['level'] = 'INFO'  # noqa
-
 if not DEBUG:
-    STATIC_ROOT = BASE_DIR / 'static'  # noqa
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True

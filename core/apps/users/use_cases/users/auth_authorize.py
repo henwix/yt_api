@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
-from django.db.utils import settings
-
+from core.apps.common.constants import EMAIL_SMTP_TEMPLATES
 from core.apps.common.services.smtp_email import BaseEmailService
 from core.apps.users.services.codes import BaseCodeService
 from core.apps.users.services.users import BaseUserService
@@ -25,7 +24,7 @@ class AuthorizeUserUseCase:
             to=[user.email],
             context={'email': user.email, 'code': code},
             subject='OTP Email Confirmation',
-            template=settings.EMAIL_SMTP_TEMPLATES.get('otp_email'),
+            template=EMAIL_SMTP_TEMPLATES.get('otp_email'),
         )
 
         return {'detail': 'Email successfully sent'}

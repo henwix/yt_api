@@ -21,7 +21,7 @@ class ServiceException(APIException):
 
 
 @dataclass
-class S3FileWithKeyNotExistsError(ServiceException):
+class S3FileWithKeyNotExistError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
     default_detail = {'detail': 'File with this key does not exist in S3'}
 
@@ -29,7 +29,7 @@ class S3FileWithKeyNotExistsError(ServiceException):
 
 
 @dataclass
-class MultipartUploadExistsError(ServiceException):
+class MultipartUploadDoesNotExistError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
     default_detail = {'detail': 'Multipart upload with this key and upload_id does not exist in S3'}
 

@@ -8,7 +8,7 @@ from django.conf import settings
 
 import requests
 
-from core.apps.common.exceptions.captcha import CaptchaVerifyRequestError
+from core.apps.common.exceptions.captcha import CaptchaTokenVerifyRequestError
 
 
 @dataclass
@@ -39,6 +39,6 @@ class GoogleCaptchaProvider(BaseCaptchaProvider):
                 },
             ).json()
         except requests.exceptions.RequestException as error:
-            raise CaptchaVerifyRequestError(version=version, error=str(error))
+            raise CaptchaTokenVerifyRequestError(version=version, error=str(error))
 
         return response

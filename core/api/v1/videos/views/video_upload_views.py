@@ -44,14 +44,14 @@ from core.api.v1.schema.response_examples.files_upload import (
 from core.api.v1.videos.serializers import video_serializers
 from core.apps.channels.exceptions.channels import ChannelNotFoundError
 from core.apps.common.exceptions.exceptions import (
-    MultipartUploadExistsError,
-    S3FileWithKeyNotExistsError,
+    MultipartUploadDoesNotExistError,
+    S3FileWithKeyNotExistError,
     ServiceException,
 )
 from core.apps.users.converters.users import user_to_entity
 from core.apps.videos.exceptions.upload import (
-    VideoFilenameFormatError,
     VideoFilenameNotProvidedError,
+    VideoFilenameNotSupportedFormatError,
     VideoNotFoundByKeyError,
     VideoNotFoundByUploadIdError,
 )
@@ -83,7 +83,7 @@ from core.project.containers import get_container
     },
     examples=[
         multipart_upload_created_response_example(),
-        build_example_response_from_error(error=VideoFilenameFormatError),
+        build_example_response_from_error(error=VideoFilenameNotSupportedFormatError),
         build_example_response_from_error(error=VideoFilenameNotProvidedError),
         build_example_response_from_error(error=ChannelNotFoundError),
         s3_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
@@ -210,7 +210,7 @@ class GenerateUploadPartUrlView(generics.GenericAPIView):
     examples=[
         build_example_response_from_error(error=PrivateVideoPermissionError),
         build_example_response_from_error(error=VideoNotFoundByKeyError),
-        build_example_response_from_error(error=S3FileWithKeyNotExistsError),
+        build_example_response_from_error(error=S3FileWithKeyNotExistError),
         s3_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
         s3_error_response_example(code=status.HTTP_502_BAD_GATEWAY),
     ],
@@ -269,7 +269,7 @@ class GenerateDownloadVideoUrlView(generics.GenericAPIView):
     examples=[
         deleted_response_example(),
         build_example_response_from_error(error=VideoAuthorNotMatchError),
-        build_example_response_from_error(error=MultipartUploadExistsError),
+        build_example_response_from_error(error=MultipartUploadDoesNotExistError),
         build_example_response_from_error(error=VideoNotFoundByUploadIdError),
         build_example_response_from_error(error=ChannelNotFoundError),
     ],

@@ -21,7 +21,7 @@ class BaseStripeProvider(ABC):
         ...
 
     @abstractmethod
-    def construct_event(self, payload, signature) -> stripe.Event:
+    def construct_event(self, payload: bytes, signature: str) -> stripe.Event:
         ...
 
     @abstractmethod
@@ -36,12 +36,12 @@ class BaseStripeProvider(ABC):
 
 
 class StripeProvider(BaseStripeProvider):
-    STRIPE_SECRET_KEY = settings.STRIPE_SECRET_KEY
-    STRIPE_WEBHOOK_KEY = settings.STRIPE_WEBHOOK_KEY
+    _STRIPE_SECRET_KEY = settings.STRIPE_SECRET_KEY
+    _STRIPE_WEBHOOK_KEY = settings.STRIPE_WEBHOOK_KEY
 
     def create_customer(self, email: str, user_id: int) -> stripe.Customer:
         customer: stripe.Customer = stripe.Customer.create(
-            api_key=self.STRIPE_SECRET_KEY,
+            api_key=self._STRIPE_SECRET_KEY,
             email=email,
             metadata={
                 'user_id': user_id,
@@ -51,7 +51,7 @@ class StripeProvider(BaseStripeProvider):
 
     def create_checkout_session(self, customer_id: str, user_id: int, sub_price: str) -> stripe.checkout.Session:
         return stripe.checkout.Session.create(
-            api_key=self.STRIPE_SECRET_KEY,
+            api_key=self._STRIPE_SECRET_KEY,
             mode='subscription',
             customer=customer_id,
             line_items=[
@@ -70,10 +70,10 @@ class StripeProvider(BaseStripeProvider):
             allow_promotion_codes=True,
         )
 
-    def construct_event(self, payload, signature) -> stripe.Event:
+    def construct_event(self, payload: bytes, signature: str) -> stripe.Event:
         try:
             return stripe.Webhook.construct_event(
-                payload, signature, self.STRIPE_WEBHOOK_KEY,
+                payload, signature, self._STRIPE_WEBHOOK_KEY,
             )
         except (ValueError, stripe.SignatureVerificationError) as error:
             raise StripeSignatureVerificationError(error_msg=str(error))
@@ -86,7 +86,7 @@ class StripeProvider(BaseStripeProvider):
         expand: list | None = None,
     ) -> Iterable[stripe.Subscription]:
         subscriptions = stripe.Subscription.list(
-            api_key=self.STRIPE_SECRET_KEY,
+            api_key=self._STRIPE_SECRET_KEY,
             customer=customer_id,
             limit=limit,
             status=status,

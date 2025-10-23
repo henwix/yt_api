@@ -384,6 +384,8 @@ CACHE_KEYS = {
     'set_email': 'set_email_code_',
     'password_reset': 'user_password_reset_',
     'activate_user': 'activate_user_',
+    'stripe_customer_id': 'stripe:user:',
+    'stripe_sub_data': 'stripe:customer:',
 }
 
 
@@ -462,9 +464,10 @@ STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
 STRIPE_WEBHOOK_KEY = os.environ.get('STRIPE_WEBHOOK_KEY')
 
-STRIPE_PRO_SUB_PRICE = os.environ.get('STRIPE_PRO_SUB_PRICE')
-STRIPE_PREMIUM_SUB_PRICE = os.environ.get('STRIPE_PREMIUM_SUB_PRICE')
-
+STRIPE_SUBSCRIPTION_TIERS = {
+    'pro': os.environ.get('STRIPE_SUB_PRICE_PRO'),
+    'premium': os.environ.get('STRIPE_SUB_PRICE_PREMIUM'),
+}
 
 STRIPE_ALLOWED_EVENTS = [
     "checkout.session.completed",

@@ -16,6 +16,7 @@ import orjson
 import punq
 from drf_spectacular.utils import (
     extend_schema,
+    extend_schema_view,
     OpenApiParameter,
     OpenApiResponse,
 )
@@ -72,15 +73,15 @@ from core.apps.videos.exceptions.playlists import (
     PlaylistIdNotProvidedError,
     PlaylistNotFoundError,
     PlaylistPermissionError,
-    VideoNotInPlaylistError,
+    VideoDoesNotExistInPlaylistError,
 )
 from core.apps.videos.exceptions.videos import (
     PrivateVideoOrUploadingError,
     PrivateVideoPermissionError,
+    VideoDoesNotExistInHistoryError,
     VideoIdNotProvidedError,
     VideoLikeNotFoundError,
     VideoNotFoundByVideoIdError,
-    VideoNotFoundInHistoryError,
     ViewExistsError,
 )
 from core.apps.videos.filters import VideoFilter
@@ -106,6 +107,78 @@ from core.apps.videos.use_cases.playlists.playlist_videos import GetPlaylistVide
 from core.project.containers import get_container
 
 
+@extend_schema_view(
+    like_create=extend_schema(
+        request=LikeCreateInSerializer,
+        responses={
+            201: OpenApiResponse(response=LikeCreateOutSerializer, description='Reaction has been created'),
+            404: OpenApiResponse(response=DetailOutSerializer, description='Video was not found'),
+        },
+        examples=[
+            like_created_response_example(),
+            build_example_response_from_error(error=VideoNotFoundByVideoIdError),
+        ],
+        summary='Create reaction to a video',
+    ),
+    like_delete=extend_schema(
+        responses={
+            200: OpenApiResponse(response=DetailOutSerializer, description='Reaction has been deleted'),
+            404: OpenApiResponse(response=DetailOutSerializer, description='Video or video reaction was not found'),
+        },
+        examples=[
+            deleted_response_example(),
+            build_example_response_from_error(error=VideoLikeNotFoundError),
+            build_example_response_from_error(error=VideoNotFoundByVideoIdError),
+        ],
+        summary='Delete reaction to a video',
+    ),
+    view_create=extend_schema(
+        request=None,
+        responses={
+            201: OpenApiResponse(response=DetailOutSerializer, description='View has been created'),
+            400: OpenApiResponse(response=DetailOutSerializer, description='View already exists'),
+            404: OpenApiResponse(response=DetailOutSerializer, description='Video was not found'),
+        },
+        examples=[
+            created_response_example(),
+            build_example_response_from_error(error=ViewExistsError),
+            build_example_response_from_error(error=VideoNotFoundByVideoIdError),
+        ],
+        summary='Create view to a video',
+        description='Allows add a view if the previous one was created more than 24 hours ago',
+    ),
+    list=extend_schema(
+        parameters=[
+            build_enum_query_param(
+                name='ordering',
+                enum=VideoSearchOrderingEnum,
+                description='Which field to use when ordering the results',
+            ),
+        ],
+        responses={
+            200: OpenApiResponse(
+                response=VideoPreviewSerializer,
+                description='List of videos after searching has been retrieved',
+            ),
+            400: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='No results found',
+            ),
+        },
+        examples=[
+            detail_response_example(
+                name='No results found',
+                value='No results found. Try different keywords or remove search filters',
+                status_code=400,
+            ),
+        ],
+        summary='Search video',
+    ),
+    destroy=extend_schema(summary='Delete video'),
+    retrieve=extend_schema(summary='Retrieve video'),
+    update=extend_schema(summary='Update video PUT'),
+    partial_update=extend_schema(summary='Update video PATCH'),
+)
 class VideoViewSet(
         mixins.RetrieveModelMixin,
         mixins.UpdateModelMixin,
@@ -133,18 +206,6 @@ class VideoViewSet(
         self.service: BaseVideoService = container.resolve(BaseVideoService)
         self.logger: Logger = container.resolve(Logger)
 
-    @extend_schema(
-        request=LikeCreateInSerializer,
-        responses={
-            201: OpenApiResponse(response=LikeCreateOutSerializer, description='Reaction has been created'),
-            404: OpenApiResponse(response=DetailOutSerializer, description='Video was not found'),
-        },
-        examples=[
-            like_created_response_example(),
-            build_example_response_from_error(error=VideoNotFoundByVideoIdError),
-        ],
-        summary='Create reaction to a video',
-    )
     @action(url_path='like', methods=['post'], detail=True)
     def like_create(self, request, video_id):
         serializer = VideoLikeSerializer(data={'is_like': request.data.get('is_like', True), 'video_id': video_id})
@@ -162,18 +223,6 @@ class VideoViewSet(
 
         return Response(result, status.HTTP_201_CREATED)
 
-    @extend_schema(
-        responses={
-            200: OpenApiResponse(response=DetailOutSerializer, description='Reaction has been deleted'),
-            404: OpenApiResponse(response=DetailOutSerializer, description='Video or video reaction was not found'),
-        },
-        examples=[
-            deleted_response_example(),
-            build_example_response_from_error(error=VideoLikeNotFoundError),
-            build_example_response_from_error(error=VideoNotFoundByVideoIdError),
-        ],
-        summary='Delete reaction to a video',
-    )
     @action(url_path='unlike', methods=['delete'], detail=True)
     def like_delete(self, request, video_id):
         serializer = VideoIdParameterSerializer(data={'video_id': video_id})
@@ -187,21 +236,6 @@ class VideoViewSet(
 
         return Response(result, status.HTTP_200_OK)
 
-    @extend_schema(
-        request=None,
-        responses={
-            201: OpenApiResponse(response=DetailOutSerializer, description='View has been created'),
-            400: OpenApiResponse(response=DetailOutSerializer, description='View already exists'),
-            404: OpenApiResponse(response=DetailOutSerializer, description='Video was not found'),
-        },
-        examples=[
-            created_response_example(),
-            build_example_response_from_error(error=ViewExistsError),
-            build_example_response_from_error(error=VideoNotFoundByVideoIdError),
-        ],
-        summary='Create view to a video',
-        description='Allows add a view if the previous one was created more than 24 hours ago',
-    )
     @action(url_path='view', methods=['post'], detail=True)
     def view_create(self, request, video_id):
         """API endpoint for adding views to videos.
@@ -250,33 +284,6 @@ class VideoViewSet(
 
         return self.service.get_all_videos()
 
-    @extend_schema(
-        parameters=[
-            build_enum_query_param(
-                name='ordering',
-                enum=VideoSearchOrderingEnum,
-                description='Which field to use when ordering the results',
-            ),
-        ],
-        responses={
-            200: OpenApiResponse(
-                response=VideoPreviewSerializer,
-                description='List of videos after searching has been retrieved',
-            ),
-            400: OpenApiResponse(
-                response=DetailOutSerializer,
-                description='No results found',
-            ),
-        },
-        examples=[
-            detail_response_example(
-                name='No results found',
-                value='No results found. Try different keywords or remove search filters',
-                status_code=400,
-            ),
-        ],
-        summary='Search video',
-    )
     def list(self, request, *args, **kwargs):
         if not request.query_params.get('search'):
             return Response(
@@ -285,24 +292,11 @@ class VideoViewSet(
             )
         return super().list(request, *args, **kwargs)
 
-    @extend_schema(summary='Delete video')
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         video_pre_delete.send(sender=Video, instance=instance)
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-    @extend_schema(summary='Retrieve video')
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
-    @extend_schema(summary='Update video PUT')
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
-
-    @extend_schema(summary='Update video PATCH')
-    def partial_update(self, request, *args, **kwargs):
-        return super().partial_update(request, *args, **kwargs)
 
 
 class CommentVideoAPIView(viewsets.ModelViewSet, CustomViewMixin):
@@ -623,7 +617,7 @@ class VideoHistoryView(mixins.ListModelMixin, viewsets.GenericViewSet):
         examples=[
             deleted_response_example(),
             build_example_response_from_error(error=VideoIdNotProvidedError),
-            build_example_response_from_error(error=VideoNotFoundInHistoryError),
+            build_example_response_from_error(error=VideoDoesNotExistInHistoryError),
             build_example_response_from_error(error=VideoNotFoundByVideoIdError),
         ],
         summary='Delete video from history',
@@ -826,7 +820,7 @@ class PlaylistAPIView(viewsets.ModelViewSet):
             build_example_response_from_error(error=VideoIdNotProvidedError),
             build_example_response_from_error(error=PlaylistIdNotProvidedError),
             build_example_response_from_error(error=PlaylistPermissionError),
-            build_example_response_from_error(error=VideoNotInPlaylistError),
+            build_example_response_from_error(error=VideoDoesNotExistInPlaylistError),
             build_example_response_from_error(error=VideoNotFoundByVideoIdError),
             build_example_response_from_error(error=PlaylistNotFoundError),
         ],
@@ -839,13 +833,6 @@ class PlaylistAPIView(viewsets.ModelViewSet):
         detail=True,
     )
     def delete_video_from_playlist(self, request, id):
-        """API endpoint to delete video from playlist.
-
-        Requires 'playlist id' in URL and 'v' query param which contains video_id.
-
-        Example: /v1/playlist/W9MghI-EVXdkfYzfuvUmCCWlJRcPm1FT/delete-video/?v=33CjPuGJsEZ
-
-        """
         serializer = VParameterSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
 

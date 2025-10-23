@@ -35,16 +35,16 @@ from core.api.v1.schema.response_examples.common import (
 )
 from core.api.v1.schema.response_examples.files_upload import s3_error_response_example
 from core.apps.channels.exceptions.channels import (
-    AvatarDoesNotExistsError,
+    AvatarDoesNotExistError,
     ChannelNotFoundError,
 )
-from core.apps.channels.exceptions.upload import AvatarFilenameFormatError
+from core.apps.channels.exceptions.upload import AvatarFilenameNotSupportedFormatError
 from core.apps.channels.use_cases.avatar_upload.complete_upload_avatar import CompleteUploadAvatarUseCase
 from core.apps.channels.use_cases.avatar_upload.delete_avatar import DeleteChannelAvatarUseCase
 from core.apps.channels.use_cases.avatar_upload.download_avatar_url import GenerateUrlForAvatarDownloadUseCase
 from core.apps.channels.use_cases.avatar_upload.upload_avatar_url import GenerateUploadAvatarUrlUseCase
 from core.apps.common.exceptions.exceptions import (
-    S3FileWithKeyNotExistsError,
+    S3FileWithKeyNotExistError,
     ServiceException,
 )
 from core.apps.users.converters.users import user_to_entity
@@ -64,7 +64,7 @@ from core.project.containers import get_container
             value={'filename': 'avatar.png'},
             request_only=True,
         ),
-        build_example_response_from_error(error=AvatarFilenameFormatError),
+        build_example_response_from_error(error=AvatarFilenameNotSupportedFormatError),
         s3_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
         s3_error_response_example(code=status.HTTP_502_BAD_GATEWAY),
     ],
@@ -117,7 +117,7 @@ class GenerateUploadAvatarUrlView(generics.GenericAPIView):
         502: OpenApiResponse(response=DetailOutSerializer, description='S3 502 error'),
     },
     examples=[
-        build_example_response_from_error(error=S3FileWithKeyNotExistsError),
+        build_example_response_from_error(error=S3FileWithKeyNotExistError),
         s3_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
         s3_error_response_example(code=status.HTTP_502_BAD_GATEWAY),
     ],
@@ -174,7 +174,7 @@ class GenerateDownloadAvatarUrlView(generics.GenericAPIView):
     examples=[
         deleted_response_example(),
         build_example_response_from_error(error=ChannelNotFoundError),
-        build_example_response_from_error(error=AvatarDoesNotExistsError),
+        build_example_response_from_error(error=AvatarDoesNotExistError),
     ],
     summary='Delete channel avatar',
 )
@@ -211,7 +211,7 @@ class DeleteChannelAvatarView(generics.GenericAPIView):
             status_code=200,
         ),
         build_example_response_from_error(error=ChannelNotFoundError),
-        build_example_response_from_error(error=S3FileWithKeyNotExistsError),
+        build_example_response_from_error(error=S3FileWithKeyNotExistError),
     ],
     summary='Complete avatar file uploading',
 )

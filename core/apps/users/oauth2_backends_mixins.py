@@ -21,7 +21,7 @@ class OAuth2Mixin:
         cache for 5 minutes."""
         if self.STATE_PARAMETER or self.REDIRECT_STATE:
             state = self.state_token()
-            self.cache_service.cache_data(
+            self.cache_service.set(
                 key=f'oauth_state_{state}',
                 data=state,
                 timeout=60 * 5,
@@ -45,7 +45,7 @@ class OAuth2Mixin:
         if not self.STATE_PARAMETER and not self.REDIRECT_STATE:
             return None
         request_state = self.get_request_state()
-        state = self.cache_service.get_cached_data(
+        state = self.cache_service.get(
             key=f'oauth_state_{request_state}',
         )
         if not request_state:
@@ -54,7 +54,7 @@ class OAuth2Mixin:
             raise CustomAuthStateMissing(self, "state")
         if not constant_time_compare(request_state, state):
             raise AuthStateForbidden(self)
-        self.cache_service.delete_cached_data(f'oauth_state_{request_state}')
+        self.cache_service.delete(f'oauth_state_{request_state}')
         return state
 
 
@@ -73,13 +73,13 @@ class OAuth2PKCEMixin:
             "PKCE_CODE_VERIFIER_LENGTH", default=self.PKCE_DEFAULT_CODE_VERIFIER_LENGTH,
         )
         code_verifier = self.strategy.random_string(code_verifier_len)
-        self.cache_service.cache_data(f'{name}_{state}', code_verifier, 60 * 5)  # use cache
+        self.cache_service.set(f'{name}_{state}', code_verifier, 60 * 5)  # use cache
         return code_verifier
 
     def get_code_verifier(self, state=None):
         """Takes a 'state' as a parameter to properly retrieve the cache."""
         name = f"{self.name}_code_verifier"
-        return self.cache_service.get_cached_data(f'{name}_{state}')  # use cache
+        return self.cache_service.get(f'{name}_{state}')  # use cache
 
     def auth_params(self, state=None):
         """Custom method that adds a 'state' parameter to the

@@ -34,10 +34,10 @@ from core.api.v1.schema.response_examples.common import (
     deleted_response_example,
 )
 from core.apps.channels.converters.channels import channel_from_entity
-from core.apps.channels.exceptions.channels import SlugChannelNotFoundError
+from core.apps.channels.exceptions.channels import ChannelWithSlugNotFoundError
 from core.apps.channels.exceptions.subscriptions import (
     SelfSubscriptionError,
-    SubscriptionDoesNotExistsError,
+    SubscriptionDoesNotExistError,
     SubscriptionExistsError,
 )
 from core.apps.channels.models import (
@@ -87,7 +87,7 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         user = user_to_entity(request.user)
         cache_key = f"{settings.CACHE_KEYS.get('retrieve_channel')}{user.id}"
 
-        cached_data = self.cache_service.get_cached_data(cache_key)
+        cached_data = self.cache_service.get(cache_key)
 
         if cached_data:
             return Response(cached_data, status.HTTP_200_OK)
@@ -99,7 +99,7 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
             raise
 
         serializer = self.get_serializer(channel)
-        self.cache_service.cache_data(cache_key, serializer.data, 60 * 15)
+        self.cache_service.set(cache_key, serializer.data, 60 * 15)
 
         return Response(serializer.data, status.HTTP_200_OK)
 
@@ -122,7 +122,7 @@ class ChannelSubscribersView(generics.ListAPIView, CustomViewMixin):
         channel = self.channel_service.get_channel_by_user_or_404(user_to_entity(request.user))
 
         cache_key = f"{settings.CACHE_KEYS.get('subs_list')}{channel.id}_{request.query_params.get('c', '1')}"
-        cached_data = self.cache_service.get_cached_data(cache_key)
+        cached_data = self.cache_service.get(cache_key)
 
         if cached_data:
             return Response(cached_data, status.HTTP_200_OK)
@@ -193,7 +193,7 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
         },
         examples=[
             created_response_example(),
-            build_example_response_from_error(error=SlugChannelNotFoundError),
+            build_example_response_from_error(error=ChannelWithSlugNotFoundError),
             build_example_response_from_error(error=SelfSubscriptionError),
             build_example_response_from_error(error=SubscriptionExistsError),
         ],
@@ -227,8 +227,8 @@ class SubscriptionAPIView(viewsets.GenericViewSet):
         examples=[
             deleted_response_example(),
             build_example_response_from_error(error=SelfSubscriptionError),
-            build_example_response_from_error(error=SlugChannelNotFoundError),
-            build_example_response_from_error(error=SubscriptionDoesNotExistsError),
+            build_example_response_from_error(error=ChannelWithSlugNotFoundError),
+            build_example_response_from_error(error=SubscriptionDoesNotExistError),
         ],
         summary='Delete subscription to channel',
     )

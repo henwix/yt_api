@@ -13,25 +13,25 @@ class BaseCacheService(ABC):
     cache_provider: BaseCacheProvider
 
     @abstractmethod
-    def get_cached_data(self, key: str) -> Any:
+    def get(self, key: str) -> Any:
         ...
 
     @abstractmethod
-    def cache_data(self, key: str, data: Any, timeout: int | None = None) -> bool:
+    def set(self, key: str, data: Any, timeout: int | None = None) -> bool:
         ...
 
     @abstractmethod
-    def delete_cached_data(self, key: str) -> None:
+    def delete(self, key: str) -> None:
         ...
 
 
 @dataclass
 class CacheService(BaseCacheService):
-    def get_cached_data(self, key: str) -> Any:
+    def get(self, key: str) -> Any:
         return self.cache_provider.get(key)
 
-    def cache_data(self, key: str, data: Any, timeout: int | None = None) -> bool:
+    def set(self, key: str, data: Any, timeout: int | None = None) -> bool:
         return self.cache_provider.set(key, data, timeout)
 
-    def delete_cached_data(self, key: str) -> None:
+    def delete(self, key: str) -> None:
         return self.cache_provider.delete(key)

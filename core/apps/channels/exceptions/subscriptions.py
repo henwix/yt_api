@@ -23,7 +23,7 @@ class SubscriptionExistsError(ServiceException):
 
 
 @dataclass
-class SubscriptionDoesNotExistsError(ServiceException):
+class SubscriptionDoesNotExistError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
     default_detail = {'detail': 'Subscription does not exist'}
 

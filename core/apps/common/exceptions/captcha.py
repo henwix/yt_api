@@ -29,7 +29,7 @@ class CaptchaVersionNotSupportedError(ServiceException):
 
 
 @dataclass
-class CaptchaVerifyRequestError(ServiceException):
+class CaptchaTokenVerifyRequestError(ServiceException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     default_detail = {'detail': 'Captcha token verify request error'}
 

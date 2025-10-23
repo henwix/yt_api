@@ -39,7 +39,7 @@ class StripeSignatureVerificationError(ServiceException):
 
 
 @dataclass
-class StripeCustomerIdIsNotStringError(ServiceException):
+class StripeCustomerIdNotStringError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = {'detail': 'Stripe customer ID is not string'}
 

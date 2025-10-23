@@ -1,10 +1,10 @@
 import pytest
 
 from core.apps.channels.converters.channels import channel_to_entity
-from core.apps.channels.exceptions.channels import AvatarDoesNotExistsError
+from core.apps.channels.exceptions.channels import AvatarDoesNotExistError
 from core.apps.channels.exceptions.upload import (
-    AvatarFilenameFormatError,
     AvatarFilenameNotProvidedError,
+    AvatarFilenameNotSupportedFormatError,
 )
 from core.apps.channels.models import Channel
 from core.apps.channels.services.s3_channels import (
@@ -18,7 +18,7 @@ from core.tests.factories.channels import ChannelModelFactory
 def test_avatar_not_exists_error(avatar_validator_service: BaseAvatarValidatorService, channel: Channel):
     """Test that an error has been raised when the avatar does not exists."""
 
-    with pytest.raises(AvatarDoesNotExistsError):
+    with pytest.raises(AvatarDoesNotExistError):
         avatar_validator_service.validate(channel=channel_to_entity(channel))
 
 
@@ -44,7 +44,7 @@ def test_avatar_filename_format_error(avatar_filename_validator_service: BaseAva
     """Test that an error raised when the avatar's filename format is
     incorrect."""
 
-    with pytest.raises(AvatarFilenameFormatError):
+    with pytest.raises(AvatarFilenameNotSupportedFormatError):
         avatar_filename_validator_service.validate(filename='test.txt')
 
 

@@ -14,11 +14,11 @@ from core.apps.channels.entities.channels import ChannelEntity
 from core.apps.channels.exceptions.channels import (
     ChannelNotFoundError,
     ChannelSlugInvalidValueError,
-    SlugChannelNotFoundError,
+    ChannelWithSlugNotFoundError,
 )
 from core.apps.channels.exceptions.subscriptions import (
     SelfSubscriptionError,
-    SubscriptionDoesNotExistsError,
+    SubscriptionDoesNotExistError,
     SubscriptionExistsError,
 )
 from core.apps.channels.models import (
@@ -225,7 +225,7 @@ class ORMSubscriptionService(BaseSubscriptionService):
         subscribed_to = self.channel_repository.get_channel_by_slug(channel_slug)
 
         if not subscribed_to:
-            raise SlugChannelNotFoundError(channel_slug=user.id)
+            raise ChannelWithSlugNotFoundError(channel_slug=user.id)
 
         if subscriber.id == subscribed_to.id:
             raise SelfSubscriptionError(channel_slug=subscriber.slug)
@@ -248,6 +248,6 @@ class ORMSubscriptionService(BaseSubscriptionService):
         deleted = self.subscription_repository.delete_sub(subscriber=subscriber, subscribed_to=subscribed_to)
 
         if not deleted:
-            raise SubscriptionDoesNotExistsError(sub_slug=subscriber.slug, sub_to_slug=subscribed_to.slug)
+            raise SubscriptionDoesNotExistError(sub_slug=subscriber.slug, sub_to_slug=subscribed_to.slug)
 
         return {'detail': 'Success'}

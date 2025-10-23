@@ -12,7 +12,7 @@ class AvatarFilenameNotProvidedError(ServiceException):
 
 
 @dataclass
-class AvatarFilenameFormatError(ServiceException):
+class AvatarFilenameNotSupportedFormatError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = {'detail': 'Unsupported avatar file format'}
 

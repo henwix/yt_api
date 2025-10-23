@@ -28,7 +28,7 @@ class VideoFilenameNotProvidedError(ServiceException):
 
 
 @dataclass
-class VideoFilenameFormatError(ServiceException):
+class VideoFilenameNotSupportedFormatError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = {'detail': 'Unsupported video file format'}
 

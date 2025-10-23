@@ -20,7 +20,7 @@ class PlaylistNotFoundError(ServiceException):
 
 
 @dataclass
-class VideoNotInPlaylistError(ServiceException):
+class VideoDoesNotExistInPlaylistError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
     default_detail = {'detail': 'Video does not exist in playlist'}
 

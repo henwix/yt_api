@@ -16,7 +16,7 @@ import punq
 import stripe
 from drf_spectacular.utils import extend_schema
 
-from core.api.v1.payments.serializers import StripeSubscriptionSerializer
+from core.api.v1.payments.serializers import StripeSubscriptionInSerializer
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.payments.use_cases.create_checkout_session import CreateCheckoutSessionUseCase
 from core.apps.payments.use_cases.webhook import StripeWebhookUseCase
@@ -34,12 +34,12 @@ def stripe_sub_state(request):
 
 
 # TODO: cache with customer_id invalidation when the user has been deleted
-@extend_schema(request=StripeSubscriptionSerializer)
+@extend_schema(request=StripeSubscriptionInSerializer)
 class CreateCheckoutSessionView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        serializer = StripeSubscriptionSerializer(data=request.data)
+        serializer = StripeSubscriptionInSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         container: punq.Container = get_container()

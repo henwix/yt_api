@@ -14,7 +14,7 @@ from core.apps.channels.exceptions.channels import (
 )
 from core.apps.channels.exceptions.subscriptions import (
     SelfSubscriptionError,
-    SubscriptionDoesNotExistsError,
+    SubscriptionDoesNotExistError,
     SubscriptionExistsError,
 )
 from core.apps.channels.models import (
@@ -129,7 +129,7 @@ def test_subscribe_exists_error(subscription_service: BaseSubscriptionService):
 def test_subscribe_does_not_exists_error(subscription_service: BaseSubscriptionService):
     """Test subscription to channel does not exists in database."""
 
-    with pytest.raises(SubscriptionDoesNotExistsError):
+    with pytest.raises(SubscriptionDoesNotExistError):
         subscriber, subscribed_to = ChannelModelFactory.create_batch(size=2)
         subscription_service.unsubscribe(user=user_to_entity(subscriber.user), channel_slug=subscribed_to.slug)
 

@@ -5,10 +5,10 @@ from abc import (
 from dataclasses import dataclass
 
 from core.apps.channels.entities.channels import ChannelEntity
-from core.apps.channels.exceptions.channels import AvatarDoesNotExistsError
+from core.apps.channels.exceptions.channels import AvatarDoesNotExistError
 from core.apps.channels.exceptions.upload import (
-    AvatarFilenameFormatError,
     AvatarFilenameNotProvidedError,
+    AvatarFilenameNotSupportedFormatError,
 )
 
 
@@ -21,7 +21,7 @@ class BaseAvatarValidatorService(ABC):
 class AvatarExistsValidatorService(BaseAvatarValidatorService):
     def validate(self, channel: ChannelEntity) -> None:
         if not channel.avatar_s3_key or channel.avatar_s3_key is None:
-            raise AvatarDoesNotExistsError(channel_slug=channel.slug)
+            raise AvatarDoesNotExistError(channel_slug=channel.slug)
 
 
 @dataclass
@@ -40,7 +40,7 @@ class AvatarFilenameExistsValidatorService(BaseAvatarFilenameValidatorService):
 class AvatarFilenameFormatValidatorService(BaseAvatarFilenameValidatorService):
     def validate(self, filename: str) -> None:
         if filename[-4:] not in ['.png', '.jpg']:
-            raise AvatarFilenameFormatError(filename=filename)
+            raise AvatarFilenameNotSupportedFormatError(filename=filename)
 
 
 @dataclass

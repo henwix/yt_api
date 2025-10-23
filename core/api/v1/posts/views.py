@@ -182,7 +182,7 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
         slug = serializer.validated_data.get('s')
         cache_key = f"{settings.CACHE_KEYS.get('related_posts')}{slug}_{request.query_params.get('c', '1')}"
 
-        cached_data = self.cache_service.get_cached_data(cache_key)
+        cached_data = self.cache_service.get(cache_key)
         if cached_data:
             return Response(cached_data, status=status.HTTP_200_OK)
 

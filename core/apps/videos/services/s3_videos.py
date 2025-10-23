@@ -5,8 +5,8 @@ from abc import (
 from dataclasses import dataclass
 
 from core.apps.videos.exceptions.upload import (
-    VideoFilenameFormatError,
     VideoFilenameNotProvidedError,
+    VideoFilenameNotSupportedFormatError,
 )
 
 
@@ -25,7 +25,7 @@ class VideoFilenameExistsValidatorService(BaseVideoFilenameValidatorService):
 class VideoFilenameFormatValidatorService(BaseVideoFilenameValidatorService):
     def validate(self, filename: str) -> None:
         if filename[-4:] not in ['.mkv', '.mp4']:
-            raise VideoFilenameFormatError(filename=filename)
+            raise VideoFilenameNotSupportedFormatError(filename=filename)
 
 
 @dataclass

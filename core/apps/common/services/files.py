@@ -7,8 +7,8 @@ from dataclasses import dataclass
 from botocore.exceptions import ClientError
 
 from core.apps.common.exceptions.exceptions import (
-    MultipartUploadExistsError,
-    S3FileWithKeyNotExistsError,
+    MultipartUploadDoesNotExistError,
+    S3FileWithKeyNotExistError,
 )
 from core.apps.common.providers.files import (
     BaseBotoFileProvider,
@@ -31,7 +31,7 @@ class FileExistsInS3ValidatorService(BaseFileExistsInS3ValidatorService):
         try:
             self.boto_provider.head_object(key=key)
         except ClientError:
-            raise S3FileWithKeyNotExistsError(key=key)
+            raise S3FileWithKeyNotExistError(key=key)
 
 
 class BaseMultipartUploadExistsInS3ValidatorService(ABC):
@@ -48,7 +48,7 @@ class MultipartUploadExistsInS3ValidatorService(BaseMultipartUploadExistsInS3Val
         try:
             self.boto_provider.list_parts(key=key, upload_id=upload_id)
         except ClientError:
-            raise MultipartUploadExistsError(key=key, upload_id=upload_id)
+            raise MultipartUploadDoesNotExistError(key=key, upload_id=upload_id)
 
 
 @dataclass
@@ -165,7 +165,7 @@ class S3FileService(BaseS3FileService):
         expires_in: int,
         cache_key: str,
     ) -> str:
-        cached_url = self.cache_service.get_cached_data(key=cache_key)
+        cached_url = self.cache_service.get(key=cache_key)
         if cached_url:
             return cached_url
 
@@ -176,7 +176,7 @@ class S3FileService(BaseS3FileService):
             expires_in=expires_in,
         )
 
-        self.cache_service.cache_data(key=cache_key, data=url, timeout=expires_in)
+        self.cache_service.set(key=cache_key, data=url, timeout=expires_in)
 
         return url
 

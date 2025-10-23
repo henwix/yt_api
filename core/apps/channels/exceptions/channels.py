@@ -14,7 +14,7 @@ class ChannelNotFoundError(ServiceException):
 
 
 @dataclass
-class SlugChannelNotFoundError(ServiceException):
+class ChannelWithSlugNotFoundError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
     default_detail = {'detail': 'Channel with this slug is not found'}
 
@@ -22,7 +22,7 @@ class SlugChannelNotFoundError(ServiceException):
 
 
 @dataclass
-class AvatarDoesNotExistsError(ServiceException):
+class AvatarDoesNotExistError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
     default_detail = {'detail': 'Avatar does not exist'}
 

@@ -22,7 +22,7 @@ from core.apps.videos.exceptions.playlists import (
     PlaylistIdNotProvidedError,
     PlaylistNotFoundError,
     PlaylistPermissionError,
-    VideoNotInPlaylistError,
+    VideoDoesNotExistInPlaylistError,
 )
 from core.apps.videos.exceptions.upload import (
     VideoNotFoundByKeyError,
@@ -32,10 +32,10 @@ from core.apps.videos.exceptions.videos import (
     PrivateVideoOrUploadingError,
     PrivateVideoPermissionError,
     VideoAuthorNotMatchError,
+    VideoDoesNotExistInHistoryError,
     VideoIdNotProvidedError,
     VideoLikeNotFoundError,
     VideoNotFoundByVideoIdError,
-    VideoNotFoundInHistoryError,
     ViewExistsError,
 )
 from core.apps.videos.models import (
@@ -335,7 +335,7 @@ class ORMVideoHistoryService(BaseVideoHistoryService):
         deleted = self.history_repository.delete_history_item(video=video, channel=channel)
 
         if not deleted:
-            raise VideoNotFoundInHistoryError(video_id=video_id, channel_slug=channel.slug)
+            raise VideoDoesNotExistInHistoryError(video_id=video_id, channel_slug=channel.slug)
 
         return {'detail': 'Success'}
 
@@ -429,7 +429,7 @@ class ORMVideoPlaylistService(BaseVideoPlaylistService):
         deleted = self.playlist_repository.playlist_item_delete(playlist=playlist, video=video)
 
         if not deleted:
-            raise VideoNotInPlaylistError(playlist_id, video_id)
+            raise VideoDoesNotExistInPlaylistError(playlist_id, video_id)
         return {'detail': 'Success'}
 
     def get_playlists_for_listing(self, user: UserEntity) -> Iterable[Playlist]:

@@ -7,6 +7,12 @@ from drf_spectacular.utils import (
     OpenApiResponse,
 )
 
+from core.apps.common.exceptions.captcha import (
+    CaptchaTokenNotProvidedError,
+    CaptchaTokenVerifyRequestError,
+    CaptchaValidationFailedError,
+    CaptchaVersionNotSupportedError,
+)
 from core.apps.common.exceptions.exceptions import ServiceException
 
 
@@ -128,3 +134,15 @@ def build_paginated_response_based_on_serializer(
         ),
         description=description,
     )
+
+
+def build_captcha_example_responses() -> list[OpenApiResponse]:
+    """Returns a list of OpenApiResponse instances created from Captcha
+    exceptions to extend the endpoint schema."""
+    error_description = 'This response may be returned if captcha validation is enabled.'
+    return [
+        build_example_response_from_error(error=CaptchaTokenNotProvidedError, description=error_description),
+        build_example_response_from_error(error=CaptchaTokenVerifyRequestError, description=error_description),
+        build_example_response_from_error(error=CaptchaValidationFailedError, description=error_description),
+        build_example_response_from_error(error=CaptchaVersionNotSupportedError, description=error_description),
+    ]

@@ -31,6 +31,7 @@ from core.api.v1.common.serializers.serializers import (
     UUID4CodeSerializer,
 )
 from core.api.v1.schema.response_examples.common import (
+    build_captcha_example_responses,
     build_example_response_from_error,
     confirmation_email_sent_response_example,
     detail_response_example,
@@ -109,14 +110,18 @@ from core.project.containers import get_container  # noqa
             ),
             400: OpenApiResponse(
                 response=DetailOutSerializer,
-                description='User with this data already exists',
+                description='User with this data already exists or captcha validation error',
+            ),
+            500: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Captcha validation error',
             ),
         },
         examples=[
             user_created_response_example(),
             user_activation_email_sent_response_example(status_code=201),
             build_example_response_from_error(error=UserWithThisDataAlreadyExistsError),
-        ],
+        ] + build_captcha_example_responses(),
         summary='Create a new user and channel',
     ),
     set_password=extend_schema(
@@ -549,9 +554,17 @@ class UserView(
             ),
             description='JWT tokens have been generated or a confirmation email has been sent',
         ),
+        400: OpenApiResponse(
+            response=DetailOutSerializer,
+            description='Captcha validation error',
+        ),
         404: OpenApiResponse(
             response=DetailOutSerializer,
             description='User was not found',
+        ),
+        500: OpenApiResponse(
+            response=DetailOutSerializer,
+            description='Captcha validation error',
         ),
     },
     examples=[
@@ -562,7 +575,7 @@ class UserView(
             status_code=200,
         ),
         build_example_response_from_error(UserNotFoundError),
-    ],
+    ] + build_captcha_example_responses(),
     summary='Log in and generate JWT tokens or send an OTP code',
 )
 class UserLoginView(APIView):

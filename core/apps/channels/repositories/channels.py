@@ -2,7 +2,7 @@ from abc import (
     ABC,
     abstractmethod,
 )
-from typing import Iterable
+from collections.abc import Iterable
 
 from django.db.models import (
     Count,
@@ -30,40 +30,31 @@ from core.apps.videos.models import Video
 
 class BaseChannelRepository(ABC):
     @abstractmethod
-    def channel_exists(self, id: int) -> bool:
-        ...
+    def channel_exists(self, id: int) -> bool: ...
 
     @abstractmethod
-    def is_slug_exists(self, slug: str) -> bool:
-        ...
+    def is_slug_exists(self, slug: str) -> bool: ...
 
     @abstractmethod
-    def channel_create(self, channel_entity: ChannelEntity) -> ChannelEntity:
-        ...
+    def channel_create(self, channel_entity: ChannelEntity) -> ChannelEntity: ...
 
     @abstractmethod
-    def create_by_data(self, data: dict) -> ChannelEntity:
-        ...
+    def create_by_data(self, data: dict) -> ChannelEntity: ...
 
     @abstractmethod
-    def get_channel_by_user_or_none(self, user: UserEntity) -> ChannelEntity | None:
-        ...
+    def get_channel_by_user_or_none(self, user: UserEntity) -> ChannelEntity | None: ...
 
     @abstractmethod
-    def get_channel_by_user_id_or_none(self, user_id: int) -> ChannelEntity | None:
-        ...
+    def get_channel_by_user_id_or_none(self, user_id: int) -> ChannelEntity | None: ...
 
     @abstractmethod
-    def get_channel_by_slug(self, slug: str) -> ChannelEntity | None:
-        ...
+    def get_channel_by_slug(self, slug: str) -> ChannelEntity | None: ...
 
     @abstractmethod
-    def delete_channel_by_user(self, user: UserEntity) -> None:
-        ...
+    def delete_channel_by_user(self, user: UserEntity) -> None: ...
 
     @abstractmethod
-    def set_avatar_s3_key(self, channel: ChannelEntity, avatar_s3_key: str | None) -> None:
-        ...
+    def set_avatar_s3_key(self, channel: ChannelEntity, avatar_s3_key: str | None) -> None: ...
 
 
 class ORMChannelRepository(BaseChannelRepository):
@@ -104,8 +95,7 @@ class ORMChannelRepository(BaseChannelRepository):
 
 class BaseChannelSubsRepository(ABC):
     @abstractmethod
-    def get_subscriber_list(self, channel: ChannelEntity) -> Iterable[SubscriptionItem]:
-        ...
+    def get_subscriber_list(self, channel: ChannelEntity) -> Iterable[SubscriptionItem]: ...
 
 
 class ORMChannelSubsRepository(BaseChannelSubsRepository):
@@ -115,8 +105,7 @@ class ORMChannelSubsRepository(BaseChannelSubsRepository):
 
 class BaseChannelMainRepository(ABC):
     @abstractmethod
-    def get_channel_main_page_list(self) -> Iterable[Channel]:
-        ...
+    def get_channel_main_page_list(self) -> Iterable[Channel]: ...
 
 
 class ORMChannelMainRepository(BaseChannelMainRepository):
@@ -148,8 +137,7 @@ class ORMChannelMainRepository(BaseChannelMainRepository):
 
 class BaseChannelAboutRepository(ABC):
     @abstractmethod
-    def get_channel_about_list(self) -> Iterable[Channel]:
-        ...
+    def get_channel_about_list(self) -> Iterable[Channel]: ...
 
 
 class ORMChannelAboutRepository(BaseChannelAboutRepository):
@@ -179,12 +167,10 @@ class BaseSubscriptionRepository(ABC):
         self,
         subscriber: ChannelEntity,
         subscribed_to: ChannelEntity,
-    ) -> tuple[SubscriptionItemEntity, bool]:
-        ...
+    ) -> tuple[SubscriptionItemEntity, bool]: ...
 
     @abstractmethod
-    def delete_sub(self, subscriber: ChannelEntity, subscribed_to: ChannelEntity) -> bool:
-        ...
+    def delete_sub(self, subscriber: ChannelEntity, subscribed_to: ChannelEntity) -> bool: ...
 
 
 class ORMSubscriptionRepository(BaseSubscriptionRepository):
@@ -194,7 +180,8 @@ class ORMSubscriptionRepository(BaseSubscriptionRepository):
         subscribed_to: ChannelEntity,
     ) -> tuple[SubscriptionItemEntity, bool]:
         subscription_dto, created = SubscriptionItem.objects.get_or_create(
-            subscriber_id=subscriber.id, subscribed_to_id=subscribed_to.id,
+            subscriber_id=subscriber.id,
+            subscribed_to_id=subscribed_to.id,
         )
 
         return sub_to_entity(subscription_dto), created

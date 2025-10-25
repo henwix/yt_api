@@ -1,11 +1,10 @@
-from django.conf import settings
-
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import (
     hashes,
     serialization,
 )
 from cryptography.hazmat.primitives.asymmetric import padding
+from django.conf import settings
 
 
 def rsa_signer(message):
@@ -20,4 +19,4 @@ def rsa_signer(message):
     )
 
     # Sign message
-    return private_key.sign(message, padding.PKCS1v15(), hashes.SHA1())  # noqa: DUO134
+    return private_key.sign(message, padding.PKCS1v15(), hashes.SHA1())  # noqa

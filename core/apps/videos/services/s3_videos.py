@@ -12,8 +12,7 @@ from core.apps.videos.exceptions.upload import (
 
 class BaseVideoFilenameValidatorService(ABC):
     @abstractmethod
-    def validate(self, filename: str | None) -> None:
-        ...
+    def validate(self, filename: str | None) -> None: ...
 
 
 class VideoFilenameExistsValidatorService(BaseVideoFilenameValidatorService):

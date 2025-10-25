@@ -2,8 +2,8 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from django.db.models import (
     Count,
@@ -58,11 +58,11 @@ class BaseVideoCommentService(ABC):
 class ORMCommentService(BaseVideoCommentService):
     def _build_query(self, queryset: Iterable[VideoComment]) -> Iterable[VideoComment]:
         return (
-            queryset.select_related("author", "video")
+            queryset.select_related('author', 'video')
             .filter(video__upload_status=Video.UploadStatus.FINISHED)
             .annotate(
-                likes_count=Count("likes", distinct=True, filter=Q(likes_items__is_like=True)),
-                replies_count=Count("replies", distinct=True),
+                likes_count=Count('likes', distinct=True, filter=Q(likes_items__is_like=True)),
+                replies_count=Count('replies', distinct=True),
             )
         )
 
@@ -77,8 +77,8 @@ class ORMCommentService(BaseVideoCommentService):
 
     def get_annotated_queryset(self) -> Iterable[VideoComment]:
         return self.repository.get_all_comments().annotate(
-            likes_count=Count("likes", distinct=True, filter=Q(likes_items__is_like=True)),
-            replies_count=Count("replies", distinct=True),
+            likes_count=Count('likes', distinct=True, filter=Q(likes_items__is_like=True)),
+            replies_count=Count('replies', distinct=True),
         )
 
     def get_comments_by_video_id(self, video_id: str) -> Iterable[VideoComment]:

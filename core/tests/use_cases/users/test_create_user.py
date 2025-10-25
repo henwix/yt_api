@@ -1,6 +1,5 @@
-from django.utils.text import slugify
-
 import pytest
+from django.utils.text import slugify
 from pytest_django.fixtures import SettingsWrapper
 
 from core.apps.channels.models import Channel

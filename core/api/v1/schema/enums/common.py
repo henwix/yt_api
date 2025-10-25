@@ -1,7 +1,6 @@
 from enum import Enum
 
 from django.db import models
-
 from drf_spectacular.utils import OpenApiParameter
 
 
@@ -22,5 +21,5 @@ def build_enum_query_param(
         required=required,
         type=str,
         enum=enum,
-        description=f"{description}\n\n{desc_list}",
+        description=f'{description}\n\n{desc_list}',
     )

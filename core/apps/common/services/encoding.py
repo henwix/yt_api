@@ -17,12 +17,10 @@ from django.utils.http import (
 @dataclass
 class BaseEncodingService(ABC):
     @abstractmethod
-    def base64_encode(self, data: str | int) -> str:
-        ...
+    def base64_encode(self, data: str | int) -> str: ...
 
     @abstractmethod
-    def base64_decode(self, data: str) -> str:
-        ...
+    def base64_decode(self, data: str) -> str: ...
 
 
 class EncodingService(BaseEncodingService):

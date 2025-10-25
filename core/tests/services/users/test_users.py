@@ -1,9 +1,8 @@
-from django.contrib.auth import get_user_model
-from rest_framework.test import APIClient
-
 import punq
 import pytest
+from django.contrib.auth import get_user_model
 from pytest_django.fixtures import SettingsWrapper
+from rest_framework.test import APIClient
 
 from core.apps.users.converters.users import (
     user_from_entity,
@@ -24,7 +23,6 @@ from core.apps.users.services.users import (
 )
 from core.project.containers import get_container
 from core.tests.factories.channels import UserModelFactory
-
 
 User = get_user_model()
 
@@ -120,7 +118,6 @@ def test_jwt_generated_for_user(user_service: BaseUserService, client: APIClient
         ['TestUsername', 'testtesttest@example.com', 'ASfh1i1sf2h021'],
         ['lkjhflh109234', '123984842@gmail.com', '9128479124asflkhasfASF'],
     ),
-
 )
 def test_user_created_by_data(
     user_service: BaseUserService,
@@ -236,7 +233,8 @@ def test_user_updated_by_data(
     """Test that user data has been updated successfully."""
 
     user_service.update_by_data(
-        user=user_to_entity(user), data={
+        user=user_to_entity(user),
+        data={
             'username': expected_username,
             'email': expected_email,
             'otp_enabled': expected_otp_enabled,
@@ -268,7 +266,8 @@ def test_user_update_by_data_username_exists_error(
 
     with pytest.raises(UserWithThisDataAlreadyExistsError):
         user_service.update_by_data(
-            user=user_to_entity(user), data={
+            user=user_to_entity(user),
+            data={
                 'username': expected_username,
                 'email': expected_email,
                 'otp_enabled': expected_otp_enabled,
@@ -293,7 +292,8 @@ def test_user_update_by_data_email_exists_error(
 
     with pytest.raises(UserWithThisDataAlreadyExistsError):
         user_service.update_by_data(
-            user=user_to_entity(user), data={
+            user=user_to_entity(user),
+            data={
                 'username': expected_username,
                 'email': expected_email,
                 'otp_enabled': expected_otp_enabled,

@@ -1,8 +1,7 @@
 import random
 
-from django.db.models import Count
-
 import pytest
+from django.db.models import Count
 
 from core.apps.channels.models import Channel
 from core.apps.posts.models import (

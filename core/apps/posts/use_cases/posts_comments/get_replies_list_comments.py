@@ -1,5 +1,5 @@
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from core.apps.posts.models import PostCommentItem
 from core.apps.posts.services.comments import BasePostCommentService

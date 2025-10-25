@@ -1,5 +1,14 @@
 from logging import Logger
 
+import django_filters
+import orjson
+import punq
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import (
     filters,
     generics,
@@ -10,16 +19,6 @@ from rest_framework import (
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
-import django_filters
-import orjson
-import punq
-from drf_spectacular.utils import (
-    extend_schema,
-    extend_schema_view,
-    OpenApiParameter,
-    OpenApiResponse,
-)
 
 from core.api.v1.common.serializers.comments import (
     PkLikeSerializer,
@@ -180,11 +179,11 @@ from core.project.containers import get_container
     partial_update=extend_schema(summary='Update video PATCH'),
 )
 class VideoViewSet(
-        mixins.RetrieveModelMixin,
-        mixins.UpdateModelMixin,
-        mixins.DestroyModelMixin,
-        mixins.ListModelMixin,
-        viewsets.GenericViewSet,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
 ):
     lookup_field = 'video_id'
     lookup_url_kwarg = 'video_id'
@@ -306,7 +305,7 @@ class VideoViewSet(
         parameters=[
             OpenApiParameter(
                 name='v',
-                description="Parameter identifying video id",
+                description='Parameter identifying video id',
                 required=True,
                 type=str,
             ),

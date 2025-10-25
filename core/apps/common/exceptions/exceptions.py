@@ -13,7 +13,7 @@ class ServiceException(APIException):
         super().__init__()
 
     # def __str__(self):  # add this if you need to remove 'details' field from the logs
-        # return str({k: v for k, v in self.__dict__.items() if k != 'details'})
+    # return str({k: v for k, v in self.__dict__.items() if k != 'details'})
 
     @property
     def message(self):

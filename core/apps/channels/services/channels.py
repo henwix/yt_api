@@ -3,8 +3,8 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from django.db.utils import IntegrityError
 from django.utils.text import slugify
@@ -41,8 +41,7 @@ from core.apps.users.exceptions.users import UserWithThisDataAlreadyExistsError
 
 class BaseChannelSlugValidatorService(ABC):
     @abstractmethod
-    def validate(self, slug: str) -> None:
-        ...
+    def validate(self, slug: str) -> None: ...
 
 
 class ChannelSlugValidatorService(BaseChannelSlugValidatorService):
@@ -56,28 +55,22 @@ class BaseChannelService(ABC):
     repository: BaseChannelRepository
 
     @abstractmethod
-    def create_by_data(self, data: dict) -> ChannelEntity:
-        ...
+    def create_by_data(self, data: dict) -> ChannelEntity: ...
 
     @abstractmethod
-    def create_channel_by_user_info(self, user: UserEntity) -> ChannelEntity:
-        ...
+    def create_channel_by_user_info(self, user: UserEntity) -> ChannelEntity: ...
 
     @abstractmethod
-    def get_channel_by_user_or_404(self, user: UserEntity | AnonymousUserEntity) -> ChannelEntity:
-        ...
+    def get_channel_by_user_or_404(self, user: UserEntity | AnonymousUserEntity) -> ChannelEntity: ...
 
     @abstractmethod
-    def get_channel_by_user_or_none(self, user: UserEntity) -> ChannelEntity | None:
-        ...
+    def get_channel_by_user_or_none(self, user: UserEntity) -> ChannelEntity | None: ...
 
     @abstractmethod
-    def delete_channel(self, user: UserEntity) -> None:
-        ...
+    def delete_channel(self, user: UserEntity) -> None: ...
 
     @abstractmethod
-    def set_avatar_s3_key(self, channel: ChannelEntity, avatar_s3_key: str | None) -> None:
-        ...
+    def set_avatar_s3_key(self, channel: ChannelEntity, avatar_s3_key: str | None) -> None: ...
 
 
 @dataclass
@@ -168,8 +161,7 @@ class BaseChannelSubsService(ABC):
     repository: BaseChannelSubsRepository
 
     @abstractmethod
-    def get_subscriber_list(self, channel: ChannelEntity) -> Iterable[SubscriptionItem]:
-        ...
+    def get_subscriber_list(self, channel: ChannelEntity) -> Iterable[SubscriptionItem]: ...
 
 
 class ORMChannelSubsService(BaseChannelSubsService):
@@ -182,8 +174,7 @@ class BaseChannelMainService(ABC):
     repository: BaseChannelMainRepository
 
     @abstractmethod
-    def get_channel_main_page_list(self) -> Iterable[Channel]:
-        ...
+    def get_channel_main_page_list(self) -> Iterable[Channel]: ...
 
 
 class ORMChannelMainService(BaseChannelMainService):
@@ -196,8 +187,7 @@ class BaseChannelAboutService(ABC):
     repository: BaseChannelAboutRepository
 
     @abstractmethod
-    def get_channel_about_list(self) -> Iterable[Channel]:
-        ...
+    def get_channel_about_list(self) -> Iterable[Channel]: ...
 
 
 class ORMChannelAboutService(BaseChannelAboutService):
@@ -211,12 +201,10 @@ class BaseSubscriptionService(ABC):
     channel_repository: BaseChannelRepository
 
     @abstractmethod
-    def subscribe(self, user: UserEntity, channel_slug: str) -> dict:
-        ...
+    def subscribe(self, user: UserEntity, channel_slug: str) -> dict: ...
 
     @abstractmethod
-    def unsubscribe(self, user: UserEntity, channel_slug: str) -> dict:
-        ...
+    def unsubscribe(self, user: UserEntity, channel_slug: str) -> dict: ...
 
 
 class ORMSubscriptionService(BaseSubscriptionService):

@@ -1,12 +1,10 @@
 from datetime import timedelta
 
-from django.utils import timezone
-
 import django_filters
 from dateutil.relativedelta import relativedelta
+from django.utils import timezone
 
 from core.apps.videos.models import Video
-
 
 UPLOAD_DATE_STATUSES = (
     ('last_hour', 'Last hour'),

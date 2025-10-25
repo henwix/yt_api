@@ -1,7 +1,6 @@
+import pytest
 from django.core.cache import cache
 from rest_framework.test import APIClient
-
-import pytest
 
 from core.apps.channels.models import Channel
 from core.tests.factories.channels import SubscriptionItemModelFactory
@@ -55,7 +54,11 @@ def test_channel_data_changed_correctly(client: APIClient, jwt: str):
 @pytest.mark.django_db
 @pytest.mark.parametrize('expected_videos, expected_views, expected_subs', ([3, 10, 5], [5, 2, 1], [8, 4, 10]))
 def test_channel_about_data_retrieved_correctly(
-    client: APIClient, channel: Channel, expected_videos, expected_views, expected_subs,
+    client: APIClient,
+    channel: Channel,
+    expected_videos,
+    expected_views,
+    expected_subs,
 ):
     """Test that channel's about data was retrieved after GET request to the
     endpoint: channel's about page."""

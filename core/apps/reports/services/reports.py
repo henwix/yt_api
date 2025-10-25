@@ -2,8 +2,8 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from core.apps.channels.entities.channels import ChannelEntity
 from core.apps.channels.repositories.channels import BaseChannelRepository
@@ -19,8 +19,7 @@ class BaseReportLimitByOneUserValidatorService(ABC):
     report_repository: BaseVideoReportsRepository
 
     @abstractmethod
-    def validate(self, video: VideoEntity, channel: ChannelEntity) -> None:
-        ...
+    def validate(self, video: VideoEntity, channel: ChannelEntity) -> None: ...
 
 
 class ReportLimitByOneUserValidatorService(BaseReportLimitByOneUserValidatorService):
@@ -38,12 +37,10 @@ class BaseVideoReportsService(ABC):
     channel_repository: BaseChannelRepository
 
     @abstractmethod
-    def get_report_list(self) -> Iterable[VideoReport]:
-        ...
+    def get_report_list(self) -> Iterable[VideoReport]: ...
 
     @abstractmethod
-    def create_report(self, video: VideoEntity, author: ChannelEntity, reason: str, description: str) -> dict:
-        ...
+    def create_report(self, video: VideoEntity, author: ChannelEntity, reason: str, description: str) -> dict: ...
 
 
 class ORMVideoReportsService(BaseVideoReportsService):

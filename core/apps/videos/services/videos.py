@@ -2,8 +2,8 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from django.db.models import (
     Count,
@@ -52,8 +52,7 @@ from core.apps.videos.repositories.videos import (
 
 class BaseVideoValidatorService(ABC):
     @abstractmethod
-    def validate(self, video: VideoEntity | None, video_id: str) -> None:
-        ...
+    def validate(self, video: VideoEntity | None, video_id: str) -> None: ...
 
 
 class VideoExistsValidatorService(BaseVideoValidatorService):
@@ -64,8 +63,7 @@ class VideoExistsValidatorService(BaseVideoValidatorService):
 
 class BaseVideoAuthorValidatorService(ABC):
     @abstractmethod
-    def validate(self, video: VideoEntity, author: ChannelEntity) -> None:
-        ...
+    def validate(self, video: VideoEntity, author: ChannelEntity) -> None: ...
 
 
 class VideoMatchAuthorValidatorService(BaseVideoAuthorValidatorService):
@@ -76,8 +74,7 @@ class VideoMatchAuthorValidatorService(BaseVideoAuthorValidatorService):
 
 class BasePrivateVideoPermissionValidatorService(ABC):
     @abstractmethod
-    def validate(self, video: VideoEntity, channel: ChannelEntity | None) -> None:
-        ...
+    def validate(self, video: VideoEntity, channel: ChannelEntity | None) -> None: ...
 
 
 class VideoPrivatePermissionValidatorService(BasePrivateVideoPermissionValidatorService):
@@ -88,8 +85,7 @@ class VideoPrivatePermissionValidatorService(BasePrivateVideoPermissionValidator
 
 class BaseVideoPrivateOrUploadingValidatorService(ABC):
     @abstractmethod
-    def validate(self, video: VideoEntity, channel: ChannelEntity) -> None:
-        ...
+    def validate(self, video: VideoEntity, channel: ChannelEntity) -> None: ...
 
 
 class VideoPrivateOrUploadingValidatorService(BaseVideoPrivateOrUploadingValidatorService):
@@ -107,28 +103,22 @@ class BaseVideoService(ABC):
     validator_service: BaseVideoValidatorService
 
     @abstractmethod
-    def video_create(self, video_entity: VideoEntity) -> None:
-        ...
+    def video_create(self, video_entity: VideoEntity) -> None: ...
 
     @abstractmethod
-    def get_video_by_upload_id(self, upload_id: str) -> VideoEntity:
-        ...
+    def get_video_by_upload_id(self, upload_id: str) -> VideoEntity: ...
 
     @abstractmethod
-    def get_video_by_key(self, key: str) -> VideoEntity:
-        ...
+    def get_video_by_key(self, key: str) -> VideoEntity: ...
 
     @abstractmethod
-    def get_video_by_id_with_reports_count(self, video_id: str) -> VideoEntity:
-        ...
+    def get_video_by_id_with_reports_count(self, video_id: str) -> VideoEntity: ...
 
     @abstractmethod
-    def get_video_by_id_or_404(self, video_id: str) -> VideoEntity:
-        ...
+    def get_video_by_id_or_404(self, video_id: str) -> VideoEntity: ...
 
     @abstractmethod
-    def update_is_reported_field(self, video: VideoEntity, is_reported: bool) -> None:
-        ...
+    def update_is_reported_field(self, video: VideoEntity, is_reported: bool) -> None: ...
 
     @abstractmethod
     def update_video_after_upload(
@@ -136,24 +126,19 @@ class BaseVideoService(ABC):
         video_id: str,
         upload_id: str,
         s3_key: str,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @abstractmethod
-    def delete_video_by_id(self, video_id: str) -> None:
-        ...
+    def delete_video_by_id(self, video_id: str) -> None: ...
 
     @abstractmethod
-    def like_create(self, user: UserEntity, video_id: str, is_like: bool) -> dict:
-        ...
+    def like_create(self, user: UserEntity, video_id: str, is_like: bool) -> dict: ...
 
     @abstractmethod
-    def like_delete(self, user: UserEntity, video_id: str) -> dict:
-        ...
+    def like_delete(self, user: UserEntity, video_id: str) -> dict: ...
 
     @abstractmethod
-    def view_create(self, user: UserEntity, video_id: str, ip_address: str) -> dict:
-        ...
+    def view_create(self, user: UserEntity, video_id: str, ip_address: str) -> dict: ...
 
 
 class ORMVideoService(BaseVideoService):
@@ -282,24 +267,19 @@ class BaseVideoHistoryService(ABC):
     history_repository: BaseVideoHistoryRepository
 
     @abstractmethod
-    def add_video_in_history(self, user: UserEntity, video_id: str) -> dict:
-        ...
+    def add_video_in_history(self, user: UserEntity, video_id: str) -> dict: ...
 
     @abstractmethod
-    def delete_video_from_history(self, user: UserEntity, video_id: str) -> dict:
-        ...
+    def delete_video_from_history(self, user: UserEntity, video_id: str) -> dict: ...
 
     @abstractmethod
-    def get_channel_history(self, user: UserEntity) -> Iterable[VideoHistory]:
-        ...
+    def get_channel_history(self, user: UserEntity) -> Iterable[VideoHistory]: ...
 
     @abstractmethod
-    def get_history_for_retrieve(self, user: UserEntity) -> Iterable[VideoHistory]:
-        ...
+    def get_history_for_retrieve(self, user: UserEntity) -> Iterable[VideoHistory]: ...
 
     @abstractmethod
-    def clear_history(self, channel: ChannelEntity) -> bool:
-        ...
+    def clear_history(self, channel: ChannelEntity) -> bool: ...
 
 
 class ORMVideoHistoryService(BaseVideoHistoryService):
@@ -354,8 +334,7 @@ class ORMVideoHistoryService(BaseVideoHistoryService):
 
 class BasePlaylistPrivatePermissionValidatorService(ABC):
     @abstractmethod
-    def validate(self, playlist: PlaylistEntity, channel: ChannelEntity | None) -> None:
-        ...
+    def validate(self, playlist: PlaylistEntity, channel: ChannelEntity | None) -> None: ...
 
 
 class PlaylistPrivatePermissionValidatorService(BasePlaylistPrivatePermissionValidatorService):
@@ -374,20 +353,16 @@ class BaseVideoPlaylistService(ABC):
     channel_repository: BaseChannelRepository
 
     @abstractmethod
-    def add_video_in_playlist(self, user: UserEntity, playlist_id: str, video_id: str) -> tuple[bool, dict]:
-        ...
+    def add_video_in_playlist(self, user: UserEntity, playlist_id: str, video_id: str) -> tuple[bool, dict]: ...
 
     @abstractmethod
-    def delete_video_from_playlist(self, user: UserEntity, playlist_id: str, video_id: str) -> dict:
-        ...
+    def delete_video_from_playlist(self, user: UserEntity, playlist_id: str, video_id: str) -> dict: ...
 
     @abstractmethod
-    def get_playlist_videos(self, playlist_id: str) -> Iterable[Video]:
-        ...
+    def get_playlist_videos(self, playlist_id: str) -> Iterable[Video]: ...
 
     @abstractmethod
-    def get_playlist_by_id_or_error(self, playlist_id: str) -> PlaylistEntity:
-        ...
+    def get_playlist_by_id_or_error(self, playlist_id: str) -> PlaylistEntity: ...
 
 
 @dataclass
@@ -445,7 +420,8 @@ class ORMVideoPlaylistService(BaseVideoPlaylistService):
                     distinct=True,
                     filter=Q(
                         videos__status=Video.VideoStatus.PUBLIC,
-                    ) & Q(videos__upload_status=Video.UploadStatus.FINISHED),
+                    )
+                    & Q(videos__upload_status=Video.UploadStatus.FINISHED),
                 ),
             )
         )
@@ -462,7 +438,8 @@ class ORMVideoPlaylistService(BaseVideoPlaylistService):
                     distinct=True,
                     filter=Q(
                         videos__status=Video.VideoStatus.PUBLIC,
-                    ) & Q(videos__upload_status=Video.UploadStatus.FINISHED),
+                    )
+                    & Q(videos__upload_status=Video.UploadStatus.FINISHED),
                 ),
             )
         )

@@ -97,7 +97,7 @@ def delete_s3_objects_task(self, objects: list[dict], cache_keys: list | None) -
 
     logger.info(
         'Objects successfully deleted from AWS S3',
-        extra={'log_meta': orjson.dumps({'number_of_files': len(response.get("Deleted", []))}).decode()},
+        extra={'log_meta': orjson.dumps({'number_of_files': len(response.get('Deleted', []))}).decode()},
     )
     return f'{len(response.get("Deleted", []))} objects successfully deleted from AWS S3'
 

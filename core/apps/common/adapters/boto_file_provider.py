@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 
+from botocore.signers import CloudFrontSigner
 from django.db.utils import settings
 from django.utils import timezone
-
-from botocore.signers import CloudFrontSigner
 
 from core.apps.common.clients.boto_client import BotoClient
 from core.apps.common.cloudfront_rsa_signer import rsa_signer
@@ -170,7 +169,7 @@ class BotoFileProvider(BaseBotoFileProvider):
 class BotoCloudfrontFileProvider(BotoFileProvider):
     def generate_download_url(self, key: str, expires_in: int) -> str:
         key_id = settings.AWS_CLOUDFRONT_KEY_ID
-        url = f"https://{settings.AWS_CLOUDFRONT_DOMAIN}/{key}"
+        url = f'https://{settings.AWS_CLOUDFRONT_DOMAIN}/{key}'
         expire_date = timezone.now() + timezone.timedelta(seconds=expires_in)
 
         cloudfront_signer = CloudFrontSigner(key_id, rsa_signer)

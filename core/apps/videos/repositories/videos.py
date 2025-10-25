@@ -2,8 +2,8 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from collections.abc import Iterable
 from datetime import timedelta
-from typing import Iterable
 
 from django.db.models import Count
 from django.utils import timezone
@@ -41,16 +41,13 @@ from core.apps.videos.models import (
 
 class BaseVideoRepository(ABC):
     @abstractmethod
-    def video_create(self, video_entity: VideoEntity) -> None:
-        ...
+    def video_create(self, video_entity: VideoEntity) -> None: ...
 
     @abstractmethod
-    def get_video_by_upload_id(self, upload_id: str) -> VideoEntity | None:
-        ...
+    def get_video_by_upload_id(self, upload_id: str) -> VideoEntity | None: ...
 
     @abstractmethod
-    def get_video_by_key(self, key: str) -> VideoEntity | None:
-        ...
+    def get_video_by_key(self, key: str) -> VideoEntity | None: ...
 
     @abstractmethod
     def update_video_after_upload(
@@ -58,24 +55,19 @@ class BaseVideoRepository(ABC):
         video_id: str,
         upload_id: str,
         s3_key: str,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @abstractmethod
-    def delete_video_by_id(self, video_id: str) -> None:
-        ...
+    def delete_video_by_id(self, video_id: str) -> None: ...
 
     @abstractmethod
-    def get_video_by_id_or_none(self, video_id: str) -> VideoEntity | None:
-        ...
+    def get_video_by_id_or_none(self, video_id: str) -> VideoEntity | None: ...
 
     @abstractmethod
-    def get_video_by_id_with_reports_count(self, video_id: str) -> VideoEntity | None:
-        ...
+    def get_video_by_id_with_reports_count(self, video_id: str) -> VideoEntity | None: ...
 
     @abstractmethod
-    def update_is_reported_field(self, video: VideoEntity, is_reported: bool) -> None:
-        ...
+    def update_is_reported_field(self, video: VideoEntity, is_reported: bool) -> None: ...
 
     @abstractmethod
     def like_get_or_create(
@@ -83,28 +75,22 @@ class BaseVideoRepository(ABC):
         channel: ChannelEntity,
         video: VideoEntity,
         is_like: bool,
-    ) -> tuple[VideoLikeEntity, bool]:
-        ...
+    ) -> tuple[VideoLikeEntity, bool]: ...
 
     @abstractmethod
-    def like_delete(self, channel: ChannelEntity, video: VideoEntity) -> bool:
-        ...
+    def like_delete(self, channel: ChannelEntity, video: VideoEntity) -> bool: ...
 
     @abstractmethod
-    def update_is_like_field(self, like: VideoLikeEntity, is_like: bool) -> None:
-        ...
+    def update_is_like_field(self, like: VideoLikeEntity, is_like: bool) -> None: ...
 
     @abstractmethod
-    def last_view_exists(self, channel: ChannelEntity | None, video: VideoEntity, ip_address: str) -> bool:
-        ...
+    def last_view_exists(self, channel: ChannelEntity | None, video: VideoEntity, ip_address: str) -> bool: ...
 
     @abstractmethod
-    def create_view(self, channel: ChannelEntity, video: VideoEntity, ip_address: str) -> None:
-        ...
+    def create_view(self, channel: ChannelEntity, video: VideoEntity, ip_address: str) -> None: ...
 
     @abstractmethod
-    def get_videos_list(self) -> Iterable[Video]:
-        ...
+    def get_videos_list(self) -> Iterable[Video]: ...
 
 
 class ORMVideoRepository(BaseVideoRepository):
@@ -137,9 +123,13 @@ class ORMVideoRepository(BaseVideoRepository):
         return video_to_entity(video_dto) if video_dto else None
 
     def get_video_by_id_with_reports_count(self, video_id: str) -> VideoEntity | None:
-        video_dto = Video.objects.filter(video_id=video_id).annotate(
-            reports_count=Count('reports'),
-        ).first()
+        video_dto = (
+            Video.objects.filter(video_id=video_id)
+            .annotate(
+                reports_count=Count('reports'),
+            )
+            .first()
+        )
 
         return video_to_entity(video_dto) if video_dto else None
 
@@ -190,24 +180,21 @@ class ORMVideoRepository(BaseVideoRepository):
 
 class BaseVideoHistoryRepository(ABC):
     @abstractmethod
-    def get_or_create_history_item(self, video: VideoEntity, channel: ChannelEntity) -> tuple[VideoHistoryEntity, bool]:
-        ...
+    def get_or_create_history_item(
+        self, video: VideoEntity, channel: ChannelEntity
+    ) -> tuple[VideoHistoryEntity, bool]: ...
 
     @abstractmethod
-    def delete_history_item(self, video: VideoEntity, channel: ChannelEntity) -> bool:
-        ...
+    def delete_history_item(self, video: VideoEntity, channel: ChannelEntity) -> bool: ...
 
     @abstractmethod
-    def update_watch_time(self, video_history: VideoHistoryEntity) -> None:
-        ...
+    def update_watch_time(self, video_history: VideoHistoryEntity) -> None: ...
 
     @abstractmethod
-    def get_channel_history(self, channel: ChannelEntity) -> Iterable[VideoHistory]:
-        ...
+    def get_channel_history(self, channel: ChannelEntity) -> Iterable[VideoHistory]: ...
 
     @abstractmethod
-    def clear_history(self, channel: ChannelEntity) -> bool:
-        ...
+    def clear_history(self, channel: ChannelEntity) -> bool: ...
 
 
 class ORMVideoHistoryRepository(BaseVideoHistoryRepository):
@@ -234,20 +221,18 @@ class ORMVideoHistoryRepository(BaseVideoHistoryRepository):
 
 class BasePlaylistRepository(ABC):
     @abstractmethod
-    def get_all_playlists(self) -> Iterable[Playlist]:
-        ...
+    def get_all_playlists(self) -> Iterable[Playlist]: ...
 
     @abstractmethod
-    def get_playlist_by_id(self, playlist_id: str) -> PlaylistEntity | None:
-        ...
+    def get_playlist_by_id(self, playlist_id: str) -> PlaylistEntity | None: ...
 
     @abstractmethod
-    def playlist_item_get_or_create(self, playlist: PlaylistEntity, video: VideoEntity) -> tuple[PlaylistItem, bool]:
-        ...
+    def playlist_item_get_or_create(
+        self, playlist: PlaylistEntity, video: VideoEntity
+    ) -> tuple[PlaylistItem, bool]: ...
 
     @abstractmethod
-    def playlist_item_delete(self, playlist: PlaylistEntity, video: VideoEntity) -> bool:
-        ...
+    def playlist_item_delete(self, playlist: PlaylistEntity, video: VideoEntity) -> bool: ...
 
 
 class ORMPlaylistRepository(BasePlaylistRepository):

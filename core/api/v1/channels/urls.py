@@ -18,7 +18,6 @@ from core.api.v1.channels.views.channel_views import (
     SubscriptionAPIView,
 )
 
-
 app_name = 'channels'
 
 router = DefaultRouter()
@@ -47,15 +46,12 @@ urlpatterns = [
         DeleteChannelAvatarView.as_view(),
         name='channel-avatar-delete',
     ),
-
     # personal channel urls
     path('channel/', ChannelRetrieveUpdateDeleteView.as_view(), name='channel-detail'),
     path('channel/subscribers/', ChannelSubscribersView.as_view(), name='channel-subscribers'),
-
     # channel urls
     path('channels/<slug:slug>', ChannelMainView.as_view(), name='channels-show'),
     path('channels/<slug:slug>/about', ChannelAboutView.as_view(), name='channels-about'),
-
     # router urls
     path('', include(router.urls)),
 ]

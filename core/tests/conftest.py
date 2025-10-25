@@ -1,11 +1,10 @@
-from django.contrib.auth import get_user_model
-from django.core.cache import cache
-from rest_framework.test import APIClient
-
 import punq
 import pytest
+from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from punq import Container
 from pytest_django.fixtures import SettingsWrapper
+from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.apps.channels.models import Channel
@@ -31,7 +30,6 @@ from core.tests.factories.posts import (
 )
 from core.tests.factories.videos import VideoModelFactory
 from core.tests.mocks.common.providers.senders import DummySenderProvider
-
 
 User = get_user_model()
 

@@ -15,7 +15,11 @@ class Channel(models.Model):
         help_text=_('Country where the channel is located'),
     )
     subscriptions = models.ManyToManyField(
-        to='self', symmetrical=False, through='SubscriptionItem', related_name='subscribers', blank=True,
+        to='self',
+        symmetrical=False,
+        through='SubscriptionItem',
+        related_name='subscribers',
+        blank=True,
     )
     avatar_s3_key = models.CharField(max_length=255, null=True, blank=True, help_text=_('Channel avatar S3 file key'))
 

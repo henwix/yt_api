@@ -1,14 +1,13 @@
 from logging import Logger
 
+import orjson
+import punq
 from django.db.models.signals import (
     post_delete,
     post_save,
     pre_delete,
 )
 from django.dispatch import receiver
-
-import orjson
-import punq
 
 from core.apps.channels.models import (
     Channel,
@@ -32,7 +31,7 @@ def invalidate_channel_cache(instance, created, **kwargs):
     cache_provider: BaseCacheProvider = container.resolve(BaseCacheProvider)
 
     if not created:
-        cache_provider.delete(f"{CACHE_KEYS.get('retrieve_channel')}{instance.user.pk}")
+        cache_provider.delete(f'{CACHE_KEYS.get("retrieve_channel")}{instance.user.pk}')
         logger.info(
             'Cache for Channel deleted',
             extra={'log_meta': orjson.dumps({'user_id': instance.user.pk}).decode()},
@@ -48,7 +47,7 @@ def invalidate_posts_cache(instance, **kwargs):
     logger: Logger = container.resolve(Logger)
     cache_provider: BaseCacheProvider = container.resolve(BaseCacheProvider)
 
-    cache_provider.delete_pattern(f"{CACHE_KEYS.get('related_posts')}{instance.author.slug}*")
+    cache_provider.delete_pattern(f'{CACHE_KEYS.get("related_posts")}{instance.author.slug}*')
     logger.info(
         'Posts cache for listing deleted',
         extra={'log_meta': orjson.dumps({'channel_slug': instance.author.slug}).decode()},
@@ -64,7 +63,7 @@ def invalidate_subs_cache(instance, **kwargs):
     logger: Logger = container.resolve(Logger)
     cache_provider: BaseCacheProvider = container.resolve(BaseCacheProvider)
 
-    cache_provider.delete_pattern(f"{CACHE_KEYS.get('subs_list')}{instance.subscribed_to.pk}*")
+    cache_provider.delete_pattern(f'{CACHE_KEYS.get("subs_list")}{instance.subscribed_to.pk}*')
     logger.info(
         'Subs cache for listing deleted',
         extra={'log_meta': orjson.dumps({'channel_pk': instance.subscribed_to.slug}).decode()},

@@ -1,7 +1,6 @@
+import pytest
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
-
-import pytest
 
 from core.apps.channels.converters.channels import (
     channel_from_entity,
@@ -36,7 +35,6 @@ from core.tests.factories.channels import (
     UserModelFactory,
 )
 from core.tests.factories.videos import VideoModelFactory
-
 
 User = get_user_model()
 

@@ -13,16 +13,13 @@ class BaseCacheService(ABC):
     cache_provider: BaseCacheProvider
 
     @abstractmethod
-    def get(self, key: str) -> Any:
-        ...
+    def get(self, key: str) -> Any: ...
 
     @abstractmethod
-    def set(self, key: str, data: Any, timeout: int | None = None) -> bool:
-        ...
+    def set(self, key: str, data: Any, timeout: int | None = None) -> bool: ...
 
     @abstractmethod
-    def delete(self, key: str) -> None:
-        ...
+    def delete(self, key: str) -> None: ...
 
 
 @dataclass

@@ -17,11 +17,11 @@ class CustomViewMixin(generics.GenericAPIView):
             return self.get_paginated_response(serializer.data)
 
     def mixin_filtration_and_pagination(self, queryset: QuerySet) -> Response:
-        """Retrieve the queryset and return a Response.
-
+        """
+        Retrieve the queryset and return a Response.
         This method checks if pagination is enabled and returns the appropriate response:
-        a paginated Response if pagination is active, or a regular serialized Response otherwise.
 
+        a paginated Response if pagination is active, or a regular serialized Response otherwise.
         """
         #  Filter queryset
         filtered_queryset: QuerySet = self.filter_queryset(queryset)

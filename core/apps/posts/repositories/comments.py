@@ -2,7 +2,7 @@ from abc import (
     ABC,
     abstractmethod,
 )
-from typing import Iterable
+from collections.abc import Iterable
 
 from core.apps.channels.entities.channels import ChannelEntity
 from core.apps.posts.converters.comments import post_comment_to_entity
@@ -17,20 +17,16 @@ from core.apps.posts.models import (
 
 class BasePostCommentRepository(ABC):
     @abstractmethod
-    def create_comment(self, comment_entity: PostCommentEntity) -> PostCommentEntity:
-        ...
+    def create_comment(self, comment_entity: PostCommentEntity) -> PostCommentEntity: ...
 
     @abstractmethod
-    def get_all_comments(self) -> Iterable[PostCommentItem]:
-        ...
+    def get_all_comments(self) -> Iterable[PostCommentItem]: ...
 
     @abstractmethod
-    def change_updated_status(self, comment_id: str, is_updated: bool) -> None:
-        ...
+    def change_updated_status(self, comment_id: str, is_updated: bool) -> None: ...
 
     @abstractmethod
-    def get_by_id_or_none(self, id: int) -> PostCommentEntity | None:
-        ...
+    def get_by_id_or_none(self, id: int) -> PostCommentEntity | None: ...
 
     @abstractmethod
     def like_get_or_create(
@@ -38,16 +34,13 @@ class BasePostCommentRepository(ABC):
         author: ChannelEntity,
         comment: PostCommentEntity,
         is_like: bool,
-    ) -> tuple[PostCommentLikeItemEntity, bool]:
-        ...
+    ) -> tuple[PostCommentLikeItemEntity, bool]: ...
 
     @abstractmethod
-    def like_delete(self, author: ChannelEntity, comment: PostCommentEntity) -> bool:
-        ...
+    def like_delete(self, author: ChannelEntity, comment: PostCommentEntity) -> bool: ...
 
     @abstractmethod
-    def update_like_status(self, like_id: int, is_like: bool) -> None:
-        ...
+    def update_like_status(self, like_id: int, is_like: bool) -> None: ...
 
 
 class PostCommentRepository(BasePostCommentRepository):

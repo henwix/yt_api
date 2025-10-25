@@ -1,9 +1,8 @@
 import time
 
-from rest_framework.test import APIClient
-
 import pytest
 from pytest_django.fixtures import SettingsWrapper
+from rest_framework.test import APIClient
 
 from core.apps.users.models import CustomUser
 from core.tests.factories.channels import UserModelFactory

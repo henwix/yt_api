@@ -1,6 +1,5 @@
-from django.contrib.auth import get_user_model
-
 import pytest
+from django.contrib.auth import get_user_model
 
 from core.apps.channels.exceptions.channels import ChannelNotFoundError
 from core.apps.channels.models import Channel
@@ -12,7 +11,6 @@ from core.apps.posts.models import (
 from core.apps.posts.use_cases.posts_comments.like_create import PostCommentLikeCreateUseCase
 from core.apps.users.converters.users import user_to_entity
 from core.tests.factories.posts import PostCommentLikeModelFactory
-
 
 User = get_user_model()
 
@@ -54,7 +52,9 @@ def test_post_comment_like_created(
     """Test that new like has been created."""
 
     assert not PostCommentLikeItem.objects.filter(
-        author=channel, comment=post_comment, is_like=expected_is_like,
+        author=channel,
+        comment=post_comment,
+        is_like=expected_is_like,
     ).exists()
 
     result = post_comment_like_create_use_case.execute(
@@ -65,7 +65,9 @@ def test_post_comment_like_created(
 
     assert result == {'detail': 'Success', 'is_like': expected_is_like}
     assert PostCommentLikeItem.objects.filter(
-        author=channel, comment=post_comment, is_like=expected_is_like,
+        author=channel,
+        comment=post_comment,
+        is_like=expected_is_like,
     ).exists()
 
 
@@ -83,10 +85,14 @@ def test_post_create_like_updated(
     PostCommentLikeModelFactory.create(author=channel, comment=post_comment, is_like=initial_is_like)
 
     assert PostCommentLikeItem.objects.filter(
-        author=channel, comment=post_comment, is_like=initial_is_like,
+        author=channel,
+        comment=post_comment,
+        is_like=initial_is_like,
     ).exists()
     assert not PostCommentLikeItem.objects.filter(
-        author=channel, comment=post_comment, is_like=expected_is_like,
+        author=channel,
+        comment=post_comment,
+        is_like=expected_is_like,
     ).exists()
 
     post_comment_like_create_use_case.execute(
@@ -96,10 +102,14 @@ def test_post_create_like_updated(
     )
 
     assert not PostCommentLikeItem.objects.filter(
-        author=channel, comment=post_comment, is_like=initial_is_like,
+        author=channel,
+        comment=post_comment,
+        is_like=initial_is_like,
     ).exists()
     assert PostCommentLikeItem.objects.filter(
-        author=channel, comment=post_comment, is_like=expected_is_like,
+        author=channel,
+        comment=post_comment,
+        is_like=expected_is_like,
     ).exists()
 
     post_comment_like_create_use_case.execute(
@@ -109,10 +119,14 @@ def test_post_create_like_updated(
     )
 
     assert PostCommentLikeItem.objects.filter(
-        author=channel, comment=post_comment, is_like=initial_is_like,
+        author=channel,
+        comment=post_comment,
+        is_like=initial_is_like,
     ).exists()
     assert not PostCommentLikeItem.objects.filter(
-        author=channel, comment=post_comment, is_like=expected_is_like,
+        author=channel,
+        comment=post_comment,
+        is_like=expected_is_like,
     ).exists()
 
 

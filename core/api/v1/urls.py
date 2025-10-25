@@ -2,15 +2,13 @@ from django.urls import (
     include,
     path,
 )
-from rest_framework import serializers
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-
 from drf_spectacular.utils import (
     extend_schema,
     inline_serializer,
 )
-
+from rest_framework import serializers
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 app_name = 'v1'
 
@@ -29,7 +27,6 @@ def ping(request):
 
 urlpatterns = [
     path('ping/', ping, name='ping'),
-
     path('', include('core.api.v1.channels.urls')),
     path('', include('core.api.v1.users.urls')),
     path('', include('core.api.v1.videos.urls')),

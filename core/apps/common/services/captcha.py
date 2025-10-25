@@ -24,8 +24,7 @@ class BaseCaptchaService(ABC):
         version: str,
         token: str | None,
         remoteip: str | None = None,
-    ) -> bool:
-        ...
+    ) -> bool: ...
 
 
 class GoogleV3CaptchaService(BaseCaptchaService):

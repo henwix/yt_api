@@ -1,7 +1,15 @@
 from logging import Logger
 
+import orjson
+import punq
 from django.contrib.auth import get_user_model  # noqa
 from django.db.utils import settings
+from drf_spectacular.utils import (
+    OpenApiResponse,
+    PolymorphicProxySerializer,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import (  # noqa
     mixins,
     status,
@@ -10,15 +18,6 @@ from rest_framework import (  # noqa
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-import orjson
-import punq
-from drf_spectacular.utils import (
-    extend_schema,
-    extend_schema_view,
-    OpenApiResponse,
-    PolymorphicProxySerializer,
-)
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -121,7 +120,8 @@ from core.project.containers import get_container  # noqa
             user_created_response_example(),
             user_activation_email_sent_response_example(status_code=201),
             build_example_response_from_error(error=UserWithThisDataAlreadyExistsError),
-        ] + build_captcha_example_responses(),
+        ]
+        + build_captcha_example_responses(),
         summary='Create a new user and channel',
     ),
     set_password=extend_schema(
@@ -292,7 +292,6 @@ from core.project.containers import get_container  # noqa
             build_example_response_from_error(error=UserAlreadyActivatedError),
             build_example_response_from_error(error=UserEmailCodeNotFoundError),
             build_example_response_from_error(error=UserEmailCodeNotEqualError),
-
         ],
         summary='Validate the activation code and activate user',
     ),
@@ -324,10 +323,10 @@ from core.project.containers import get_container  # noqa
     retrieve=extend_schema(summary='Retrieve user data'),
 )
 class UserView(
-        mixins.CreateModelMixin,
-        mixins.RetrieveModelMixin,
-        mixins.UpdateModelMixin,
-        viewsets.GenericViewSet,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
 ):
     queryset = get_user_model().objects.all()
     permission_classes = [CaptchaPermission, AuthUserPermission]
@@ -575,7 +574,8 @@ class UserView(
             status_code=200,
         ),
         build_example_response_from_error(UserNotFoundError),
-    ] + build_captcha_example_responses(),
+    ]
+    + build_captcha_example_responses(),
     summary='Log in and generate JWT tokens or send an OTP code',
 )
 class UserLoginView(APIView):
@@ -627,7 +627,6 @@ class UserLoginView(APIView):
         build_example_response_from_error(OtpCodeNotEqualError),
         build_example_response_from_error(OtpCodeNotFoundError),
         build_example_response_from_error(UserNotFoundError),
-
     ],
     summary='Verify OTP code and get JWT tokens',
 )
@@ -653,15 +652,12 @@ class CodeVerifyView(APIView):
 
 
 @extend_schema(summary='Generate JWT tokens')
-class CustomTokenObtainPairView(TokenObtainPairView):
-    ...
+class CustomTokenObtainPairView(TokenObtainPairView): ...
 
 
 @extend_schema(summary='Refresh JWT token')
-class CustomTokenRefreshView(TokenRefreshView):
-    ...
+class CustomTokenRefreshView(TokenRefreshView): ...
 
 
 @extend_schema(summary='Verify JWT token')
-class CustomTokenVerifyView(TokenVerifyView):
-    ...
+class CustomTokenVerifyView(TokenVerifyView): ...

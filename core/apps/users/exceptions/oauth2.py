@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
 from rest_framework import status
-
 from social_core.exceptions import AuthException
 
 from core.apps.common.exceptions.exceptions import ServiceException
@@ -14,8 +13,9 @@ class CustomAuthStateMissing(AuthException):
     sessions, as sessions are not used in this implementation.
 
     """
+
     def __str__(self):
-        return "Storage value state missing."
+        return 'Storage value state missing.'
 
 
 @dataclass

@@ -1,7 +1,14 @@
 from logging import Logger
 
+import orjson
+import punq
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from drf_spectacular.utils import (
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import (
     generics,
     permissions,
@@ -10,14 +17,6 @@ from rest_framework import (
 )
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
-import orjson
-import punq
-from drf_spectacular.utils import (
-    extend_schema,
-    extend_schema_view,
-    OpenApiResponse,
-)
 
 from core.api.v1.channels.serializers import (
     ChannelAboutSerializer,
@@ -60,10 +59,10 @@ from core.project.containers import get_container
 
 
 @extend_schema_view(
-    get=extend_schema(summary="Retrieve channel"),
-    put=extend_schema(summary="Update channel PUT"),
-    patch=extend_schema(summary="Update channel PATCH"),
-    delete=extend_schema(summary="Delete channel"),
+    get=extend_schema(summary='Retrieve channel'),
+    put=extend_schema(summary='Update channel PUT'),
+    patch=extend_schema(summary='Update channel PATCH'),
+    delete=extend_schema(summary='Delete channel'),
 )
 class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Channel.objects.all()
@@ -85,7 +84,7 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         user = user_to_entity(request.user)
-        cache_key = f"{CACHE_KEYS.get('retrieve_channel')}{user.id}"
+        cache_key = f'{CACHE_KEYS.get("retrieve_channel")}{user.id}'
 
         cached_data = self.cache_service.get(cache_key)
 
@@ -121,7 +120,7 @@ class ChannelSubscribersView(generics.ListAPIView, CustomViewMixin):
     def list(self, request, *args, **kwargs):
         channel = self.channel_service.get_channel_by_user_or_404(user_to_entity(request.user))
 
-        cache_key = f"{CACHE_KEYS.get('subs_list')}{channel.id}_{request.query_params.get('c', '1')}"
+        cache_key = f'{CACHE_KEYS.get("subs_list")}{channel.id}_{request.query_params.get("c", "1")}'
         cached_data = self.cache_service.get(cache_key)
 
         if cached_data:

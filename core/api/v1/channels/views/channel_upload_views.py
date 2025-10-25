@@ -1,12 +1,5 @@
 from logging import Logger
 
-from rest_framework import (
-    generics,
-    permissions,
-    status,
-)
-from rest_framework.response import Response
-
 import orjson
 import punq
 from botocore.exceptions import (
@@ -14,10 +7,16 @@ from botocore.exceptions import (
     ClientError,
 )
 from drf_spectacular.utils import (
-    extend_schema,
     OpenApiExample,
     OpenApiResponse,
+    extend_schema,
 )
+from rest_framework import (
+    generics,
+    permissions,
+    status,
+)
+from rest_framework.response import Response
 
 from core.api.v1.common.serializers.serializers import (
     DetailOutSerializer,
@@ -96,11 +95,12 @@ class GenerateUploadAvatarUrlView(generics.GenericAPIView):
             )
         except BotoCoreError as error:
             logger.error(
-                "BotoCoreError in generate upload avatar url",
+                'BotoCoreError in generate upload avatar url',
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
-                {'detail': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {'detail': str(error)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -150,11 +150,12 @@ class GenerateDownloadAvatarUrlView(generics.GenericAPIView):
             )
         except BotoCoreError as error:
             logger.error(
-                "BotoCoreError in generate presigned url for avatar download",
+                'BotoCoreError in generate presigned url for avatar download',
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
-                {'detail': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {'detail': str(error)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})

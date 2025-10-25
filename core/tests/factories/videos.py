@@ -13,7 +13,6 @@ from core.apps.videos.models import (
 from core.tests.factories.channels import ChannelModelFactory
 from core.tests.factories.common import factory_lazy_function
 
-
 fake = Faker()
 
 

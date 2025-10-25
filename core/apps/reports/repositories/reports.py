@@ -2,7 +2,7 @@ from abc import (
     ABC,
     abstractmethod,
 )
-from typing import Iterable
+from collections.abc import Iterable
 
 from core.apps.channels.entities.channels import ChannelEntity
 from core.apps.reports.converters.reports import report_to_entity
@@ -13,8 +13,7 @@ from core.apps.videos.entities.videos import VideoEntity
 
 class BaseVideoReportsRepository(ABC):
     @abstractmethod
-    def get_reports(self) -> Iterable[VideoReport]:
-        ...
+    def get_reports(self) -> Iterable[VideoReport]: ...
 
     @abstractmethod
     def create_report(
@@ -23,12 +22,10 @@ class BaseVideoReportsRepository(ABC):
         author: ChannelEntity,
         reason: str,
         description: str,
-    ) -> VideoReportEntity:
-        ...
+    ) -> VideoReportEntity: ...
 
     @abstractmethod
-    def get_user_reports_count(self, video: VideoEntity, channel: ChannelEntity) -> int:
-        ...
+    def get_user_reports_count(self, video: VideoEntity, channel: ChannelEntity) -> int: ...
 
 
 class ORMVideoReportRepository(BaseVideoReportsRepository):

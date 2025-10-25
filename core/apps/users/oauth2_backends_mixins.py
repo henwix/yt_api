@@ -49,9 +49,9 @@ class OAuth2Mixin:
             key=f'oauth_state_{request_state}',
         )
         if not request_state:
-            raise AuthMissingParameter(self, "state")
+            raise AuthMissingParameter(self, 'state')
         if not state:
-            raise CustomAuthStateMissing(self, "state")
+            raise CustomAuthStateMissing(self, 'state')
         if not constant_time_compare(request_state, state):
             raise AuthStateForbidden(self)
         self.cache_service.delete(f'oauth_state_{request_state}')
@@ -61,6 +61,7 @@ class OAuth2Mixin:
 class OAuth2PKCEMixin:
     """Custom mixin class that uses cache to save and retrieve 'code_verifier',
     instead of using session as it works in default OAuth2PKCE class."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.container = get_container()
@@ -68,9 +69,10 @@ class OAuth2PKCEMixin:
 
     def create_code_verifier(self, state=None):
         """Takes a 'state' as a parameter to properly store the cache."""
-        name = f"{self.name}_code_verifier"
+        name = f'{self.name}_code_verifier'
         code_verifier_len = self.setting(
-            "PKCE_CODE_VERIFIER_LENGTH", default=self.PKCE_DEFAULT_CODE_VERIFIER_LENGTH,
+            'PKCE_CODE_VERIFIER_LENGTH',
+            default=self.PKCE_DEFAULT_CODE_VERIFIER_LENGTH,
         )
         code_verifier = self.strategy.random_string(code_verifier_len)
         self.cache_service.set(f'{name}_{state}', code_verifier, 60 * 5)  # use cache
@@ -78,7 +80,7 @@ class OAuth2PKCEMixin:
 
     def get_code_verifier(self, state=None):
         """Takes a 'state' as a parameter to properly retrieve the cache."""
-        name = f"{self.name}_code_verifier"
+        name = f'{self.name}_code_verifier'
         return self.cache_service.get(f'{name}_{state}')  # use cache
 
     def auth_params(self, state=None):
@@ -99,17 +101,18 @@ class OAuth2PKCEMixin:
 
         params = super(BaseOAuth2PKCE, self).auth_params(state=state)
 
-        if self.setting("USE_PKCE", default=self.DEFAULT_USE_PKCE):
+        if self.setting('USE_PKCE', default=self.DEFAULT_USE_PKCE):
             code_challenge_method = self.setting(
-                "PKCE_CODE_CHALLENGE_METHOD",
+                'PKCE_CODE_CHALLENGE_METHOD',
                 default=self.PKCE_DEFAULT_CODE_CHALLENGE_METHOD,
             )
             code_verifier = self.create_code_verifier(state=state)  # pass the 'state' parameter
             code_challenge = self.generate_code_challenge(
-                code_verifier, code_challenge_method,
+                code_verifier,
+                code_challenge_method,
             )
-            params["code_challenge_method"] = code_challenge_method
-            params["code_challenge"] = code_challenge
+            params['code_challenge_method'] = code_challenge_method
+            params['code_challenge'] = code_challenge
         return params
 
     def auth_complete_params(self, state=None):
@@ -130,8 +133,8 @@ class OAuth2PKCEMixin:
 
         params = super(BaseOAuth2PKCE, self).auth_complete_params(state=state)
 
-        if self.setting("USE_PKCE", default=self.DEFAULT_USE_PKCE):
+        if self.setting('USE_PKCE', default=self.DEFAULT_USE_PKCE):
             code_verifier = self.get_code_verifier(state=state)  # pass the 'state' parameter
-            params["code_verifier"] = code_verifier
+            params['code_verifier'] = code_verifier
 
         return params

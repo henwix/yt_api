@@ -102,7 +102,7 @@ yt-postgres-dev      5432/tcp                                  Up ## seconds (he
     * *SMTP variables block* &ndash; to make SMTP work
     * *OAuth2 vars block* &ndash; to make OAuth2 work
     * *Google reCAPTCHA vars block* &ndash; to make Google reCAPTCHA work
-4. Run `make app-monitoring-p` 
+4. Run `make app-monitoring-p`
 5.  Wait until all containers are up:
 ```
 $ sudo docker ps --format 'table {{.Names}}\t{{.Ports}}\t{{.Status}}'
@@ -146,7 +146,7 @@ loki-prod                 3100/tcp                                              
     * *SMTP variables block* &ndash; to make SMTP work
     * *OAuth2 vars block* &ndash; to make OAuth2 work
     * *Google reCAPTCHA vars block* &ndash; to make Google reCAPTCHA work
-4. Run `make app-p` 
+4. Run `make app-p`
 5.  Wait until all containers are up:
 ```
 $ sudo docker ps --format 'table {{.Names}}\t{{.Ports}}\t{{.Status}}'
@@ -284,5 +284,3 @@ yt-redis-prod             6379/tcp                                              
 | `V3_GOOGLE_RECAPTCHA_PRIVATE_KEY`           | Google reCAPTCHA v3 private key                                          | Obtained in Google reCAPTCHA admin console                                                                     | DEV, PROD   |
 | `V2_VISIBLE_GOOGLE_RECAPTCHA_PRIVATE_KEY`   | Google reCAPTCHA v2 (visible) private key                                | Obtained in Google reCAPTCHA admin console                                                                     | DEV, PROD   |
 | `V2_INVISIBLE_GOOGLE_RECAPTCHA_PRIVATE_KEY` | Google reCAPTCHA v2 (invisible) private key                              | Obtained in Google reCAPTCHA admin console                                                                     | DEV, PROD   |
-
-

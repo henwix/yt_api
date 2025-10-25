@@ -4,7 +4,6 @@ from pathlib import Path
 
 from kombu import Queue
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 
@@ -230,10 +229,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': (
-                '[%(levelname)s] [%(asctime)s] [%(module)s] [%(process)d] '
-                '[%(thread)d] %(message)s'
-            ),
+            'format': ('[%(levelname)s] [%(asctime)s] [%(module)s] [%(process)d] [%(thread)d] %(message)s'),
         },
         'logger': {
             'format': (
@@ -244,7 +240,7 @@ LOGGING = {
     },
     'filters': {
         'log_meta_filter': {
-            "()": "core.project.loggers.LogMetaFilter",
+            '()': 'core.project.loggers.LogMetaFilter',
         },
     },
     'handlers': {
@@ -285,11 +281,9 @@ AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME')
 AWS_S3_VIDEO_BUCKET_PREFIX = os.environ.get('AWS_S3_VIDEO_BUCKET_PREFIX')
 AWS_S3_AVATAR_BUCKET_PREFIX = os.environ.get('AWS_S3_AVATAR_BUCKET_PREFIX')
 
-AWS_CLOUDFRONT_DOMAIN = os.environ.get("AWS_CLOUDFRONT_DOMAIN")
-AWS_CLOUDFRONT_KEY_ID = os.environ.get("AWS_CLOUDFRONT_KEY_ID")
-AWS_CLOUDFRONT_KEY = (
-    os.environ.get("AWS_CLOUDFRONT_KEY").replace("\\n", "\n").encode("ascii").strip()
-)
+AWS_CLOUDFRONT_DOMAIN = os.environ.get('AWS_CLOUDFRONT_DOMAIN')
+AWS_CLOUDFRONT_KEY_ID = os.environ.get('AWS_CLOUDFRONT_KEY_ID')
+AWS_CLOUDFRONT_KEY = os.environ.get('AWS_CLOUDFRONT_KEY').replace('\\n', '\n').encode('ascii').strip()
 
 
 # Celery

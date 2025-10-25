@@ -2,8 +2,8 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from django.db.models import (
     Count,
@@ -23,8 +23,7 @@ from core.apps.posts.repositories.posts import BasePostRepository
 
 class BasePostAuthorSlugValidatorService(ABC):
     @abstractmethod
-    def validate(self, slug: str | None) -> None:
-        ...
+    def validate(self, slug: str | None) -> None: ...
 
 
 class PostAuthorSlugValidatorService(BasePostAuthorSlugValidatorService):
@@ -38,24 +37,19 @@ class BasePostService(ABC):
     post_repository: BasePostRepository
 
     @abstractmethod
-    def create_post(self, post_entity: PostEntity) -> PostEntity:
-        ...
+    def create_post(self, post_entity: PostEntity) -> PostEntity: ...
 
     @abstractmethod
-    def get_all_posts(self) -> Iterable[Post]:
-        ...
+    def get_all_posts(self) -> Iterable[Post]: ...
 
     @abstractmethod
-    def get_posts_for_retrieving(self) -> Iterable[Post]:
-        ...
+    def get_posts_for_retrieving(self) -> Iterable[Post]: ...
 
     @abstractmethod
-    def get_related_posts_by_author_slug(self, slug: str | None) -> Iterable[Post]:
-        ...
+    def get_related_posts_by_author_slug(self, slug: str | None) -> Iterable[Post]: ...
 
     @abstractmethod
-    def get_post_by_id_or_404(self, post_id: str) -> PostEntity:
-        ...
+    def get_post_by_id_or_404(self, post_id: str) -> PostEntity: ...
 
     @abstractmethod
     def like_get_or_create(
@@ -63,16 +57,13 @@ class BasePostService(ABC):
         channel: ChannelEntity,
         post: PostEntity,
         is_like: bool,
-    ) -> tuple[PostLikeEntity, bool]:
-        ...
+    ) -> tuple[PostLikeEntity, bool]: ...
 
     @abstractmethod
-    def like_delete(self, channel: ChannelEntity, post: PostEntity) -> bool:
-        ...
+    def like_delete(self, channel: ChannelEntity, post: PostEntity) -> bool: ...
 
     @abstractmethod
-    def update_is_like_field(self, like: PostLikeEntity, is_like: bool) -> None:
-        ...
+    def update_is_like_field(self, like: PostLikeEntity, is_like: bool) -> None: ...
 
 
 class PostService(BasePostService):

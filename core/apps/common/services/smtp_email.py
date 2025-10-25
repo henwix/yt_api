@@ -15,12 +15,10 @@ class BaseEmailService(ABC):
     email_sender: BaseSenderProvider
 
     @abstractmethod
-    def send_email(self, to: list[str], context: dict, subject: str, template: str) -> None:
-        ...
+    def send_email(self, to: list[str], context: dict, subject: str, template: str) -> None: ...
 
     @abstractmethod
-    def build_email_frontend_url(self, uri: str, query_params: dict | None = None) -> str:
-        ...
+    def build_email_frontend_url(self, uri: str, query_params: dict | None = None) -> str: ...
 
 
 class EmailService(BaseEmailService):

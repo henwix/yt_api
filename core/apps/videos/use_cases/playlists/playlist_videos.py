@@ -1,5 +1,5 @@
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from core.apps.channels.services.channels import BaseChannelService
 from core.apps.users.entities import UserEntity

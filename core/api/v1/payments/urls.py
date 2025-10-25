@@ -6,7 +6,6 @@ from core.api.v1.payments.views import (
     stripe_webhook_view,
 )
 
-
 app_name = 'payments'
 
 

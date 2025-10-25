@@ -1,6 +1,5 @@
-from django.contrib.auth.models import AnonymousUser
-
 import pytest
+from django.contrib.auth.models import AnonymousUser
 
 from core.apps.channels.models import Channel
 from core.apps.users.converters.users import user_to_entity

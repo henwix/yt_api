@@ -42,7 +42,7 @@ def test_user_reset_username_confirmed(
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize('expected_uid', ["$$$", "abc", "abc===", "abcd1", "ab*c", '!!!', '10dj102jdasd', 'ASJBV'])
+@pytest.mark.parametrize('expected_uid', ['$$$', 'abc', 'abc===', 'abcd1', 'ab*c', '!!!', '10dj102jdasd', 'ASJBV'])
 def test_user_reset_username_confirm_invalid_uid_error(
     expected_uid: str,
     user_reset_username_confirm_use_case: UserResetUsernameConfirmUseCase,

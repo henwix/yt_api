@@ -2,27 +2,23 @@ from abc import (
     ABC,
     abstractmethod,
 )
-from typing import Iterable
-
-from django.db.utils import settings
+from collections.abc import Iterable
 
 import stripe
+from django.db.utils import settings
 
 from core.apps.payments.exceptions import StripeSignatureVerificationError
 
 
 class BaseStripeProvider(ABC):
     @abstractmethod
-    def create_customer(self, email: str, user_id: int) -> stripe.Customer:
-        ...
+    def create_customer(self, email: str, user_id: int) -> stripe.Customer: ...
 
     @abstractmethod
-    def create_checkout_session(self, customer_id: str, user_id: int, sub_price: str) -> stripe.checkout.Session:
-        ...
+    def create_checkout_session(self, customer_id: str, user_id: int, sub_price: str) -> stripe.checkout.Session: ...
 
     @abstractmethod
-    def construct_event(self, payload: bytes, signature: str) -> stripe.Event:
-        ...
+    def construct_event(self, payload: bytes, signature: str) -> stripe.Event: ...
 
     @abstractmethod
     def get_subs_list(
@@ -31,8 +27,7 @@ class BaseStripeProvider(ABC):
         customer_id: str | None = None,
         limit: int = 10,
         expand: list | None = None,
-    ) -> Iterable[stripe.Subscription]:
-        ...
+    ) -> Iterable[stripe.Subscription]: ...
 
 
 class StripeProvider(BaseStripeProvider):
@@ -73,7 +68,9 @@ class StripeProvider(BaseStripeProvider):
     def construct_event(self, payload: bytes, signature: str) -> stripe.Event:
         try:
             return stripe.Webhook.construct_event(
-                payload, signature, self._STRIPE_WEBHOOK_KEY,
+                payload,
+                signature,
+                self._STRIPE_WEBHOOK_KEY,
             )
         except (ValueError, stripe.SignatureVerificationError) as error:
             raise StripeSignatureVerificationError(error_msg=str(error))

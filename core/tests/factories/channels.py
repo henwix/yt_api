@@ -1,6 +1,5 @@
-from django.contrib.auth import get_user_model
-
 import factory
+from django.contrib.auth import get_user_model
 from factory.django import DjangoModelFactory
 from faker import Faker
 
@@ -9,7 +8,6 @@ from core.apps.channels.models import (
     SubscriptionItem,
 )
 from core.tests.factories.common import factory_lazy_function
-
 
 User = get_user_model()
 

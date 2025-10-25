@@ -1,6 +1,5 @@
-from django.db.models import Count
-
 import pytest
+from django.db.models import Count
 
 from core.apps.posts.models import (
     PostCommentItem,
@@ -80,9 +79,13 @@ def test_get_comment_replies_retrieved_with_likes(
     retrieved_likes = {reply.pk: reply.likes_count for reply in retrieved_replies}
 
     # Retrieve 'likes_count' fields from the database and save them in the dict
-    expected_likes = PostCommentLikeItem.objects.filter(is_like=True).values(
-        'comment_id',
-    ).annotate(likes_count=Count('pk'))
+    expected_likes = (
+        PostCommentLikeItem.objects.filter(is_like=True)
+        .values(
+            'comment_id',
+        )
+        .annotate(likes_count=Count('pk'))
+    )
 
     assert len(retrieved_likes) == len(expected_likes)
 

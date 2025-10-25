@@ -1,8 +1,7 @@
 import random
 
-from django.db.models import Count
-
 import pytest
+from django.db.models import Count
 from faker import Faker
 
 from core.apps.posts.exceptions import PostNotFoundError
@@ -16,7 +15,6 @@ from core.tests.factories.posts import (
     PostCommentLikeModelFactory,
     PostCommentModelFactory,
 )
-
 
 fake = Faker()
 
@@ -80,9 +78,13 @@ def test_get_list_comments_retrieved_with_replies(
     retrieved_replies = {comment.pk: comment.replies_count for comment in retrieved_comments}
 
     # Retrieve 'replies_count' fields from the database and save them in the dict
-    expected_replies = PostCommentItem.objects.filter(reply_level=1).values(
-        'reply_comment',
-    ).annotate(replies_count=Count('pk'))
+    expected_replies = (
+        PostCommentItem.objects.filter(reply_level=1)
+        .values(
+            'reply_comment',
+        )
+        .annotate(replies_count=Count('pk'))
+    )
 
     # Compare 'replies_count' fields from database and use case
     for expected_reply in expected_replies:
@@ -112,9 +114,13 @@ def test_get_list_comments_retrieved_with_likes(
     retrieved_likes = {comment.pk: comment.likes_count for comment in retrieved_comments}
 
     # Retrieve 'likes_count' fields from the database and save them in the dict
-    expected_likes = PostCommentLikeItem.objects.filter(is_like=True).values(
-        'comment_id',
-    ).annotate(likes_count=Count('pk'))
+    expected_likes = (
+        PostCommentLikeItem.objects.filter(is_like=True)
+        .values(
+            'comment_id',
+        )
+        .annotate(likes_count=Count('pk'))
+    )
 
     assert len(retrieved_likes) == len(expected_likes)
 

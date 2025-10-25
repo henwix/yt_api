@@ -25,7 +25,8 @@ def test_captcha_v3_token_validated_correctly(container: punq.Container, expecte
 
     # register the mock captcha provider
     container.register(
-        BaseCaptchaProvider, factory=lambda: DummyCaptchaProvider(
+        BaseCaptchaProvider,
+        factory=lambda: DummyCaptchaProvider(
             response={'success': True, 'score': expected_score},
         ),
     )
@@ -49,7 +50,8 @@ def test_captcha_v3_token_validation_failed_score(container: punq.Container, exp
 
     # register the mock captcha provider
     container.register(
-        BaseCaptchaProvider, factory=lambda: DummyCaptchaProvider(
+        BaseCaptchaProvider,
+        factory=lambda: DummyCaptchaProvider(
             response={'success': True, 'score': expected_score},
         ),
     )
@@ -72,7 +74,8 @@ def test_captcha_v3_token_validation_failed_success(container: punq.Container, e
 
     # register the mock captcha provider
     container.register(
-        BaseCaptchaProvider, factory=lambda: DummyCaptchaProvider(
+        BaseCaptchaProvider,
+        factory=lambda: DummyCaptchaProvider(
             response={'success': False, 'score': expected_score},
         ),
     )
@@ -93,7 +96,8 @@ def test_captcha_v2_token_validation_failed_success(container: punq.Container):
 
     # register the mock captcha provider
     container.register(
-        BaseCaptchaProvider, factory=lambda: DummyCaptchaProvider(
+        BaseCaptchaProvider,
+        factory=lambda: DummyCaptchaProvider(
             response={'success': False},
         ),
     )
@@ -110,7 +114,8 @@ def test_captcha_v2_token_not_provided(container: punq.Container):
 
     # register the mock captcha provider
     container.register(
-        BaseCaptchaProvider, factory=lambda: DummyCaptchaProvider(
+        BaseCaptchaProvider,
+        factory=lambda: DummyCaptchaProvider(
             response={'success': True},
         ),
     )
@@ -127,7 +132,8 @@ def test_captcha_v3_token_not_provided(container: punq.Container):
 
     # register the mock captcha provider
     container.register(
-        BaseCaptchaProvider, factory=lambda: DummyCaptchaProvider(
+        BaseCaptchaProvider,
+        factory=lambda: DummyCaptchaProvider(
             response={'success': True, 'score': 1},
         ),
     )

@@ -7,7 +7,6 @@ from core.apps.reports.models import VideoReport
 from core.tests.factories.channels import ChannelModelFactory
 from core.tests.factories.videos import VideoModelFactory
 
-
 fake = Faker()
 
 

@@ -5,9 +5,8 @@ from dataclasses import (
 )
 from typing import Any
 
-from django.conf import settings
-
 from boto3 import client
+from django.conf import settings
 
 
 @dataclass

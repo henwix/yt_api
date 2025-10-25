@@ -14,8 +14,7 @@ from core.apps.users.repositories.oauth2 import BaseOAuth2Repository
 
 class BaseOAuth2ProviderValidatorService(ABC):
     @abstractmethod
-    def validate(self, provider: str) -> None:
-        ...
+    def validate(self, provider: str) -> None: ...
 
 
 class OAuth2ProviderValidatorService(BaseOAuth2ProviderValidatorService):
@@ -29,16 +28,13 @@ class BaseOAuth2Service(ABC):
     oauth2_repository: BaseOAuth2Repository
 
     @abstractmethod
-    def get_connected_providers_as_dict(self, user: UserEntity) -> dict:
-        ...
+    def get_connected_providers_as_dict(self, user: UserEntity) -> dict: ...
 
     @abstractmethod
-    def get_provider_by_name(self, provider: str) -> str | None:
-        ...
+    def get_provider_by_name(self, provider: str) -> str | None: ...
 
     @abstractmethod
-    def get_redirect_uri(self, provider: str) -> str:
-        ...
+    def get_redirect_uri(self, provider: str) -> str: ...
 
 
 class OAuth2Service(BaseOAuth2Service):

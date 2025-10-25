@@ -2,8 +2,8 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from social_django.models import UserSocialAuth
 
@@ -14,8 +14,7 @@ from core.apps.users.entities import UserEntity
 @dataclass
 class BaseOAuth2Repository(ABC):
     @abstractmethod
-    def get_connected_providers(self, user: UserEntity) -> Iterable[UserSocialAuth]:
-        ...
+    def get_connected_providers(self, user: UserEntity) -> Iterable[UserSocialAuth]: ...
 
 
 class OAuth2Repository(BaseOAuth2Repository):

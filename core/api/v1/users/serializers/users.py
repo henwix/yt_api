@@ -42,6 +42,7 @@ class PasswordUserSerializer(serializers.ModelSerializer):
 
 class EmailUserSerializer(serializers.ModelSerializer):
     """Email serializer with value unqiue validator."""
+
     class Meta:
         model = CustomUser
         fields = ['email']

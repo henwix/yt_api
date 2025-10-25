@@ -8,6 +8,7 @@ from core.api.v1.common.serializers.serializers import CaptchaSerializer
 
 class EmailSerializer(serializers.Serializer):
     """Email serializer without value unique validator."""
+
     email = serializers.EmailField(max_length=256, help_text='User email address')
 
 

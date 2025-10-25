@@ -9,13 +9,12 @@ from core.api.v1.posts.views import (
     PostAPIViewset,
 )
 
-
-app_name = "posts"
+app_name = 'posts'
 
 
 router = DefaultRouter()
-router.register("posts", PostAPIViewset, basename='posts')
-router.register("posts-comments", CommentPostAPIView, basename='posts-comments')
+router.register('posts', PostAPIViewset, basename='posts')
+router.register('posts-comments', CommentPostAPIView, basename='posts-comments')
 
 
 urlpatterns = [

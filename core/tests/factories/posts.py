@@ -11,7 +11,6 @@ from core.apps.posts.models import (
 )
 from core.tests.factories.channels import ChannelModelFactory
 
-
 fake = Faker()
 
 

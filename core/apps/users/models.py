@@ -10,6 +10,6 @@ class CustomUser(AbstractUser):
     )
     email = models.EmailField(
         unique=True,
-        help_text=_("User\'s email address"),
+        help_text=_("User's email address"),
     )
-    password = models.CharField(max_length=128, help_text=_("User password"))
+    password = models.CharField(max_length=128, help_text=_('User password'))

@@ -2,7 +2,7 @@ from abc import (
     ABC,
     abstractmethod,
 )
-from typing import Iterable
+from collections.abc import Iterable
 
 from core.apps.channels.entities.channels import ChannelEntity
 from core.apps.posts.converters.likes import post_like_to_entity
@@ -17,16 +17,13 @@ from core.apps.posts.models import (
 
 class BasePostRepository(ABC):
     @abstractmethod
-    def create_post(self, post_entity: PostEntity) -> PostEntity:
-        ...
+    def create_post(self, post_entity: PostEntity) -> PostEntity: ...
 
     @abstractmethod
-    def get_all_posts(self) -> Iterable[Post]:
-        ...
+    def get_all_posts(self) -> Iterable[Post]: ...
 
     @abstractmethod
-    def get_post_by_id(self, post_id: str) -> PostEntity | None:
-        ...
+    def get_post_by_id(self, post_id: str) -> PostEntity | None: ...
 
     @abstractmethod
     def like_get_or_create(
@@ -34,16 +31,13 @@ class BasePostRepository(ABC):
         channel: ChannelEntity,
         post: PostEntity,
         is_like: bool,
-    ) -> tuple[PostLikeEntity, bool]:
-        ...
+    ) -> tuple[PostLikeEntity, bool]: ...
 
     @abstractmethod
-    def like_delete(self, channel: ChannelEntity, post: PostEntity) -> bool:
-        ...
+    def like_delete(self, channel: ChannelEntity, post: PostEntity) -> bool: ...
 
     @abstractmethod
-    def update_is_like_field(like: PostLikeEntity, is_like: bool) -> None:
-        ...
+    def update_is_like_field(like: PostLikeEntity, is_like: bool) -> None: ...
 
 
 class PostRepository(BasePostRepository):

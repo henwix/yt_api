@@ -18,8 +18,7 @@ class BaseCaptchaProvider(ABC):
         version: str,
         token: str,
         remoteip: str | None = None,
-    ) -> dict:
-        ...
+    ) -> dict: ...
 
 
 class GoogleCaptchaProvider(BaseCaptchaProvider):
@@ -31,7 +30,8 @@ class GoogleCaptchaProvider(BaseCaptchaProvider):
     ) -> dict:
         try:
             response = requests.post(
-                url='https://www.google.com/recaptcha/api/siteverify', data={
+                url='https://www.google.com/recaptcha/api/siteverify',
+                data={
                     'secret': CAPTCHA_SECRET_KEYS.get(version),
                     'response': token,
                     'remoteip': remoteip,

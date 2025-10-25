@@ -14,8 +14,7 @@ from core.apps.channels.exceptions.upload import (
 
 class BaseAvatarValidatorService(ABC):
     @abstractmethod
-    def validate(self, channel: ChannelEntity) -> None:
-        ...
+    def validate(self, channel: ChannelEntity) -> None: ...
 
 
 class AvatarExistsValidatorService(BaseAvatarValidatorService):
@@ -27,8 +26,7 @@ class AvatarExistsValidatorService(BaseAvatarValidatorService):
 @dataclass
 class BaseAvatarFilenameValidatorService(ABC):
     @abstractmethod
-    def validate(self, filename: str) -> None:
-        ...
+    def validate(self, filename: str) -> None: ...
 
 
 class AvatarFilenameExistsValidatorService(BaseAvatarFilenameValidatorService):

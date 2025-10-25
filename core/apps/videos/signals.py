@@ -1,15 +1,13 @@
-from django.dispatch import (
-    receiver,
-    Signal,
-)
-
 import punq
+from django.dispatch import (
+    Signal,
+    receiver,
+)
 
 from core.apps.common.constants import CACHE_KEYS
 from core.apps.common.providers.files import BaseCeleryFileProvider
 from core.apps.videos.models import Video
 from core.project.containers import get_container
-
 
 video_pre_delete = Signal()
 

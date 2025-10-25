@@ -1,5 +1,5 @@
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from core.apps.posts.models import Post
 from core.apps.posts.services.posts import BasePostService

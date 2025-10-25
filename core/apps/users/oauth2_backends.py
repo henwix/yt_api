@@ -10,19 +10,22 @@ from core.apps.users.oauth2_backends_mixins import (
 
 class CustomGoogleOAuth2(OAuth2Mixin, GoogleOAuth2):
     """Custom Google OAuth2 backend with custom state handling via cache."""
+
     STATE_PARAMETER = True
 
 
 class CustomGitHubOAuth2(OAuth2Mixin, GithubOAuth2):
     """Custom GitHub OAuth2 backend with custom state handling via cache."""
+
     STATE_PARAMETER = True
 
 
 class CustomTwitterOAuth2(OAuth2PKCEMixin, OAuth2Mixin, TwitterOAuth2):
     """Custom Twitter/X OAuth2 backend with updated methods."""
+
     STATE_PARAMETER = True
     DEFAULT_USE_PKCE = True
-    DEFAULT_SCOPE = ["users.read", "users.email", "tweet.read"]
+    DEFAULT_SCOPE = ['users.read', 'users.email', 'tweet.read']
 
     def get_user_details(self, response):
         """Custom method that extracts user details from a Twitter/X
@@ -33,8 +36,8 @@ class CustomTwitterOAuth2(OAuth2PKCEMixin, OAuth2Mixin, TwitterOAuth2):
 
         """
         return {
-            "id": response["id"],
-            "username": response["username"],
+            'id': response['id'],
+            'username': response['username'],
             'email': response['confirmed_email'],
         }
 
@@ -49,13 +52,13 @@ class CustomTwitterOAuth2(OAuth2PKCEMixin, OAuth2Mixin, TwitterOAuth2):
 
         """
         fields = [
-            "id",
-            "username",
-            "confirmed_email",
+            'id',
+            'username',
+            'confirmed_email',
         ]
         response = self.get_json(
-            "https://api.twitter.com/2/users/me",
-            params={"user.fields": ",".join(fields)},
-            headers={"Authorization": f"Bearer {access_token}"},
+            'https://api.twitter.com/2/users/me',
+            params={'user.fields': ','.join(fields)},
+            headers={'Authorization': f'Bearer {access_token}'},
         )
-        return response["data"]
+        return response['data']

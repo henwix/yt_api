@@ -7,16 +7,13 @@ from dataclasses import dataclass
 
 class BaseCeleryFileProvider(ABC):
     @abstractmethod
-    def delete_object_by_key(self, key: str, cache_key: str | None = None) -> None:
-        ...
+    def delete_object_by_key(self, key: str, cache_key: str | None = None) -> None: ...
 
     @abstractmethod
-    def delete_objects(self, objects: list[dict], cache_keys: list | None) -> None:
-        ...
+    def delete_objects(self, objects: list[dict], cache_keys: list | None) -> None: ...
 
     @abstractmethod
-    def abort_multipart_upload(self, key: str, upload_id: str) -> None:
-        ...
+    def abort_multipart_upload(self, key: str, upload_id: str) -> None: ...
 
 
 @dataclass
@@ -26,16 +23,14 @@ class BaseBotoFileProvider(ABC):
         self,
         filename: str,
         data_type: str,
-    ) -> tuple:
-        ...
+    ) -> tuple: ...
 
     @abstractmethod
     def abort_multipart_upload(
         self,
         key: str,
         upload_id: str,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @abstractmethod
     def generate_upload_part_url(
@@ -44,16 +39,14 @@ class BaseBotoFileProvider(ABC):
         upload_id: str,
         part_number: int,
         expires_in: int,
-    ) -> str:
-        ...
+    ) -> str: ...
 
     @abstractmethod
     def generate_download_url(
         self,
         key: str,
         expires_in: int,
-    ) -> str:
-        ...
+    ) -> str: ...
 
     @abstractmethod
     def complete_multipart_upload(
@@ -61,22 +54,19 @@ class BaseBotoFileProvider(ABC):
         key: str,
         upload_id: str,
         parts: list,
-    ) -> dict:
-        ...
+    ) -> dict: ...
 
     @abstractmethod
     def delete_object_by_key(
         self,
         key: str,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @abstractmethod
     def delete_objects(
         self,
         objects: list[dict],
-    ) -> dict:
-        ...
+    ) -> dict: ...
 
     @abstractmethod
     def generate_upload_url(
@@ -84,8 +74,7 @@ class BaseBotoFileProvider(ABC):
         filename: str,
         expires_in: int,
         data_type: str,
-    ) -> tuple:
-        ...
+    ) -> tuple: ...
 
     @abstractmethod
     def head_object(

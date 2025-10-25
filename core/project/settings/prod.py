@@ -2,7 +2,6 @@ import os
 
 from .main import *  # noqa
 
-
 DEBUG = False
 
 # setup DATABASES for pgbouncer
@@ -20,8 +19,8 @@ DATABASES = {
 }
 
 CSRF_TRUSTED_ORIGINS = [
-    f"https://{os.environ.get('ADMIN_DOMAIN')}",
-    f"https://{os.environ.get('ADMIN_DOMAIN')}:443",
+    f'https://{os.environ.get("ADMIN_DOMAIN")}',
+    f'https://{os.environ.get("ADMIN_DOMAIN")}:443',
 ]
 
 ALLOWED_HOSTS = [
@@ -29,10 +28,10 @@ ALLOWED_HOSTS = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    f"https://{os.environ.get('API_DOMAIN')}",
-    f"https://{os.environ.get('API_DOMAIN')}:443",
-    f"https://{os.environ.get('ADMIN_DOMAIN')}",
-    f"https://{os.environ.get('ADMIN_DOMAIN')}:443",
+    f'https://{os.environ.get("API_DOMAIN")}',
+    f'https://{os.environ.get("API_DOMAIN")}:443',
+    f'https://{os.environ.get("ADMIN_DOMAIN")}',
+    f'https://{os.environ.get("ADMIN_DOMAIN")}:443',
 ]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

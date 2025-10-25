@@ -1,10 +1,9 @@
 from logging import Logger
 
-from django.conf import settings
-from rest_framework.permissions import BasePermission
-
 import orjson
 import punq
+from django.conf import settings
+from rest_framework.permissions import BasePermission
 
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.common.fabrics.captcha import get_captcha_service_fabric
@@ -40,10 +39,12 @@ class CaptchaPermission(BasePermission):
             logger.info(
                 msg='Service for captcha has been resolved',
                 extra={
-                    'log_meta': orjson.dumps({
-                        'version': request.data.get('captcha_version'),
-                        'service': captcha_service.__class__.__name__,
-                    }).decode(),
+                    'log_meta': orjson.dumps(
+                        {
+                            'version': request.data.get('captcha_version'),
+                            'service': captcha_service.__class__.__name__,
+                        }
+                    ).decode(),
                 },
             )
 

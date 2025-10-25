@@ -3,7 +3,6 @@ from django.db.utils import settings
 
 
 # Captcha
-
 class CAPTCHA_VERSIONS(models.TextChoices):
     GOOGLE_V3 = 'v3'
     GOOGLE_V2_VISIBLE = 'v2_visible'

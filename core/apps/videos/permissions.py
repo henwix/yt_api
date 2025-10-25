@@ -14,7 +14,7 @@ class IsAuthorOrReadOnlyPlaylist(permissions.BasePermission):
         return request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
-        user_channel = getattr(request.user, 'channel') if hasattr(request.user, 'channel') else None
+        user_channel = request.user.channel if hasattr(request.user, 'channel') else None
 
         if view.action in ['retrieve', 'videos'] and obj.status != Playlist.StatusChoices.PRIVATE:
             return True

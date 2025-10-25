@@ -12,7 +12,7 @@ from core.apps.videos.models import (
 
 
 def convert_playlist_videos_to_entity(playlist: Playlist) -> list[VideoEntity] | EntityStatus:
-    if hasattr(playlist, '_prefetched_objects_cache') and 'video' in getattr(playlist, '_prefetched_objects_cache'):
+    if hasattr(playlist, '_prefetched_objects_cache') and 'video' in playlist._prefetched_objects_cache:
         return [video_to_entity(video) for video in playlist.videos.all()]
     return EntityStatus.NOT_LOADED
 

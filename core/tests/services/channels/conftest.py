@@ -1,6 +1,5 @@
-from django.contrib.auth import get_user_model
-
 import pytest
+from django.contrib.auth import get_user_model
 from punq import Container
 
 from core.apps.channels.services.channels import (
@@ -14,7 +13,6 @@ from core.apps.channels.services.s3_channels import (
     BaseAvatarValidatorService,
 )
 from core.tests.factories.channels import ChannelModelFactory
-
 
 User = get_user_model()
 

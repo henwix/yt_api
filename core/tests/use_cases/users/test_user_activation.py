@@ -37,7 +37,7 @@ def test_user_activated(
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize('expected_uid', ["$$$", "abc", "abc===", "abcd1", "ab*c", '!!!', '10dj102jdasd', 'ASJBV'])
+@pytest.mark.parametrize('expected_uid', ['$$$', 'abc', 'abc===', 'abcd1', 'ab*c', '!!!', '10dj102jdasd', 'ASJBV'])
 def test_user_activation_invalid_uid_error(
     settings: SettingsWrapper,
     expected_uid: str,

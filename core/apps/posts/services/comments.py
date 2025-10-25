@@ -2,8 +2,8 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from django.db.models import (
     Count,
@@ -23,12 +23,10 @@ class BasePostCommentService(ABC):
     repository: BasePostCommentRepository
 
     @abstractmethod
-    def create_comment(self, comment_entity: PostCommentEntity) -> PostCommentEntity:
-        ...
+    def create_comment(self, comment_entity: PostCommentEntity) -> PostCommentEntity: ...
 
     @abstractmethod
-    def get_by_id_or_404(self, id: int) -> PostCommentEntity:
-        ...
+    def get_by_id_or_404(self, id: int) -> PostCommentEntity: ...
 
     @abstractmethod
     def like_get_or_create(
@@ -36,43 +34,35 @@ class BasePostCommentService(ABC):
         author: ChannelEntity,
         comment: PostCommentEntity,
         is_like: bool,
-    ) -> tuple[PostCommentLikeItemEntity, bool]:
-        ...
+    ) -> tuple[PostCommentLikeItemEntity, bool]: ...
 
     @abstractmethod
-    def like_delete(self, author: ChannelEntity, comment: PostCommentEntity) -> bool:
-        ...
+    def like_delete(self, author: ChannelEntity, comment: PostCommentEntity) -> bool: ...
 
     @abstractmethod
-    def update_like_status(self, like_id: int, is_like: bool) -> None:
-        ...
+    def update_like_status(self, like_id: int, is_like: bool) -> None: ...
 
     @abstractmethod
-    def get_all_comments(self) -> Iterable[PostCommentItem]:
-        ...
+    def get_all_comments(self) -> Iterable[PostCommentItem]: ...
 
     @abstractmethod
-    def get_comments_for_retrieving(self) -> Iterable[PostCommentItem]:
-        ...
+    def get_comments_for_retrieving(self) -> Iterable[PostCommentItem]: ...
 
     @abstractmethod
-    def get_replies_by_comment_id(self, comment_id: int) -> Iterable[PostCommentItem]:
-        ...
+    def get_replies_by_comment_id(self, comment_id: int) -> Iterable[PostCommentItem]: ...
 
     @abstractmethod
-    def change_updated_status(self, comment_id: int, is_updated: bool) -> None:
-        ...
+    def change_updated_status(self, comment_id: int, is_updated: bool) -> None: ...
 
     @abstractmethod
-    def get_comments_by_post_id(self, post_id: str) -> Iterable[PostCommentItem]:
-        ...
+    def get_comments_by_post_id(self, post_id: str) -> Iterable[PostCommentItem]: ...
 
 
 class PostCommentService(BasePostCommentService):
     def _build_query(self, qs: Iterable[PostCommentItem]) -> Iterable[PostCommentItem]:
         return qs.select_related('author').annotate(
-            likes_count=Count("likes", distinct=True, filter=Q(likes_items__is_like=True)),
-            replies_count=Count("replies", distinct=True),
+            likes_count=Count('likes', distinct=True, filter=Q(likes_items__is_like=True)),
+            replies_count=Count('replies', distinct=True),
         )
 
     def create_comment(self, comment_entity: PostCommentEntity) -> PostCommentEntity:

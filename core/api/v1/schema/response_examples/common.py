@@ -1,11 +1,10 @@
-from rest_framework import serializers
-from rest_framework.response import Serializer
-
 from drf_spectacular.utils import (
-    inline_serializer,
     OpenApiExample,
     OpenApiResponse,
+    inline_serializer,
 )
+from rest_framework import serializers
+from rest_framework.response import Serializer
 
 from core.apps.common.exceptions.captcha import (
     CaptchaTokenNotProvidedError,

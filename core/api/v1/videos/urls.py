@@ -9,7 +9,6 @@ from core.api.v1.videos.views import (
     video_views,
 )
 
-
 app_name = 'videos'
 
 
@@ -25,13 +24,11 @@ urlpatterns = [
         video_views.MyVideoView.as_view(),
         name='videos-personal',
     ),
-
     path(
         'playlists/<str:id>/videos/',
         video_views.PlaylistVideosView.as_view(),
         name='playlist-videos',
     ),
-
     # endpoints for video multipart upload
     path(
         'videos/upload_create/',
@@ -53,14 +50,12 @@ urlpatterns = [
         video_upload_views.GenerateUploadPartUrlView.as_view(),
         name='videos-upload-url',
     ),
-
     # endpoints for video download
     path(
         'videos/download_url/',
         video_upload_views.GenerateDownloadVideoUrlView.as_view(),
         name='videos-download-url',
     ),
-
     # router urls
     path('', include(router.urls)),
 ]

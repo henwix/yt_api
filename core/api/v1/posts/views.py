@@ -1,5 +1,14 @@
 from logging import Logger
 
+import orjson
+import punq
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import (
     filters,
     status,
@@ -7,16 +16,6 @@ from rest_framework import (
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-
-import orjson
-import punq
-from drf_spectacular.utils import (
-    extend_schema,
-    extend_schema_view,
-    OpenApiExample,
-    OpenApiParameter,
-    OpenApiResponse,
-)
 
 from core.api.v1.common.serializers.comments import (
     PkLikeSerializer,
@@ -204,12 +203,13 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
 
     def list(self, request, *args, **kwargs):
         use_case: GetChannelPostsUseCase = self.container.resolve(GetChannelPostsUseCase)
+        # TODO: refactor
 
         serializer = SParameterSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
 
         slug = serializer.validated_data.get('s')
-        cache_key = f"{CACHE_KEYS.get('related_posts')}{slug}_{request.query_params.get('c', '1')}"
+        cache_key = f'{CACHE_KEYS.get("related_posts")}{slug}_{request.query_params.get("c", "1")}'
 
         cached_data = self.cache_service.get(cache_key)
         if cached_data:
@@ -288,7 +288,7 @@ class PostAPIViewset(ModelViewSet, CustomViewMixin):
         parameters=[
             OpenApiParameter(
                 name='p',
-                description="Parameter identifying post id",
+                description='Parameter identifying post id',
                 required=True,
                 type=str,
             ),

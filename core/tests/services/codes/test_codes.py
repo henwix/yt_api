@@ -1,6 +1,5 @@
-from django.core.cache import cache
-
 import pytest
+from django.core.cache import cache
 
 from core.apps.common.constants import CACHE_KEYS
 from core.apps.users.converters.users import user_to_entity

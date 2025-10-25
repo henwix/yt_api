@@ -2,9 +2,9 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from collections.abc import Iterable
 from dataclasses import dataclass
 from logging import Logger
-from typing import Iterable
 
 import orjson
 import stripe
@@ -28,8 +28,7 @@ from core.apps.payments.providers.stripe_provider import BaseStripeProvider
 @dataclass
 class BaseStripeEventValidatorService(ABC):
     @abstractmethod
-    def validate(self, event: stripe.Event) -> None:
-        ...
+    def validate(self, event: stripe.Event) -> None: ...
 
 
 class StripeEventValidatorService(BaseStripeEventValidatorService):
@@ -42,8 +41,7 @@ class StripeEventValidatorService(BaseStripeEventValidatorService):
 @dataclass
 class BaseCustomerIdValidatorService(ABC):
     @abstractmethod
-    def validate(self, customer_id: str) -> None:
-        ...
+    def validate(self, customer_id: str) -> None: ...
 
 
 class CustomerIdValidatorService(BaseCustomerIdValidatorService):
@@ -55,8 +53,7 @@ class CustomerIdValidatorService(BaseCustomerIdValidatorService):
 @dataclass
 class BaseStripeSubValidatorService(ABC):
     @abstractmethod
-    def validate(self, sub: dict | None) -> None:
-        ...
+    def validate(self, sub: dict | None) -> None: ...
 
 
 class StripeSubValidatorService(BaseStripeSubValidatorService):
@@ -72,48 +69,37 @@ class BaseStripeService(ABC):
     logger: Logger
 
     @abstractmethod
-    def save_customer_id(self, user_id: int, customer_id: str) -> bool:
-        ...
+    def save_customer_id(self, user_id: int, customer_id: str) -> bool: ...
 
     @abstractmethod
-    def save_sub_by_customer_id(self, customer_id: str, data: dict) -> bool:
-        ...
+    def save_sub_by_customer_id(self, customer_id: str, data: dict) -> bool: ...
 
     @abstractmethod
-    def update_customer_subscription_state(self, customer_id: str, sub: stripe.Subscription) -> bool:
-        ...
+    def update_customer_subscription_state(self, customer_id: str, sub: stripe.Subscription) -> bool: ...
 
     @abstractmethod
-    def create_checkout_session(self, customer_id: str, user_id: int, sub_tier: str) -> stripe.checkout.Session:
-        ...
+    def create_checkout_session(self, customer_id: str, user_id: int, sub_tier: str) -> stripe.checkout.Session: ...
 
     @abstractmethod
-    def create_customer(self, email: str, user_id: int) -> stripe.Customer:
-        ...
+    def create_customer(self, email: str, user_id: int) -> stripe.Customer: ...
 
     @abstractmethod
-    def get_sub_price_by_sub_tier(self, sub_tier: str) -> str:
-        ...
+    def get_sub_price_by_sub_tier(self, sub_tier: str) -> str: ...
 
     @abstractmethod
-    def get_sub_tier_by_sub_price(self, sub_price: str) -> str:
-        ...
+    def get_sub_tier_by_sub_price(self, sub_price: str) -> str: ...
 
     @abstractmethod
-    def get_customer_id(self, user_id: int) -> str | None:
-        ...
+    def get_customer_id(self, user_id: int) -> str | None: ...
 
     @abstractmethod
-    def get_sub_by_customer_id(self, customer_id: str | None) -> dict | None:
-        ...
+    def get_sub_by_customer_id(self, customer_id: str | None) -> dict | None: ...
 
     @abstractmethod
-    def get_subs_list_by_customer_id(self, customer_id: str) -> Iterable[stripe.Subscription]:
-        ...
+    def get_subs_list_by_customer_id(self, customer_id: str) -> Iterable[stripe.Subscription]: ...
 
     @abstractmethod
-    def construct_event(self, payload: bytes, signature: str) -> stripe.Event:
-        ...
+    def construct_event(self, payload: bytes, signature: str) -> stripe.Event: ...
 
 
 class StripeService(BaseStripeService):
@@ -152,7 +138,9 @@ class StripeService(BaseStripeService):
             'payment_method': {
                 'brand': sub.default_payment_method.card.brand,
                 'last4': sub.default_payment_method.card.last4,
-            } if sub.default_payment_method and isinstance(sub.default_payment_method, stripe.PaymentMethod) else None,
+            }
+            if sub.default_payment_method and isinstance(sub.default_payment_method, stripe.PaymentMethod)
+            else None,
         }
         self.logger.info(
             'Stripe Subscription state has been updated by customer_id',

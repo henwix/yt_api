@@ -1,19 +1,18 @@
 from logging import Logger
 
+import orjson
+import punq
+from drf_spectacular.utils import (
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import (
     generics,
     status,
     viewsets,
 )
 from rest_framework.response import Response
-
-import orjson
-import punq
-from drf_spectacular.utils import (
-    extend_schema,
-    extend_schema_view,
-    OpenApiResponse,
-)
 
 from core.api.v1.common.serializers.serializers import DetailOutSerializer
 from core.api.v1.reports.serializers import VideoReportSerializer

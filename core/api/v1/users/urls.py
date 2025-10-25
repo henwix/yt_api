@@ -19,7 +19,6 @@ from core.api.v1.users.views.user_views import (
 )
 from core.apps.users.routers import CustomUserRouter
 
-
 app_name = 'users'
 
 
@@ -29,16 +28,13 @@ user_router.register(r'users', UserView, basename='user')
 urlpatterns = [
     # Users endpoints
     path('auth/', include(user_router.urls)),
-
     # Login endpoints
     path('auth/login/', UserLoginView.as_view(), name='user_login'),
     path('auth/verify_code/', CodeVerifyView.as_view(), name='user_verify_code'),
-
     # JWT tokens endpoints
     path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
     path('token/verify/', CustomTokenVerifyView.as_view(), name='token_verify'),
-
     # Social auth endpoints
     path(
         'oauth2/convert_code/<str:provider>/',

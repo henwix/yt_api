@@ -8,8 +8,7 @@ from core.project.celery import app
 
 class BaseSenderProvider(ABC):
     @abstractmethod
-    def send_email(self, to: list[str], context: dict, subject: str, template: str) -> None:
-        ...
+    def send_email(self, to: list[str], context: dict, subject: str, template: str) -> None: ...
 
 
 class EmailSenderProvider(BaseSenderProvider):

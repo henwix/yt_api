@@ -8,7 +8,6 @@ from django.db.utils import (
     IntegrityError,
     settings,
 )
-
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.apps.users.converters.users import user_from_entity
@@ -25,8 +24,7 @@ from core.apps.users.repositories.users import BaseUserRepository
 
 class BaseUserValidatorService(ABC):
     @abstractmethod
-    def validate(self, user: UserEntity | None) -> None:
-        ...
+    def validate(self, user: UserEntity | None) -> None: ...
 
 
 class UserExistsValidatorService(BaseUserValidatorService):
@@ -37,8 +35,7 @@ class UserExistsValidatorService(BaseUserValidatorService):
 
 class BaseUserActivatedValidatorService(ABC):
     @abstractmethod
-    def validate(self, user: UserEntity) -> None:
-        ...
+    def validate(self, user: UserEntity) -> None: ...
 
 
 class UserActivatedValidatorService(BaseUserActivatedValidatorService):
@@ -52,8 +49,7 @@ class BaseUserActivationRequiredValidatorService(ABC):
     user_service: 'BaseUserService'
 
     @abstractmethod
-    def validate(self) -> None:
-        ...
+    def validate(self) -> None: ...
 
 
 class UserActivationRequiredValidatorService(BaseUserActivationRequiredValidatorService):
@@ -68,36 +64,28 @@ class BaseUserService(ABC):
     validator_service: BaseUserValidatorService
 
     @abstractmethod
-    def authenticate(self, login: str, password: str) -> UserEntity:
-        ...
+    def authenticate(self, login: str, password: str) -> UserEntity: ...
 
     @abstractmethod
-    def get_by_email_or_404(self, email: str) -> UserEntity:
-        ...
+    def get_by_email_or_404(self, email: str) -> UserEntity: ...
 
     @abstractmethod
-    def get_by_id_or_404(self, user_id: int) -> UserEntity:
-        ...
+    def get_by_id_or_404(self, user_id: int) -> UserEntity: ...
 
     @abstractmethod
-    def generate_jwt(self, user: UserEntity) -> dict:
-        ...
+    def generate_jwt(self, user: UserEntity) -> dict: ...
 
     @abstractmethod
-    def create_by_data(self, data: dict) -> CustomUser:
-        ...
+    def create_by_data(self, data: dict) -> CustomUser: ...
 
     @abstractmethod
-    def set_password(self, user: UserEntity, password: str) -> None:
-        ...
+    def set_password(self, user: UserEntity, password: str) -> None: ...
 
     @abstractmethod
-    def update_by_data(self, user: UserEntity, data: dict) -> bool:
-        ...
+    def update_by_data(self, user: UserEntity, data: dict) -> bool: ...
 
     @abstractmethod
-    def is_activation_required(self) -> bool:
-        ...
+    def is_activation_required(self) -> bool: ...
 
 
 class ORMUserService(BaseUserService):

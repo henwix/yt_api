@@ -1,6 +1,5 @@
-from rest_framework.test import APIClient
-
 import pytest
+from rest_framework.test import APIClient
 
 from core.apps.videos.models import (
     Video,

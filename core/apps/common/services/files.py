@@ -19,8 +19,7 @@ from core.apps.common.services.cache import BaseCacheService
 
 class BaseFileExistsInS3ValidatorService(ABC):
     @abstractmethod
-    def validate(self, key: str) -> None:
-        ...
+    def validate(self, key: str) -> None: ...
 
 
 @dataclass
@@ -36,8 +35,7 @@ class FileExistsInS3ValidatorService(BaseFileExistsInS3ValidatorService):
 
 class BaseMultipartUploadExistsInS3ValidatorService(ABC):
     @abstractmethod
-    def validate(self, key: str, upload_id: str) -> None:
-        ...
+    def validate(self, key: str, upload_id: str) -> None: ...
 
 
 @dataclass
@@ -58,16 +56,14 @@ class BaseS3FileService(ABC):
         self,
         filename: str,
         data_type: str,
-    ) -> tuple:
-        ...
+    ) -> tuple: ...
 
     @abstractmethod
     def abort_multipart_upload(
         self,
         key: str,
         upload_id: str,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @abstractmethod
     def generate_upload_part_url(
@@ -76,8 +72,7 @@ class BaseS3FileService(ABC):
         upload_id: str,
         part_number: int,
         expires_in: int,
-    ) -> str:
-        ...
+    ) -> str: ...
 
     @abstractmethod
     def generate_download_url(
@@ -85,8 +80,7 @@ class BaseS3FileService(ABC):
         key: str,
         expires_in: int,
         cache_key: str,
-    ) -> str:
-        ...
+    ) -> str: ...
 
     @abstractmethod
     def complete_multipart_upload(
@@ -94,16 +88,14 @@ class BaseS3FileService(ABC):
         key: str,
         upload_id: str,
         parts: list,
-    ) -> dict:
-        ...
+    ) -> dict: ...
 
     @abstractmethod
     def delete_object_by_key(
         self,
         key: str,
         cache_key: str | None = None,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @abstractmethod
     def generate_upload_url(
@@ -111,8 +103,7 @@ class BaseS3FileService(ABC):
         filename: str,
         expires_in: int,
         data_type: str,
-    ) -> tuple:
-        ...
+    ) -> tuple: ...
 
 
 @dataclass

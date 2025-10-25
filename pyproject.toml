@@ -56,49 +56,30 @@ DJANGO_SETTINGS_MODULE = "core.project.settings.dev"
 python_files = ["test_*.py", "*_test.py", "testing/python/*.py"]
 
 
-[tool.isort]
-multi_line_output=3
-include_trailing_comma=true
-line_length=120
-lines_after_imports=2
-lines_between_sections=1
-lines_between_types=0
-force_alphabetical_sort_within_sections=true
-ensure_newline_before_comments=true
-combine_as_imports=true
-combine_star=true
-skip_gitignore=true
-balanced_wrapping=true
-force_grid_wrap=2
-src_paths=["core", ]
-skip_glob=[
-    ".git",
-    ".idea",
-    ".vscode",
-    "venv",
-    ".venv",
-    ".pytest_cache",
-]
-known_django=["django","rest_framework"]
-known_first_party=["core"]
-sections=[
-    "FUTURE",
-    "STDLIB",
-    "DJANGO",
-    "THIRDPARTY",
-    "FIRSTPARTY",
-    "LOCALFOLDER",
-]
-
-
 [tool.ruff]
 line-length = 120
 
 [tool.ruff.lint]
-ignore = ["A003", "A002", "E704", "E800"]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = ["A003", "A002", "B904"]
+
+[tool.ruff.lint.pyupgrade]
+# Preserve types, even if a file imports `from __future__ import annotations`.
+keep-runtime-typing = true
+
+[tool.ruff.lint.isort]
+known-third-party = ["django", "rest_framework"]
 
 [tool.ruff.format]
 quote-style = "single"
 indent-style = "space"
 skip-magic-trailing-comma = false
-
+docstring-code-format = true

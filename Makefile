@@ -102,13 +102,9 @@ certbot-create-p:
 certbot-renew-p:
 	${DC} -f ${CERTBOT_RENEW_FILE} run --rm certbot
 
-.PHONY: build-p
-build-p:
-	${DC} -f ${APP_PROD_FILE} build
-
 .PHONY: app-p
 app-p:
-	${DC} -f ${APP_PROD_FILE} ${ENV} up -d
+	${DC} -f ${APP_PROD_FILE} ${ENV} up --build -d
 
 .PHONY: app-down-p
 app-down-p:

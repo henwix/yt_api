@@ -233,8 +233,8 @@ LOGGING = {
         },
         'logger': {
             'format': (
-                '[%(asctime)s] [%(levelname)s] [%(module)s] [%(process)d] [%(thread)d] \
-                %(message)s \nlog_meta:%(log_meta)s'
+                '[%(asctime)s] [%(levelname)s] [%(module)s] [%(process)d] '
+                '[%(thread)d] %(message)s \nlog_meta:%(log_meta)s'
             ),
         },
     },

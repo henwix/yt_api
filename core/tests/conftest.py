@@ -35,9 +35,15 @@ User = get_user_model()
 
 
 @pytest.fixture(autouse=True)
-def clear_cache():
-    """Clear the cache before each test to avoid unpredictable caching
+def change_redis_database_number_and_clear_cache(settings: SettingsWrapper):
+    """Change Redis database number and clear the cache before each test to avoid unpredictable caching
     behavior."""
+    settings.CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': 'redis://redis:6379/8',
+        },
+    }
     cache.clear()
 
 

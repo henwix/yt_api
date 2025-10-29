@@ -4,6 +4,7 @@ import orjson
 import punq
 import stripe
 from django.core.cache import cache
+from django.db.utils import settings
 from django.views.decorators.csrf import csrf_exempt
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
@@ -29,6 +30,17 @@ def stripe_sub_state(request):
     user_id = request.user.pk
     customer_id = cache.get(f'stripe:user:{user_id}')
     sub_data = cache.get(f'stripe:customer:{customer_id}')
+    if customer_id:
+        cached_value = cache.get(f'portal:{customer_id}')
+        if cached_value:
+            sub_data['customer_portal'] = cached_value
+        else:
+            session = stripe.billing_portal.Session.create(
+                api_key=settings.STRIPE_SECRET_KEY,
+                customer=customer_id,
+            )
+            sub_data['customer_portal'] = session.url
+            cache.set(f'portal:{customer_id}', session.url, 60 * 1)
     return Response(data=sub_data)
 
 

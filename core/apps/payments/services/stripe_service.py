@@ -121,7 +121,7 @@ class StripeService(BaseStripeService):
         saved = self.cache_service.set(key=sub_data_cache_key, data=data)
         self.logger.info(
             'Stripe sub data saved by customer_id',
-            extra={'log_meta': orjson.dumps({'customer_id': customer_id}).decode()},
+            extra={'log_meta': orjson.dumps({'customer_id': customer_id, 'data': data}).decode()},
         )
         return saved
 

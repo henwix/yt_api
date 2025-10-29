@@ -3,7 +3,10 @@ YT_API is a video sharing platform API created as a pet project.
 
 <br />
 
-# Shortcuts
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/194ca13b-0009-4082-a5b2-fb097b052992" />
+
+
+## Shortcuts
 
 * [Project technology stack and Features](#project-technology-stack-and-features)
 * [Requirements](#requirements)
@@ -12,23 +15,24 @@ YT_API is a video sharing platform API created as a pet project.
 * [Production deployment *with Grafana Monitoring*](#production-deployment-with-grafana-monitoring)
 * [Production deployment *without Grafana Monitoring*](#production-deployment-without-grafana-monitoring)
 * [Production tips and tricks](#production-tips-and-tricks)
-* [Development implemented commands](#development-implemented-commands)
-* [Production implemented commands](#production-implemented-commands)
+* [Development commands](#development-commands)
+* [Production commands](#production-commands)
 * [Most used Django specific commands](#most-used-django-specific-commands)
 * [Environment variables description](#environment-variables-description-for-env-file)
 
 <br />
 
-# Project technology stack and Features
+## Project technology stack and Features
 
 * 🐍 [Django](https://www.djangoproject.com/) and [Django Rest Framework](https://www.django-rest-framework.org/) for backend and API.
-* 📜 [drf-spectacular](https://drf-spectacular.readthedocs.io/en/latest/readme.html) for API documentation
-* 💾 [PostgreSQL](https://www.postgresql.org/) &ndash; SQL database.
+* 📜 [drf-spectacular](https://drf-spectacular.readthedocs.io/en/latest/readme.html) for API documentation.
+* 🐘 [PostgreSQL](https://www.postgresql.org/) &ndash; SQL database.
 * 🚀 [Redis](https://redis.io/) for caching.
 * 📝 [Celery](https://github.com/celery/celery) and [Celery Beat](https://github.com/celery/django-celery-beat) for task queuing and scheduling.
 * 🖧 [Nginx](https://nginx.org/en/) &ndash; web and proxy server.
-* 🐋 [Docker Compose](https://www.docker.com/) for development and production.
+* 🐳 [Docker Compose](https://www.docker.com/) for development and production.
 * ☁️ [AWS S3](https://aws.amazon.com/s3/) && [CloudFront](https://aws.amazon.com/cloudfront/) &ndash; cloud storage service and CDN.
+* 💸 [Stripe](https://stripe.com/) for payments.
 * 🤖 [Certbot](https://certbot.eff.org/) for SSL certificates.
 * ✅ [Pytest](https://docs.pytest.org/en/stable/) for testing.
 * 📫 Email based password and username recovery.
@@ -39,16 +43,16 @@ YT_API is a video sharing platform API created as a pet project.
 
 <br />
 
-# Getting started
+## Getting started
 
-## Requirements
+### Requirements
 
 - [Docker](https://www.docker.com/get-started)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 - [GNU Make](https://www.gnu.org/software/make/)
 
 
-## Clone the repository
+### Clone the repository
 
 1. **Clone the repository:**
 
@@ -59,14 +63,16 @@ YT_API is a video sharing platform API created as a pet project.
 
 2. **Install all required packages in [Requirements](#requirements) section.**
 
-## Development deployment
+### Development deployment
 
 1. Copy `.env.example` to `.env`
 2. Make sure you set values for the variables in `.env`:
     * *DJANGO_SETTINGS_FILE* &ndash; to `dev`
-    * *SMTP variables block* &ndash; to make SMTP work
-    * *OAuth2 vars block* &ndash; to make OAuth2 work
-    * *Google reCAPTCHA vars block* &ndash; to make Google reCAPTCHA work
+    * *SMTP vars block* &ndash; to make SMTP work (not required for development)
+    * *OAuth2 vars block* &ndash; to make OAuth2 work (not required for development)
+    * *Google reCAPTCHA vars block* &ndash; to make Google reCAPTCHA work (not required for development)
+    * *AWS S3 vars block* &ndash; to make files uploading and S3 bucket work (not required for development)
+    * *Stripe vars block* &ndash; to make payments work (not required for development)
 3. Run `make app`
 4. Wait until all containers are up:
 ```
@@ -84,7 +90,7 @@ yt-postgres-dev      5432/tcp                                  Up ## seconds (he
 * http://localhost/redoc/
 
 
-## Production deployment *with Grafana Monitoring*
+### Production deployment *with Grafana Monitoring*
 
 1. Run `make certbot-create-p` to create SSL certificates using Certbot.
     * Make sure you set the `CERTBOT_DOMAINS` variable in `.env` file before you run Certbot
@@ -99,9 +105,11 @@ yt-postgres-dev      5432/tcp                                  Up ## seconds (he
     * *CERTBOT_DOMAINS* &ndash; to your list of domains
     * *ADMIN_IPV4* and *ADMIN_IPV6* &ndash; to your IP addresses to get access for private endpoints and domains
     * *Application domains block* &ndash; to make Nginx work
-    * *SMTP variables block* &ndash; to make SMTP work
+    * *SMTP vars block* &ndash; to make SMTP work
     * *OAuth2 vars block* &ndash; to make OAuth2 work
     * *Google reCAPTCHA vars block* &ndash; to make Google reCAPTCHA work
+    * *AWS S3 vars block* &ndash; to make files uploading and S3 bucket work
+    * *Stripe vars block* &ndash; to make payments work
 4. Run `make app-monitoring-p`
 5.  Wait until all containers are up:
 ```
@@ -128,7 +136,7 @@ loki-prod                 3100/tcp                                              
 * https://YOUR_GRAFANA_DOMAIN/ - Grafana monitoring
 
 
-## Production deployment *without Grafana Monitoring*
+### Production deployment *without Grafana Monitoring*
 
 1. Run `make certbot-create-p` to create SSL certificates using Certbot.
     * Make sure you set the `CERTBOT_DOMAINS` variable in `.env` file before you run Certbot
@@ -137,15 +145,17 @@ loki-prod                 3100/tcp                                              
 2. Copy `.env.example` to `.env`
 3. Change the default values for the variables in `.env`:
     * *NGINX_CONFIG_NAME* &ndash; to `nginx.conf`
-    * *SECRET_KEY* &ndash; to a random, secret string
+    * *SECRET_KEY* &ndash; set to a random, secret string
     * *DJANGO_SETTINGS_FILE* &ndash; to `prod`
     * *CERTBOT_EMAIL* &ndash; to your email for Certbot
     * *CERTBOT_DOMAINS* &ndash; to your list of domains
     * *ADMIN_IPV4* and *ADMIN_IPV6* &ndash; to your IP addresses to get access for private endpoints and domains
     * *Application domains block* &ndash; to make Nginx work
-    * *SMTP variables block* &ndash; to make SMTP work
+    * *SMTP vars block* &ndash; to make SMTP work
     * *OAuth2 vars block* &ndash; to make OAuth2 work
     * *Google reCAPTCHA vars block* &ndash; to make Google reCAPTCHA work
+    * *AWS S3 vars block* &ndash; to make files uploading and S3 bucket work
+    * *Stripe vars block* &ndash; to make payments work
 4. Run `make app-p`
 5.  Wait until all containers are up:
 ```
@@ -167,7 +177,7 @@ yt-redis-prod             6379/tcp                                              
 * https://YOUR_API_DOMAIN/redoc/ - Redoc documentation
 
 
-## Production tips and tricks
+### Production tips and tricks
 
 * Use regular (not self signed) SSL certificates
 * Do not use default credentials or database settings in production
@@ -176,9 +186,9 @@ yt-redis-prod             6379/tcp                                              
 
 <br />
 
-# Application console commands
+## Application console commands
 
-## Development implemented commands
+### Development commands
 
 * `make build` - build application images
 * `make app` - up application and database/infrastructure
@@ -193,7 +203,15 @@ yt-redis-prod             6379/tcp                                              
 * `make test` - run application tests
 
 
-## Production implemented commands
+### Production commands
+
+* `make app-p` - build images and up production application
+* `make app-down-p` - down production application
+* `make app-restart-p` - restart production application
+* `make nginx-logs-p` - follow the logs in nginx container
+* `make superuser-p` - create an admin user in production
+
+---
 
 * `make app-monitoring-p` - build images and up production application with Grafana Monitoring
 * `make app-monitoring-down-p` - down production application and Grafana Monitoring
@@ -204,20 +222,11 @@ yt-redis-prod             6379/tcp                                              
 
 ---
 
-* `make build-p` - build production application images
-* `make app-p` - up production application
-* `make app-down-p` - down production application
-* `make app-restart-p` - restart production application
-* `make nginx-logs-p` - follow the logs in nginx container
-* `make superuser-p` - create an admin user in production
-
----
-
 * `make certbot-create-p` - run certbot to create a new TLS/SSL certificates
 * `make certbot-renew-p` - run certbot to renew existing TLS/SSL certificates
 
 
-## Most used Django specific commands
+### Most used Django specific commands
 
 * `make makemigrations` - make migrations to models the Django models
 * `make migrate` - apply all created migrations
@@ -227,60 +236,83 @@ yt-redis-prod             6379/tcp                                              
 
 <br />
 
-# Environment variables description for `.env` file
+## Environment variables description for `.env` file
 
+#### ⚙️ Django
+* `SECRET_KEY`: (default: `"12345"`) The Django secret key for cryptographic signing and security. Can be generated using `openssl rand -hex 50`. [Docs](https://docs.djangoproject.com/en/stable/ref/settings/#secret-key). *Environment — DEV, PROD*
+* `DJANGO_SETTINGS_FILE`: (default: `"dev"`) Specifies which Django settings file to use (`dev` or `prod`). Controls Django settings and environment-specific behavior. *Environment — DEV, PROD*
+* `DJANGO_ADMIN_PATH`: (default: `"admin"`) The URL path for the Django admin panel. Usually `admin`, but can be changed for better security. *Environment — DEV, PROD*
+* `LOGGING_LEVEL`: (default: `"INFO"`) Logging level for Django (`DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`). *Environment — DEV, PROD*
 
-| Name                                        | Description                                                              | Notes                                                                                                          | Environment |
-| ------------------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- | ----------- |
-| `SECRET_KEY`                                | Django secret key for security                                           | Generate random string. Example: `openssl rand -hex 50`                                                        | DEV, PROD   |
-| `DJANGO_SETTINGS_FILE`                      | Specifies which settings file to use                                     | Controls application settings. Choose between `dev` and `prod`                                                 | DEV, PROD   |
-| `DJANGO_ADMIN_PATH`                         | URL path for Django admin panel                                          | Usually `admin`, can be changed for security                                                                   | DEV, PROD   |
-| `DJANGO_PORT`                               | The port number on your host machine where you want to access Django     | Default 80. Used in `http://127.0.0.1:DJANGO_PORT/swagger/` or `http://localhost:DJANGO_PORT/swagger/`         | DEV         |
-| `POSTGRES_PORT`                             | The port number on your host machine where you want to access PostgreSQL | Default 5432                                                                                                   | DEV         |
-| `REDIS_PORT`                                | The port number on your host machine where you want to access Redis      | Default 6379                                                                                                   | DEV         |
-| `FLOWER_PORT`                               | The port number on your host machine where you want to access Flower     | Default 5555, can be changed                                                                                   | DEV         |
-| `FLOWER_USERNAME`                           | Flower login                                                             | Set manually                                                                                                   | DEV, PROD   |
-| `FLOWER_PASSWORD`                           | Flower password                                                          | Set manually                                                                                                   | DEV, PROD   |
-| `PGBOUNCER_HOST`                            | Host for pgbouncer (connection pooler)                                   | Usually container name in docker-compose. Example: `pgbouncer`                                                 | PROD        |
-| `POSTGRES_HOST`                             | PostgreSQL host                                                          | Usually container name in docker-compose. Example: `postgres`                                                  | DEV, PROD   |
-| `POSTGRES_DB`                               | Database name                                                            | Examples: `postgres`, `yt_api`, etc.                                                                           | DEV, PROD   |
-| `POSTGRES_USER`                             | Database user                                                            | Usually `postgres`                                                                                             | DEV, PROD   |
-| `POSTGRES_PASSWORD`                         | Database user password                                                   | Define your own                                                                                                | DEV, PROD   |
-| `AWS_ACCESS_KEY_ID`                         | AWS user access key                                                      | Created in AWS IAM                                                                                             | DEV, PROD   |
-| `AWS_SECRET_ACCESS_KEY`                     | AWS user secret key                                                      | Created in AWS IAM                                                                                             | DEV, PROD   |
-| `AWS_STORAGE_BUCKET_NAME`                   | Name of S3 bucket for storage                                            | Created in AWS S3                                                                                              | DEV, PROD   |
-| `AWS_S3_REGION_NAME`                        | S3 region                                                                | Example: `us-east-1`, `eu-central-1`                                                                           | DEV, PROD   |
-| `AWS_S3_VIDEO_BUCKET_PREFIX`                | Prefix for storing videos                                                | Example: `videos/`                                                                                             | DEV, PROD   |
-| `AWS_S3_AVATAR_BUCKET_PREFIX`               | Prefix for storing avatars                                               | Example: `channel_avatars/`                                                                                    | DEV, PROD   |
-| `AWS_CLOUDFRONT_DOMAIN` | AWS Cloudfront distribution domain | Provided by Cloudfront after distribution creating or can be changed to your custom domain in distribution settings. Example: `1234567890abc.cloudfront.net` | DEV, PROD
-| `AWS_CLOUDFRONT_KEY_ID` | ID of the public RSA key that is linked to your distribution | Obtained in `Cloudfront -> Public keys` and used in presigned URLs to download files. Example: `Z1HBS4DGY52SSS` | DEV, PROD
-| `AWS_CLOUDFRONT_KEY` | Private part of the RSA key that is linked to your distribution | Used in presigned URLs to download files. Example: `-----BEGIN RSA PRIVATE KEY----- GQBoFgGO/QAYlIqR.... -----END RSA PRIVATE KEY-----` | DEV, PROD
-| `EMAIL_HOST_USER`                           | SMTP user                                                                | Provided by mail delivery service (Mailgun, Gmail, Sendgrid, etc.)                                             | DEV, PROD   |
-| `EMAIL_HOST_PASSWORD`                       | SMTP password                                                            | Provided by mail delivery service (Mailgun, Gmail, Sendgrid, etc.)                                             | DEV, PROD   |
-| `DEFAULT_FROM_EMAIL`                        | Default email sender                                                     | Depends on your domain or email registered in mail delivery service. Example: `"YT_API <noreply@example.com>"` | DEV, PROD   |
-| `EMAIL_FRONTEND_PROTOCOL` | HTTP protocol that will be used to build links to the frontend in emails | Choose between `http` or `https` | DEV, PROD
-| `EMAIL_FRONTEND_DOMAIN` | Domain that will be used to build links to the frontend in emails | Set manually | DEV, PROD
-| `EMAIL_FRONTEND_PASSWORD_RESET_URI` | URI that will be used to build links to the frontend in password reset emails  | Example: `/auth/password_reset_confirm/` | DEV, PROD
-| `EMAIL_FRONTEND_USERNAME_RESET_URI` | URI that will be used to build links to the frontend in username reset emails  | Example: `/auth/username_reset_confirm/` | DEV, PROD
-| `EMAIL_FRONTEND_ACTIVATE_URI` | URI that will be used to build links to the frontend in user activation emails  | Example: `/auth/activate/` | DEV, PROD
-| `AUTH_SEND_ACTIVATION_EMAIL`                | Determines whether an email should be sent when a user is created        | If True, then after registration the user will remain inactive until he/she activates the account via an email with a code. Set `True` to start sending activation emails.   | DEV, PROD
-| `CERTBOT_EMAIL`                             | Email for Certbot registration                                           | Used for certificate expiry notifications                                                                      | PROD        |
-| `CERTBOT_DOMAINS`                             | List of domains for which you want to create certificates                                           | Each domain in the list must have the -d flag. Example: `-d first.example.domain -d second.example.domain`                                                                      | PROD        |
-| `API_DOMAIN`                                | Domain for API                                                           | Example: `api.example.com`                                                                                     | PROD        |
-| `FLOWER_DOMAIN`                             | Domain for Flower                                                        | Example: `flower.example.com`                                                                                  | PROD        |
-| `GRAFANA_DOMAIN`                            | Domain for Grafana                                                       | Example: `grafana.example.com`                                                                                 | PROD        |
-| `ADMIN_DOMAIN`                              | Domain for Django admin                                                  | Example: `admin.example.com`                                                                                   | PROD        |
-| `ADMIN_IPV4`                                | IPv4 addresses for access to private endpoints                           | Set your own IP                                                                                                | PROD        |
-| `ADMIN_IPV6`                                | IPv6 addresses for access to private endpoints                           | Set your own IP                                                                                                | PROD        |
-| `GRAFANA_ADMIN_USER`                        | Grafana administrator login                                              | Usually `admin`                                                                                                | PROD        |
-| `GRAFANA_ADMIN_PASSWORD`                    | Grafana administrator password                                           | Define your own                                                                                                | PROD        |
-| `NGINX_CONFIG_NAME`                         | Name of Nginx configuration file                                         | Choose between `nginx.conf` or `nginx.monitoring.conf`                                                         | PROD        |
-| `SOCIAL_AUTH_GITHUB_KEY`                    | GitHub OAuth2 key                                                        | Obtained in GitHub OAuth settings                                                                              | DEV, PROD   |
-| `SOCIAL_AUTH_GITHUB_SECRET`                 | GitHub OAuth2 secret                                                     | Obtained in GitHub OAuth settings                                                                              | DEV, PROD   |
-| `SOCIAL_AUTH_GOOGLE_OAUTH2_KEY`             | Google OAuth2 key                                                        | Obtained in Google Cloud Console                                                                               | DEV, PROD   |
-| `SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET`          | Google OAuth2 secret                                                     | Obtained in Google Cloud Console                                                                               | DEV, PROD   |
-| `SOCIAL_AUTH_TWITTER_OAUTH2_KEY`            | Twitter OAuth2 key                                                       | Obtained in Twitter Developer Portal                                                                           | DEV, PROD   |
-| `SOCIAL_AUTH_TWITTER_OAUTH2_SECRET`         | Twitter OAuth2 secret                                                    | Obtained in Twitter Developer Portal                                                                           | DEV, PROD   |
-| `V3_GOOGLE_RECAPTCHA_PRIVATE_KEY`           | Google reCAPTCHA v3 private key                                          | Obtained in Google reCAPTCHA admin console                                                                     | DEV, PROD   |
-| `V2_VISIBLE_GOOGLE_RECAPTCHA_PRIVATE_KEY`   | Google reCAPTCHA v2 (visible) private key                                | Obtained in Google reCAPTCHA admin console                                                                     | DEV, PROD   |
-| `V2_INVISIBLE_GOOGLE_RECAPTCHA_PRIVATE_KEY` | Google reCAPTCHA v2 (invisible) private key                              | Obtained in Google reCAPTCHA admin console                                                                     | DEV, PROD   |
+#### 🐳 Docker Ports
+* `DJANGO_PORT`: (default: `"80"`) The port on your host where Django is accessible. *Environment — DEV*
+* `POSTGRES_PORT`: (default: `"5432"`) The port on your host for PostgreSQL. *Environment — DEV*
+* `REDIS_PORT`: (default: `"6379"`) The port on your host for Redis. *Environment — DEV*
+* `FLOWER_PORT`: (default: `"5656"`) The port on your host for Flower. *Environment — DEV*
+
+#### 🌼 Flower
+* `FLOWER_USERNAME`: (default: `"admin"`) Username for Flower monitoring dashboard. Used for basic HTTP authentication. *Environment — DEV, PROD*
+* `FLOWER_PASSWORD`: (default: `"password"`) Password for Flower monitoring dashboard. Set manually for better security. *Environment — DEV, PROD*
+
+#### 🐘 PostgreSQL & PgBouncer
+* `PGBOUNCER_HOST`: (default: `"pgbouncer"`) Host for PgBouncer connection pooler. *Environment — PROD*
+* `POSTGRES_HOST`: (default: `"postgres"`) Host for PostgreSQL. *Environment — DEV, PROD*
+* `POSTGRES_DB`: (default: `"postgres"`) Name of the PostgreSQL database. *Environment — DEV, PROD*
+* `POSTGRES_USER`: (default: `"postgres"`) Username for PostgreSQL. *Environment — DEV, PROD*
+* `POSTGRES_PASSWORD`: (default: `"postgres"`) Password for PostgreSQL user. Set manually for better security. *Environment — DEV, PROD*
+
+#### ☁️ AWS
+* `AWS_ACCESS_KEY_ID`: (default: `""`) AWS IAM user access key. Created in AWS IAM. [Docs](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users.html). *Environment — DEV, PROD*
+* `AWS_SECRET_ACCESS_KEY`: (default: `""`) AWS IAM user secret key. Created in AWS IAM. *Environment — DEV, PROD*
+* `AWS_STORAGE_BUCKET_NAME`: (default: `""`) AWS S3 bucket name for file storage. [Docs](https://docs.aws.amazon.com/AmazonS3/latest/userguide/creating-bucket.html). *Environment — DEV, PROD*
+* `AWS_S3_REGION_NAME`: (default: `""`) AWS S3 bucket region (e.g., `eu-central-1`). *Environment — DEV, PROD*
+* `AWS_S3_VIDEO_BUCKET_PREFIX`: (default: `"videos/"`) Prefix for storing uploaded videos. *Environment — DEV, PROD*
+* `AWS_S3_AVATAR_BUCKET_PREFIX`: (default: `"channel_avatars/"`) Prefix for storing avatars. *Environment — DEV, PROD*
+* `AWS_CLOUDFRONT_DOMAIN`: (default: `""`) AWS CloudFront distribution domain (e.g., `1234567890abc.cloudfront.net`). *Environment — DEV, PROD*
+* `AWS_CLOUDFRONT_KEY_ID`: (default: `""`) ID of the public RSA key linked to the CloudFront distribution. *Environment — DEV, PROD*
+* `AWS_CLOUDFRONT_KEY`: (default: `""`) Private RSA key for CloudFront presigned URLs. *Environment — DEV, PROD*
+
+#### 📫 SMTP & Email
+* `EMAIL_HOST_USER`: (default: `""`) SMTP user (Mailgun, Gmail, Sendgrid, etc.). *Environment — DEV, PROD*
+* `EMAIL_HOST_PASSWORD`: (default: `""`) SMTP password. *Environment — DEV, PROD*
+* `DEFAULT_FROM_EMAIL`: (default: `"example <noreply@example.com>"`) Default email sender (e.g., `"YT_API <noreply@example.com>"`). *Environment — DEV, PROD*
+* `EMAIL_FRONTEND_PROTOCOL`: (default: `"http"`) Protocol in links inside emails (`http` or `https`). *Environment — DEV, PROD*
+* `EMAIL_FRONTEND_DOMAIN`: (default: `"example.com"`) Domain used to build frontend URLs in emails. *Environment — DEV, PROD*
+* `EMAIL_FRONTEND_PASSWORD_RESET_URI`: (default: `"/auth/password_reset_confirm/"`) URI for password reset. *Environment — DEV, PROD*
+* `EMAIL_FRONTEND_USERNAME_RESET_URI`: (default: `"/auth/username_reset_confirm/"`) URI for username reset. *Environment — DEV, PROD*
+* `EMAIL_FRONTEND_ACTIVATE_URI`: (default: `"/auth/activate/"`) URI for account activation. *Environment — DEV, PROD*
+* `AUTH_SEND_ACTIVATION_EMAIL`: (default: `"False"`) Whether to send activation emails (`True` keeps users inactive and sends an email). *Environment — DEV, PROD*
+
+#### 🔐 SSL & Domains
+* `CERTBOT_EMAIL`: (default: `""`) Email used for Certbot SSL registration and notifications. [Docs](https://certbot.eff.org/). *Environment — PROD*
+* `CERTBOT_DOMAINS`: (default: `""`) Domains for SSL certificate creation (e.g., `-d api.example.com -d admin.example.com`). *Environment — PROD*
+* `API_DOMAIN`: (default: `""`) Domain for API (e.g., `api.example.com`). *Environment — PROD*
+* `FLOWER_DOMAIN`: (default: `""`) Domain for Flower (e.g., `flower.example.com`). *Environment — PROD*
+* `GRAFANA_DOMAIN`: (default: `""`) Domain for Grafana (e.g., `grafana.example.com`). *Environment — PROD*
+* `ADMIN_DOMAIN`: (default: `""`) Domain for Django admin (e.g., `admin.example.com`). *Environment — PROD*
+* `ADMIN_IPV4`: (default: `""`) Whitelisted IPv4 addresses for private admin endpoints. *Environment — PROD*
+* `ADMIN_IPV6`: (default: `""`) Whitelisted IPv6 addresses for private admin endpoints. *Environment — PROD*
+* `GRAFANA_ADMIN_USER`: (default: `"admin"`) Grafana admin username. *Environment — PROD*
+* `GRAFANA_ADMIN_PASSWORD`: (default: `"password"`) Grafana admin password. *Environment — PROD*
+* `NGINX_CONFIG_NAME`: (default: `"nginx.conf"`) Name of Nginx config file (`nginx.conf` or `nginx.monitoring.conf`). *Environment — PROD*
+
+#### 🌐 OAuth2
+* `SOCIAL_AUTH_GITHUB_KEY`: (default: `""`) GitHub OAuth2 client key. [Docs](https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app). *Environment — DEV, PROD*
+* `SOCIAL_AUTH_GITHUB_SECRET`: (default: `""`) GitHub OAuth2 client secret. *Environment — DEV, PROD*
+* `SOCIAL_AUTH_GOOGLE_OAUTH2_KEY`: (default: `""`) Google OAuth2 client key. [Docs](https://developers.google.com/identity/protocols/oauth2). *Environment — DEV, PROD*
+* `SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET`: (default: `""`) Google OAuth2 client secret. *Environment — DEV, PROD*
+* `SOCIAL_AUTH_TWITTER_OAUTH2_KEY`: (default: `""`) Twitter OAuth2 key. [Docs](https://docs.x.com/fundamentals/developer-apps). *Environment — DEV, PROD*
+* `SOCIAL_AUTH_TWITTER_OAUTH2_SECRET`: (default: `""`) Twitter OAuth2 secret. *Environment — DEV, PROD*
+
+#### 🧩 reCAPTCHA
+* `CAPTCHA_VALIDATION_ENABLED`: (default: `"True"`) Enables or disables CAPTCHA validation (`True` or `False`). Useful for disabling CAPTCHA in local/dev environments. *Environment — DEV, PROD*
+* `V3_GOOGLE_RECAPTCHA_PRIVATE_KEY`: (default: `""`) Google reCAPTCHA v3 secret key. [Docs](https://developers.google.com/recaptcha/docs/v3). *Environment — DEV, PROD*
+* `V2_VISIBLE_GOOGLE_RECAPTCHA_PRIVATE_KEY`: (default: `""`) Google reCAPTCHA v2 visible secret key. [Docs](https://developers.google.com/recaptcha/docs/v2) *Environment — DEV, PROD*
+* `V2_INVISIBLE_GOOGLE_RECAPTCHA_PRIVATE_KEY`: (default: `""`) Google reCAPTCHA v2 invisible secret key. [Docs](https://developers.google.com/recaptcha/docs/v2) *Environment — DEV, PROD*
+
+#### 💸 Stripe
+* `STRIPE_SECRET_KEY`: (default: `""`) Secret API key for Stripe used to perform secure operations like creating customers, subscriptions, or webhooks. Obtain from Stripe Dashboard → Developers → API keys. [Docs](https://stripe.com/docs/keys). *Environment — DEV, PROD*
+* `STRIPE_PUBLISHABLE_KEY`: (default: `""`) Public API key for Stripe used on the frontend to initialize payments. Obtain from Stripe Dashboard → Developers → API keys. *Environment — DEV, PROD*
+* `STRIPE_WEBHOOK_KEY`: (default: `""`) Signing secret used to verify incoming Stripe webhook events for authenticity. Obtain from Stripe Dashboard → Developers → Webhooks. *Environment — DEV, PROD*
+* `STRIPE_SUB_PRICE_PRO`: (default: `""`) ID of the Stripe Price object for the “Pro” subscription tier. Obtain from Stripe Dashboard → Products → Pricing. *Environment — DEV, PROD*
+* `STRIPE_SUB_PRICE_PREMIUM`: (default: `""`) ID of the Stripe Price object for the “Premium” subscription tier. Obtain from Stripe Dashboard → Products → Pricing. *Environment — DEV, PROD*

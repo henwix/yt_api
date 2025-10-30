@@ -85,7 +85,12 @@ yt-celery-beat-dev   8000/tcp                                  Up ## seconds
 yt-redis-dev         6379/tcp                                  Up ## seconds (healthy)
 yt-postgres-dev      5432/tcp                                  Up ## seconds (healthy)
 ```
-5. Open documentation URL (not HTTPS!):
+5. Create database migrations and apply them:
+```
+$ make makemigrations
+$ make migrate
+```
+6. Open documentation URL (not HTTPS!):
 * http://localhost/swagger/
 * http://localhost/redoc/
 

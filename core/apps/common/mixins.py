@@ -50,7 +50,7 @@ class CustomViewMixin(generics.GenericAPIView):
         response = self.mixin_filtration_and_pagination(queryset=queryset)
 
         #  Cache the serialized response data
-        self.cache_service.cache_data(cache_key, response.data, timeout)
+        self.cache_service.set(cache_key, response.data, timeout)
 
         #  Return the response
         return response

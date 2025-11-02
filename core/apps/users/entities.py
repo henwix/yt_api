@@ -1,6 +1,5 @@
 from dataclasses import (
     dataclass,
-    field,
 )
 from datetime import datetime
 
@@ -15,9 +14,15 @@ class UserEntity:
     is_superuser: bool
     is_active: bool
     date_joined: datetime
-    is_anonymous: bool = field(default=False, kw_only=True)
+    is_anonymous: bool = False
 
 
 @dataclass
 class AnonymousUserEntity:
-    is_anonymous: bool = field(default=True, kw_only=True)
+    id: None = None
+    pk: None = None
+    username: str = ''
+    is_staff: bool = False
+    is_superuser: bool = False
+    is_active: bool = False
+    is_anonymous: bool = False

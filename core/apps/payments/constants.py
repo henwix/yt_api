@@ -1,5 +1,7 @@
 from django.db.utils import settings
 
+from core.apps.payments.enums import StripeSubscriptionPaidTiersEnum
+
 STRIPE_ALLOWED_EVENTS = [
     'checkout.session.completed',
     'customer.subscription.created',
@@ -12,7 +14,7 @@ STRIPE_ALLOWED_EVENTS = [
     'payment_intent.canceled',
 ]
 
-STRIPE_SUBSCRIPTION_TIERS = {
-    'pro': settings.STRIPE_SUB_PRICE_PRO,
-    'premium': settings.STRIPE_SUB_PRICE_PREMIUM,
+STRIPE_SUBSCRIPTION_TIER_PRICES = {
+    StripeSubscriptionPaidTiersEnum.PRO: settings.STRIPE_SUB_PRICE_PRO,
+    StripeSubscriptionPaidTiersEnum.PREMIUM: settings.STRIPE_SUB_PRICE_PREMIUM,
 }

@@ -26,6 +26,9 @@ class BasePostRepository(ABC):
     def get_post_by_id(self, post_id: str) -> PostEntity | None: ...
 
     @abstractmethod
+    def get_posts_count_by_user_id(self, user_id: int) -> int: ...
+
+    @abstractmethod
     def like_get_or_create(
         self,
         channel: ChannelEntity,
@@ -51,6 +54,9 @@ class PostRepository(BasePostRepository):
     def get_post_by_id(self, post_id: str) -> PostEntity | None:
         post_dto = Post.objects.filter(pk=post_id).first()
         return post_to_entity(post=post_dto) if post_dto else None
+
+    def get_posts_count_by_user_id(self, user_id: int) -> int:
+        return Post.objects.filter(author__user_id=user_id).count()
 
     def like_get_or_create(
         self,

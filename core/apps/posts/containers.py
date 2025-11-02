@@ -13,8 +13,10 @@ from core.apps.posts.services.comments import (
     PostCommentService,
 )
 from core.apps.posts.services.posts import (
+    BaseCreatePostSubscriptionLimitValidatorService,
     BasePostAuthorSlugValidatorService,
     BasePostService,
+    CreatePostSubscriptionLimitValidatorService,
     PostAuthorSlugValidatorService,
     PostService,
 )
@@ -44,6 +46,7 @@ def init_posts(container: punq.Container) -> None:
     container.register(PostCommentLikeDeleteUseCase)
 
     # services
+    container.register(BaseCreatePostSubscriptionLimitValidatorService, CreatePostSubscriptionLimitValidatorService)
     container.register(BasePostService, PostService)
     container.register(BasePostAuthorSlugValidatorService, PostAuthorSlugValidatorService)
     container.register(BasePostCommentService, PostCommentService)

@@ -26,3 +26,13 @@ class PostLikeNotFoundError(ServiceException):
 
     channel_slug: str | None = None
     post_id: str | None = None
+
+
+@dataclass
+class PostSubscriptionTierLimitError(ServiceException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = {'detail': 'You have reached the maximum number of posts'}
+
+    user_id: int
+    limit: int
+    current_posts_number: int

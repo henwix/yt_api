@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from core.apps.payments.services.stripe_service import (
     BaseStripeService,
-    BaseStripeSubValidatorService,
+    BaseStripeSubAlreadyExistsValidatorService,
 )
 from core.apps.users.entities import UserEntity
 
@@ -10,7 +10,7 @@ from core.apps.users.entities import UserEntity
 @dataclass
 class CreateCheckoutSessionUseCase:
     stripe_service: BaseStripeService
-    sub_validator_service: BaseStripeSubValidatorService
+    sub_validator_service: BaseStripeSubAlreadyExistsValidatorService
 
     def execute(self, sub_tier: str, user: UserEntity) -> str:
         stripe_customer_id = self.stripe_service.get_customer_id(user_id=user.id)
@@ -20,7 +20,7 @@ class CreateCheckoutSessionUseCase:
             self.stripe_service.save_customer_id(user_id=user.id, customer_id=new_customer.id)
             stripe_customer_id = new_customer.id
         else:
-            existing_sub = self.stripe_service.get_sub_by_customer_id(customer_id=stripe_customer_id)
+            existing_sub = self.stripe_service.get_sub_state_by_customer_id(customer_id=stripe_customer_id)
             self.sub_validator_service.validate(sub=existing_sub)
 
         session = self.stripe_service.create_checkout_session(

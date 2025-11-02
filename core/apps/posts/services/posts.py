@@ -11,14 +11,18 @@ from django.db.models import (
 )
 
 from core.apps.channels.entities.channels import ChannelEntity
+from core.apps.payments.services.stripe_service import BaseStripeService
+from core.apps.posts.constants import POSTS_LIMITS_BY_SUBSCRIPTION_TIER
 from core.apps.posts.entities.likes import PostLikeEntity
 from core.apps.posts.entities.posts import PostEntity
 from core.apps.posts.exceptions import (
     PostAuthorSlugNotProvidedError,
     PostNotFoundError,
+    PostSubscriptionTierLimitError,
 )
 from core.apps.posts.models import Post
 from core.apps.posts.repositories.posts import BasePostRepository
+from core.apps.users.entities import UserEntity
 
 
 class BasePostAuthorSlugValidatorService(ABC):
@@ -30,6 +34,29 @@ class PostAuthorSlugValidatorService(BasePostAuthorSlugValidatorService):
     def validate(self, slug: str | None) -> None:
         if not slug:
             raise PostAuthorSlugNotProvidedError()
+
+
+class BaseCreatePostSubscriptionLimitValidatorService(ABC):
+    @abstractmethod
+    def validate(self, user: UserEntity) -> None: ...
+
+
+@dataclass
+class CreatePostSubscriptionLimitValidatorService(BaseCreatePostSubscriptionLimitValidatorService):
+    stripe_service: BaseStripeService
+    post_repository: BasePostRepository
+
+    def validate(self, user: UserEntity) -> None:
+        tier = self.stripe_service.get_sub_tier_by_user(user=user)
+        limit = POSTS_LIMITS_BY_SUBSCRIPTION_TIER[tier]
+        current_posts_number = self.post_repository.get_posts_count_by_user_id(user_id=user.id)
+
+        if current_posts_number >= limit:
+            raise PostSubscriptionTierLimitError(
+                user_id=user.id,
+                limit=limit,
+                current_posts_number=current_posts_number,
+            )
 
 
 @dataclass

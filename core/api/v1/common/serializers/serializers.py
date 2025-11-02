@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.apps.common.constants import CAPTCHA_VERSIONS
+from core.apps.common.constants import CaptchaVersionsEnum
 
 
 class DetailOutSerializer(serializers.Serializer):
@@ -52,7 +52,7 @@ class CaptchaSerializer(serializers.Serializer):
     captcha_token = serializers.CharField(required=False, help_text='Captcha token', write_only=True)
     captcha_version = serializers.ChoiceField(
         required=False,
-        choices=CAPTCHA_VERSIONS.choices,
+        choices=CaptchaVersionsEnum.choices,
         help_text='Captcha version',
         write_only=True,
     )

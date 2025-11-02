@@ -2,7 +2,6 @@ from abc import (
     ABC,
     abstractmethod,
 )
-from collections.abc import Iterable
 
 import stripe
 from django.db.utils import settings
@@ -27,7 +26,10 @@ class BaseStripeProvider(ABC):
         customer_id: str | None = None,
         limit: int = 10,
         expand: list | None = None,
-    ) -> Iterable[stripe.Subscription]: ...
+    ) -> list[stripe.Subscription]: ...
+
+    @abstractmethod
+    def get_customer_portal_session_url(self, customer_id: str) -> str: ...
 
 
 class StripeProvider(BaseStripeProvider):
@@ -55,6 +57,7 @@ class StripeProvider(BaseStripeProvider):
                     'quantity': 1,
                 },
             ],
+            # TODO: replace hardcoded urls with dynamic frontend urls
             success_url='http://localhost:80/success/',
             cancel_url='http://localhost:80/cancel/',
             subscription_data={
@@ -63,6 +66,7 @@ class StripeProvider(BaseStripeProvider):
                 },
             },
             allow_promotion_codes=True,
+            billing_address_collection='required',
         )
 
     def construct_event(self, payload: bytes, signature: str) -> stripe.Event:
@@ -81,7 +85,7 @@ class StripeProvider(BaseStripeProvider):
         customer_id: str | None = None,
         limit: int = 10,
         expand: list | None = None,
-    ) -> Iterable[stripe.Subscription]:
+    ) -> list[stripe.Subscription]:
         subscriptions = stripe.Subscription.list(
             api_key=self._STRIPE_SECRET_KEY,
             customer=customer_id,
@@ -90,3 +94,9 @@ class StripeProvider(BaseStripeProvider):
             expand=expand,
         )
         return subscriptions
+
+    def get_customer_portal_session_url(self, customer_id: str) -> str:
+        return stripe.billing_portal.Session.create(
+            api_key=self._STRIPE_SECRET_KEY,
+            customer=customer_id,
+        ).url

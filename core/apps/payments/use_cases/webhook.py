@@ -28,9 +28,9 @@ class StripeWebhookUseCase:
 
         if len(subscriptions) == 0:
             # Customer has no active subscription - could be cancelled or never subscribed
-            self.stripe_service.save_sub_by_customer_id(customer_id=customer_id, data={'status': None})
+            self.stripe_service.save_sub_state_by_customer_id(customer_id=customer_id, data={'status': None})
         else:
-            self.stripe_service.update_customer_subscription_state(customer_id=customer_id, sub=subscriptions.data[0])
+            self.stripe_service.update_customer_sub_state(customer_id=customer_id, sub=subscriptions.data[0])
 
         self.logger.info(
             'Stripe Event has been handled',

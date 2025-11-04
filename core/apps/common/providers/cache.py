@@ -15,7 +15,7 @@ class BaseCacheProvider(ABC):
     def set(self, key: str, value: Any, timeout: int | None = None) -> bool: ...
 
     @abstractmethod
-    def delete(self, key: str) -> None: ...
+    def delete(self, key: str) -> bool: ...
 
     @abstractmethod
     def delete_keys(self, keys: list): ...
@@ -31,7 +31,7 @@ class RedisCacheProvider(BaseCacheProvider):
     def set(self, key: str, value: Any, timeout: int | None = None) -> bool:
         return cache.set(key, value, timeout)
 
-    def delete(self, key: str) -> None:
+    def delete(self, key: str) -> bool:
         return cache.delete(key)
 
     def delete_keys(self, keys: list):

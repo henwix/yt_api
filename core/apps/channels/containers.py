@@ -38,6 +38,7 @@ from core.apps.channels.use_cases.avatar_upload.complete_upload_avatar import Co
 from core.apps.channels.use_cases.avatar_upload.delete_avatar import DeleteChannelAvatarUseCase
 from core.apps.channels.use_cases.avatar_upload.download_avatar_url import GenerateUrlForAvatarDownloadUseCase
 from core.apps.channels.use_cases.avatar_upload.upload_avatar_url import GenerateUploadAvatarUrlUseCase
+from core.apps.channels.use_cases.channels.delete_channel import DeleteChannelUseCase
 
 
 def init_channels(container: punq.Container) -> None:
@@ -77,3 +78,5 @@ def init_channels(container: punq.Container) -> None:
     container.register(DeleteChannelAvatarUseCase)
     container.register(GenerateUrlForAvatarDownloadUseCase)
     container.register(CompleteUploadAvatarUseCase)
+
+    container.register(DeleteChannelUseCase)

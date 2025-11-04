@@ -6,6 +6,7 @@ from abc import (
 import stripe
 from django.db.utils import settings
 
+from core.apps.common.utils import build_frontend_url
 from core.apps.payments.exceptions import StripeSignatureVerificationError
 
 
@@ -14,7 +15,13 @@ class BaseStripeProvider(ABC):
     def create_customer(self, email: str, user_id: int) -> stripe.Customer: ...
 
     @abstractmethod
-    def create_checkout_session(self, customer_id: str, user_id: int, sub_price: str) -> stripe.checkout.Session: ...
+    def create_checkout_session(
+        self,
+        customer_id: str,
+        user_id: int,
+        sub_price: str,
+        trial_days: int | None = None,
+    ) -> stripe.checkout.Session: ...
 
     @abstractmethod
     def construct_event(self, payload: bytes, signature: str) -> stripe.Event: ...
@@ -46,7 +53,13 @@ class StripeProvider(BaseStripeProvider):
         )
         return customer
 
-    def create_checkout_session(self, customer_id: str, user_id: int, sub_price: str) -> stripe.checkout.Session:
+    def create_checkout_session(
+        self,
+        customer_id: str,
+        user_id: int,
+        sub_price: str,
+        trial_days: int | None = None,
+    ) -> stripe.checkout.Session:
         return stripe.checkout.Session.create(
             api_key=self._STRIPE_SECRET_KEY,
             mode='subscription',
@@ -57,16 +70,14 @@ class StripeProvider(BaseStripeProvider):
                     'quantity': 1,
                 },
             ],
-            # TODO: replace hardcoded urls with dynamic frontend urls
-            success_url='http://localhost:80/success/',
-            cancel_url='http://localhost:80/cancel/',
+            success_url=build_frontend_url(uri=settings.FRONTEND_PAYMENT_SUCCESS_URI),
+            cancel_url=build_frontend_url(uri=settings.FRONTEND_PAYMENT_CANCEL_URI),
             subscription_data={
                 'metadata': {
                     'user_id': user_id,
                 },
             },
             allow_promotion_codes=True,
-            billing_address_collection='required',
         )
 
     def construct_event(self, payload: bytes, signature: str) -> stripe.Event:

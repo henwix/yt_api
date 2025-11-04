@@ -8,6 +8,7 @@ from core.apps.common.constants import (
 )
 from core.apps.common.services.encoding import BaseEncodingService
 from core.apps.common.services.smtp_email import BaseEmailService
+from core.apps.common.utils import build_frontend_url
 from core.apps.users.services.codes import BaseCodeService
 from core.apps.users.services.users import BaseUserService
 
@@ -37,8 +38,8 @@ class UserResetUsernameUseCase:
                 'email': user.email,
                 'code': code,
                 'encoded_id': encoded_id,
-                'url': self.email_service.build_email_frontend_url(
-                    uri=settings.EMAIL_FRONTEND_USERNAME_RESET_URI,
+                'url': build_frontend_url(
+                    uri=settings.FRONTEND_USERNAME_RESET_URI,
                     query_params={'uid': encoded_id, 'code': code},
                 ),
             },

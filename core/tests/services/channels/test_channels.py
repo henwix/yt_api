@@ -83,7 +83,10 @@ def test_channel_retrieved_from_channel_or_none(channel_service: BaseChannelServ
 def test_channel_and_user_delete(channel_service: BaseChannelService, user_with_channel: User):
     """Test deleting a user and their channel from database."""
 
-    channel_service.delete_channel(
+    assert Channel.objects.filter(user_id=user_with_channel.pk).exists()
+    assert User.objects.filter(id=user_with_channel.pk).exists()
+
+    channel_service.delete_channel_by_user(
         user=user_to_entity(user_with_channel),
     )
 

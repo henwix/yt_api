@@ -19,7 +19,7 @@ class BaseCacheService(ABC):
     def set(self, key: str, data: Any, timeout: int | None = None) -> bool: ...
 
     @abstractmethod
-    def delete(self, key: str) -> None: ...
+    def delete(self, key: str) -> bool: ...
 
 
 @dataclass
@@ -30,5 +30,5 @@ class CacheService(BaseCacheService):
     def set(self, key: str, data: Any, timeout: int | None = None) -> bool:
         return self.cache_provider.set(key, data, timeout)
 
-    def delete(self, key: str) -> None:
+    def delete(self, key: str) -> bool:
         return self.cache_provider.delete(key)

@@ -10,6 +10,7 @@ from core.apps.common.constants import (
 )
 from core.apps.common.services.encoding import BaseEncodingService
 from core.apps.common.services.smtp_email import BaseEmailService
+from core.apps.common.utils import build_frontend_url
 from core.apps.users.converters.users import user_to_entity
 from core.apps.users.models import CustomUser
 from core.apps.users.services.codes import BaseCodeService
@@ -67,8 +68,8 @@ class UserCreateUseCase:
                     'username': user_entity.username,
                     'code': code,
                     'encoded_id': encoded_id,
-                    'url': self.email_service.build_email_frontend_url(
-                        uri=settings.EMAIL_FRONTEND_ACTIVATE_URI,
+                    'url': build_frontend_url(
+                        uri=settings.FRONTEND_ACTIVATE_URI,
                         query_params={'uid': encoded_id, 'code': code},
                     ),
                 },

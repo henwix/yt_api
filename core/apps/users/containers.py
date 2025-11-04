@@ -37,6 +37,7 @@ from core.apps.users.use_cases.users.auth_authorize import AuthorizeUserUseCase
 from core.apps.users.use_cases.users.auth_verify_code import VerifyCodeUseCase
 from core.apps.users.use_cases.users.user_activation import UserActivationUseCase
 from core.apps.users.use_cases.users.user_create import UserCreateUseCase
+from core.apps.users.use_cases.users.user_invalidate_stripe_cache import UserInvalidateStripeCacheUseCase
 from core.apps.users.use_cases.users.user_resend_activation import UserResendActivationUseCase
 from core.apps.users.use_cases.users.user_reset_password import UserResetPasswordUseCase
 from core.apps.users.use_cases.users.user_reset_password_confirm import UserResetPasswordConfirmUseCase
@@ -80,6 +81,8 @@ def init_users(container: punq.Container) -> None:
     container.register(OAuth2ConnectUseCase)
     container.register(OAuth2DisconnectUseCase)
     container.register(OAuth2ConnectedProvidersUseCase)
+
+    container.register(UserInvalidateStripeCacheUseCase)
 
     #  clients
     container.register(EmailClient)

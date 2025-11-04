@@ -37,6 +37,14 @@ class StripeSubDoesNotExistError(ServiceException):
 
 
 @dataclass
+class StripeSubStillActiveError(ServiceException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = {'detail': "You can't perform this action because you still have an active subcription"}
+
+    user_id: int
+
+
+@dataclass
 class StripeSignatureVerificationError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = {'detail': 'Stripe signature verification error'}

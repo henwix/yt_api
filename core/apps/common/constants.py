@@ -22,16 +22,15 @@ V3_MIN_GOOGLE_RECAPTCHA_SCORE = 0.5
 # Cache keys
 
 CACHE_KEYS = {
-    # TODO: refactor cache keys
-    's3_video_url': 's3_video_url_',
-    's3_avatar_url': 's3_avatar_url_',
-    'related_posts': 'channel_posts_',
-    'subs_list': 'subs_',
-    'retrieve_channel': 'retrieve_channel_',
-    'otp_email': 'otp_code_',
-    'set_email': 'set_email_code_',
-    'password_reset': 'user_password_reset_',
-    'activate_user': 'activate_user_',
+    's3_video_url': 's3:video_url:',
+    's3_avatar_url': 's3:avatar_url:',
+    'related_posts': 'channel:posts:',
+    'subs_list': 'channel:subs:',
+    'retrieve_channel': 'channel:retrieve:',
+    'otp_email': 'email:otp_code:',
+    'set_email': 'email:set_email_code:',
+    'password_reset': 'email:user_password_reset:',
+    'activate_user': 'email:activate_user:',
     'stripe_customer_id': 'stripe:user:',
     'stripe_sub_data': 'stripe:customer:',
     'stripe_customer_portal': 'stripe:customer_portal:',

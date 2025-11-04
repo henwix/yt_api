@@ -14,7 +14,7 @@ from rest_framework.views import APIView
 from core.api.v1.payments.serializers import StripeSubscriptionInSerializer
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.payments.use_cases.create_checkout_session import CreateCheckoutSessionUseCase
-from core.apps.payments.use_cases.get_stripe_sub_data import GetStripeSubStateUseCase
+from core.apps.payments.use_cases.get_stripe_sub_state import GetStripeSubStateUseCase
 from core.apps.payments.use_cases.webhook import StripeWebhookUseCase
 from core.apps.users.converters.users import user_to_entity
 from core.project.containers import get_container
@@ -34,7 +34,7 @@ class GetStripeSubStateView(APIView):
         except stripe.StripeError as error:
             logger.error(
                 'Stripe Error has been raised in GetStripeSubStateView',
-                extra={'log_meta': orjson.dumps(error).decode()},
+                extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response({'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -45,7 +45,6 @@ class GetStripeSubStateView(APIView):
         return Response(data=result, status=status.HTTP_200_OK)
 
 
-# TODO: cache with customer_id invalidation when the user has been deleted
 @extend_schema(request=StripeSubscriptionInSerializer)
 class CreateCheckoutSessionView(APIView):
     permission_classes = [IsAuthenticated]
@@ -67,7 +66,7 @@ class CreateCheckoutSessionView(APIView):
         except stripe.StripeError as error:
             logger.error(
                 'Stripe Error has been raised in CreateCheckoutSessionView',
-                extra={'log_meta': orjson.dumps(error).decode()},
+                extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response({'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -94,7 +93,7 @@ def stripe_webhook_view(request):
     except stripe.StripeError as error:
         logger.error(
             'Stripe Error has been raised in stripe_webhook_view',
-            extra={'log_meta': orjson.dumps(error).decode()},
+            extra={'log_meta': orjson.dumps(str(error)).decode()},
         )
         return Response(status=status.HTTP_400_BAD_REQUEST)
 

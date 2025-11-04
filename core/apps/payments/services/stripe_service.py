@@ -22,12 +22,12 @@ from core.apps.payments.exceptions import (
     StripeNotAllowedEventTypeError,
     StripeSubAlreadyExistsError,
     StripeSubDoesNotExistError,
+    StripeSubStillActiveError,
 )
 from core.apps.payments.providers.stripe_provider import BaseStripeProvider
 from core.apps.users.entities import AnonymousUserEntity, UserEntity
 
 
-@dataclass
 class BaseStripeEventValidatorService(ABC):
     @abstractmethod
     def validate(self, event: stripe.Event) -> None: ...
@@ -40,7 +40,6 @@ class StripeEventValidatorService(BaseStripeEventValidatorService):
             raise StripeNotAllowedEventTypeError(event_type=event['type'])
 
 
-@dataclass
 class BaseCustomerIdValidatorService(ABC):
     @abstractmethod
     def validate(self, customer_id: str) -> None: ...
@@ -52,7 +51,6 @@ class CustomerIdValidatorService(BaseCustomerIdValidatorService):
             raise StripeCustomerIdNotStringError(customer_id=customer_id, customer_id_type=type(customer_id))
 
 
-@dataclass
 class BaseStripeSubAlreadyExistsValidatorService(ABC):
     @abstractmethod
     def validate(self, sub: dict | None) -> None: ...
@@ -108,7 +106,13 @@ class BaseStripeService(ABC):
     def get_customer_id(self, user_id: int) -> str | None: ...
 
     @abstractmethod
+    def delete_customer_id(self, user_id: int) -> bool: ...
+
+    @abstractmethod
     def get_sub_state_by_customer_id(self, customer_id: str | None) -> dict | None: ...
+
+    @abstractmethod
+    def delete_sub_state_by_customer_id(self, customer_id: str) -> bool: ...
 
     @abstractmethod
     def get_subs_list_by_customer_id(self, customer_id: str) -> list[stripe.Subscription]: ...
@@ -164,6 +168,7 @@ class StripeService(BaseStripeService):
             customer_id=customer_id,
             user_id=user_id,
             sub_price=self.get_sub_price_by_sub_tier(sub_tier=sub_tier),
+            trial_days=7,
         )
         self.logger.info(
             'Stripe checkout session has been created',
@@ -199,8 +204,7 @@ class StripeService(BaseStripeService):
 
         sub_data = self.get_sub_state_by_customer_id(customer_id=self.get_customer_id(user_id=user.id))
 
-        # TODO: check Stripe Trials and add a condition that the status can be 'trialing'
-        if not sub_data or sub_data['status'] != 'active':
+        if not sub_data or sub_data['status'] not in ['active', 'trialing']:
             return StripeSubscriptionAllTiersEnum.FREE
         else:
             return sub_data['tier']
@@ -209,12 +213,20 @@ class StripeService(BaseStripeService):
         customer_id_cache_key = f'{self._STRIPE_CUSTOMER_ID_CACHE_KEY_PREFIX}{user_id}'
         return self.cache_service.get(key=customer_id_cache_key)
 
+    def delete_customer_id(self, user_id: int) -> bool:
+        customer_id_cache_key = f'{self._STRIPE_CUSTOMER_ID_CACHE_KEY_PREFIX}{user_id}'
+        return self.cache_service.delete(key=customer_id_cache_key)
+
     def get_sub_state_by_customer_id(self, customer_id: str | None) -> dict | None:
         if customer_id is None:
             return None
 
         sub_data_cache_key = f'{self._STRIPE_SUB_DATA_CACHE_KEY_PREFIX}{customer_id}'
         return self.cache_service.get(key=sub_data_cache_key)
+
+    def delete_sub_state_by_customer_id(self, customer_id: str) -> bool:
+        sub_data_cache_key = f'{self._STRIPE_SUB_DATA_CACHE_KEY_PREFIX}{customer_id}'
+        return self.cache_service.delete(key=sub_data_cache_key)
 
     def get_subs_list_by_customer_id(self, customer_id: str) -> list[stripe.Subscription]:
         return self.stripe_provider.get_subs_list(
@@ -236,3 +248,20 @@ class StripeService(BaseStripeService):
 
     def construct_event(self, payload: bytes, signature: str) -> stripe.Event:
         return self.stripe_provider.construct_event(payload=payload, signature=signature)
+
+
+class BaseStripeSubStillActiveValidatorService(ABC):
+    @abstractmethod
+    def validate(self, user: UserEntity): ...
+
+
+@dataclass
+class StripeSubStillActiveValidatorService(BaseStripeSubStillActiveValidatorService):
+    stripe_service: BaseStripeService
+
+    def validate(self, user: UserEntity) -> None:
+        sub = self.stripe_service.get_sub_state_by_customer_id(
+            customer_id=self.stripe_service.get_customer_id(user_id=user.id)
+        )
+        if sub is not None and sub['status'] != 'canceled':
+            raise StripeSubStillActiveError(user_id=user.id)

@@ -49,6 +49,7 @@ from core.apps.channels.services.channels import (
     BaseChannelSubsService,
     BaseSubscriptionService,
 )
+from core.apps.channels.use_cases.channels.delete_channel import DeleteChannelUseCase
 from core.apps.common.constants import CACHE_KEYS
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.common.mixins import CustomViewMixin
@@ -71,16 +72,29 @@ class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        container: punq.Container = get_container()
-        self.channel_service: BaseChannelService = container.resolve(BaseChannelService)
-        self.cache_service: BaseCacheService = container.resolve(BaseCacheService)
-        self.logger: Logger = container.resolve(Logger)
+        self.container: punq.Container = get_container()
+        self.logger: Logger = self.container.resolve(Logger)
+        self.channel_service: BaseChannelService = self.container.resolve(BaseChannelService)
+        self.cache_service: BaseCacheService = self.container.resolve(BaseCacheService)
+        self.logger: Logger = self.container.resolve(Logger)
 
     def get_object(self):
         channel = self.channel_service.repository.get_channel_by_user_or_none(
             user=user_to_entity(self.request.user),
         )
         return channel_from_entity(channel) if channel else None
+
+    def delete(self, request, *args, **kwargs):
+        use_case: DeleteChannelUseCase = self.container.resolve(DeleteChannelUseCase)
+
+        try:
+            use_case.execute(user=user_to_entity(request.user))
+
+        except ServiceException as error:
+            self.logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            raise
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def retrieve(self, request, *args, **kwargs):
         user = user_to_entity(request.user)

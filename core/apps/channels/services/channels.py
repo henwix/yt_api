@@ -67,7 +67,7 @@ class BaseChannelService(ABC):
     def get_channel_by_user_or_none(self, user: UserEntity) -> ChannelEntity | None: ...
 
     @abstractmethod
-    def delete_channel(self, user: UserEntity) -> None: ...
+    def delete_channel_by_user(self, user: UserEntity) -> None: ...
 
     @abstractmethod
     def set_avatar_s3_key(self, channel: ChannelEntity, avatar_s3_key: str | None) -> None: ...
@@ -149,7 +149,7 @@ class ORMChannelService(BaseChannelService):
             return None
         return self.repository.get_channel_by_user_or_none(user)
 
-    def delete_channel(self, user: UserEntity) -> None:
+    def delete_channel_by_user(self, user: UserEntity) -> None:
         self.repository.delete_channel_by_user(user)
 
     def set_avatar_s3_key(self, channel: ChannelEntity, avatar_s3_key: str | None) -> None:

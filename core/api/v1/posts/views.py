@@ -65,6 +65,7 @@ from core.apps.posts.converters.posts import post_to_entity
 from core.apps.posts.exceptions import (
     PostLikeNotFoundError,
     PostNotFoundError,
+    PostSubscriptionTierLimitError,
 )
 from core.apps.posts.services.comments import BasePostCommentService
 from core.apps.posts.services.posts import BasePostService
@@ -89,6 +90,10 @@ from core.project.containers import get_container
                 response=PostOutSerializer,
                 description='Post has been created',
             ),
+            400: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='Posts limit has been reached',
+            ),
             404: OpenApiResponse(
                 response=DetailOutSerializer,
                 description='Channel is not found',
@@ -96,6 +101,7 @@ from core.project.containers import get_container
         },
         examples=[
             build_example_response_from_error(error=ChannelNotFoundError),
+            build_example_response_from_error(error=PostSubscriptionTierLimitError),
         ],
         summary='Create a new post',
     ),

@@ -150,7 +150,6 @@ class StripeService(BaseStripeService):
             'status': sub.status,
             'price_id': sub['items']['data'][0]['price']['id'],
             'tier': self.get_sub_tier_by_sub_price(sub_price=sub['items']['data'][0]['price']['id']),
-            # TODO: check if I can use just 'sub.current_period_start' and 'sub.current_period_end'
             'current_period_start': sub['items']['data'][0]['current_period_start'],
             'current_period_end': sub['items']['data'][0]['current_period_end'],
             'cancel_at_period_end': sub.cancel_at_period_end,
@@ -242,7 +241,7 @@ class StripeService(BaseStripeService):
 
         if customer_portal_url is None:
             customer_portal_url = self.stripe_provider.get_customer_portal_session_url(customer_id=customer_id)
-            self.cache_service.set(key=cache_key, data=customer_portal_url, timeout=60 * 10)
+            self.cache_service.set(key=cache_key, data=customer_portal_url, timeout=60 * 5)
 
         return customer_portal_url
 

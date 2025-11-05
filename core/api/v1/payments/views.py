@@ -4,15 +4,22 @@ import orjson
 import punq
 import stripe
 from django.views.decorators.csrf import csrf_exempt
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.api.v1.payments.serializers import StripeSubscriptionInSerializer
+from core.api.v1.common.serializers.serializers import DetailOutSerializer, UrlSerializer
+from core.api.v1.payments.serializers import StripeSubscriptionInSerializer, StripeSubscriptionStateOutSerializer
+from core.api.v1.schema.response_examples.common import build_example_response_from_error
+from core.api.v1.schema.response_examples.payments import (
+    retrieve_subscription_state_response_example,
+    stripe_error_response_example,
+)
 from core.apps.common.exceptions.exceptions import ServiceException
+from core.apps.payments.exceptions import StripeSubAlreadyExistsError, StripeSubDoesNotExistError
 from core.apps.payments.use_cases.create_checkout_session import CreateCheckoutSessionUseCase
 from core.apps.payments.use_cases.get_stripe_sub_state import GetStripeSubStateUseCase
 from core.apps.payments.use_cases.webhook import StripeWebhookUseCase
@@ -20,6 +27,28 @@ from core.apps.users.converters.users import user_to_entity
 from core.project.containers import get_container
 
 
+@extend_schema(
+    responses={
+        200: OpenApiResponse(
+            response=StripeSubscriptionStateOutSerializer,
+            description='Subscription state retrieved',
+        ),
+        404: OpenApiResponse(
+            response=DetailOutSerializer,
+            description='Subscription does not exist',
+        ),
+        500: OpenApiResponse(
+            response=DetailOutSerializer,
+            description='Stripe 500 error',
+        ),
+    },
+    examples=[
+        build_example_response_from_error(error=StripeSubDoesNotExistError),
+        retrieve_subscription_state_response_example(),
+        stripe_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
+    ],
+    summary='Get subscription state',
+)
 class GetStripeSubStateView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -36,7 +65,7 @@ class GetStripeSubStateView(APIView):
                 'Stripe Error has been raised in GetStripeSubStateView',
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
-            return Response({'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -45,7 +74,28 @@ class GetStripeSubStateView(APIView):
         return Response(data=result, status=status.HTTP_200_OK)
 
 
-@extend_schema(request=StripeSubscriptionInSerializer)
+@extend_schema(
+    request=StripeSubscriptionInSerializer,
+    responses={
+        201: OpenApiResponse(
+            response=UrlSerializer,
+            description='Checkout session created',
+        ),
+        400: OpenApiResponse(
+            response=DetailOutSerializer,
+            description='Subscription already exists',
+        ),
+        500: OpenApiResponse(
+            response=DetailOutSerializer,
+            description='Stripe 500 error',
+        ),
+    },
+    examples=[
+        build_example_response_from_error(error=StripeSubAlreadyExistsError),
+        stripe_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
+    ],
+    summary='Create checkout session',
+)
 class CreateCheckoutSessionView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -68,15 +118,16 @@ class CreateCheckoutSessionView(APIView):
                 'Stripe Error has been raised in CreateCheckoutSessionView',
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
-            return Response({'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
             raise
 
-        return Response(data={'url': session_url}, status=status.HTTP_200_OK)
+        return Response(data={'url': session_url}, status=status.HTTP_201_CREATED)
 
 
+@extend_schema(summary='Stripe Webhook')
 @csrf_exempt
 @api_view(['POST'])
 def stripe_webhook_view(request):

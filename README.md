@@ -294,6 +294,8 @@ yt-redis-prod             6379/tcp                                              
 * `FRONTEND_PASSWORD_RESET_URI`: (default: `"/auth/password_reset_confirm/"`) URI for password reset confirmation page. *Environment — DEV, PROD*
 * `FRONTEND_USERNAME_RESET_URI`: (default: `"/auth/username_reset_confirm/"`) URI for username reset confirmation page. *Environment — DEV, PROD*
 * `FRONTEND_ACTIVATE_URI`: (default: `"/auth/activate/"`) URI for user account activation page. *Environment — DEV, PROD*
+* `FRONTEND_PAYMENT_SUCCESS_URI`: (default: `"/payments/success/"`) URI for successful payment page. *Environment — DEV, PROD*
+* `FRONTEND_PAYMENT_CANCEL_URI`: (default: `"/payments/cancel/"`) URI for canceled payment page. *Environment — DEV, PROD*
 
 #### 🔐 SSL & Domains
 

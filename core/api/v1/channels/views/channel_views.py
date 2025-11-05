@@ -55,6 +55,7 @@ from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.common.mixins import CustomViewMixin
 from core.apps.common.pagination import CustomCursorPagination
 from core.apps.common.services.cache import BaseCacheService
+from core.apps.payments.exceptions import StripeSubStillActiveError
 from core.apps.users.converters.users import user_to_entity
 from core.project.containers import get_container
 
@@ -63,7 +64,19 @@ from core.project.containers import get_container
     get=extend_schema(summary='Retrieve channel'),
     put=extend_schema(summary='Update channel PUT'),
     patch=extend_schema(summary='Update channel PATCH'),
-    delete=extend_schema(summary='Delete channel'),
+    delete=extend_schema(
+        responses={
+            204: None,
+            400: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='You cannot delete your channel because you have an active subscription',
+            ),
+        },
+        examples=[
+            build_example_response_from_error(error=StripeSubStillActiveError),
+        ],
+        summary='Delete channel',
+    ),
 )
 class ChannelRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Channel.objects.all()

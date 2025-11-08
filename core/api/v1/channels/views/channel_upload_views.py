@@ -86,7 +86,7 @@ class GenerateUploadAvatarUrlView(generics.GenericAPIView):
 
         except ClientError as error:
             logger.error(
-                "S3 client can't generate upload avatar url",
+                'S3 client cannot generate upload avatar url',
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
@@ -141,7 +141,7 @@ class GenerateDownloadAvatarUrlView(generics.GenericAPIView):
 
         except ClientError as error:
             logger.error(
-                "S3 client can't generate presigned url for avatar download",
+                'S3 client cannot generate presigned url for avatar download',
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(

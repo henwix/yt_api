@@ -43,8 +43,8 @@ from core.project.containers import get_container
         ),
     },
     examples=[
-        build_example_response_from_error(error=StripeSubDoesNotExistError),
         retrieve_subscription_state_response_example(),
+        build_example_response_from_error(error=StripeSubDoesNotExistError),
         stripe_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
     ],
     summary='Get subscription state',

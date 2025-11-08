@@ -1,5 +1,4 @@
 import pytest
-from django.core.cache import cache
 from rest_framework.test import APIClient
 
 from core.apps.channels.models import Channel
@@ -13,8 +12,6 @@ from core.tests.factories.videos import (
 @pytest.mark.django_db
 def test_channel_data_retrieved_correctly(client: APIClient, jwt_and_channel):
     """Test that channel data was retrieved after GET request to the endpoint: /v1/channel/"""
-
-    cache.delete('retrieve_channel_1')  # delete cache with user_id 1
 
     jwt, channel = jwt_and_channel
     client.credentials(HTTP_AUTHORIZATION=jwt)

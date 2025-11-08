@@ -30,7 +30,6 @@ def test_avatar_exists(avatar_validator_service: BaseAvatarValidatorService):
     avatar_validator_service.validate(channel=channel_to_entity(channel))
 
 
-@pytest.mark.django_db
 def test_avatar_filename_not_provided_error(avatar_filename_validator_service: BaseAvatarFilenameValidatorService):
     """Test that an error has been raised when the avatar filename is not
     provided."""
@@ -39,7 +38,6 @@ def test_avatar_filename_not_provided_error(avatar_filename_validator_service: B
         avatar_filename_validator_service.validate(filename=None)
 
 
-@pytest.mark.django_db
 def test_avatar_filename_format_error(avatar_filename_validator_service: BaseAvatarFilenameValidatorService):
     """Test that an error raised when the avatar's filename format is
     incorrect."""
@@ -48,7 +46,6 @@ def test_avatar_filename_format_error(avatar_filename_validator_service: BaseAva
         avatar_filename_validator_service.validate(filename='test.txt')
 
 
-@pytest.mark.django_db
 @pytest.mark.parametrize('filename', ['test.png', 'test.jpg'])
 def test_avatar_filename_format_correct(
     avatar_filename_validator_service: BaseAvatarFilenameValidatorService,

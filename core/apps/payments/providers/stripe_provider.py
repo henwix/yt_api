@@ -76,6 +76,7 @@ class StripeProvider(BaseStripeProvider):
                 'metadata': {
                     'user_id': user_id,
                 },
+                'trial_days': trial_days,
             },
             allow_promotion_codes=True,
         )

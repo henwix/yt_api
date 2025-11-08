@@ -13,7 +13,6 @@ from core.apps.common.services.captcha import (
 from core.tests.mocks.common.providers.captcha import DummyCaptchaProvider
 
 
-@pytest.mark.django_db
 @pytest.mark.parametrize('expected_score', [1, 0.9, 0.8, 0.7, 0.6])
 def test_captcha_v3_token_validated_correctly(container: punq.Container, expected_score: int | float):
     """GoogleV3CaptchaService.
@@ -37,7 +36,6 @@ def test_captcha_v3_token_validated_correctly(container: punq.Container, expecte
     assert result is True, f'{result=}'
 
 
-@pytest.mark.django_db
 @pytest.mark.parametrize('expected_score', [0, 0.1, 0.2, 0.3, 0.4, 0.5])
 def test_captcha_v3_token_validation_failed_score(container: punq.Container, expected_score: int | float):
     """GoogleV3CaptchaService.
@@ -62,7 +60,6 @@ def test_captcha_v3_token_validation_failed_score(container: punq.Container, exp
         service.validate_token(token='token', version='v3')
 
 
-@pytest.mark.django_db
 @pytest.mark.parametrize('expected_score', [0, 0.3, 0.6, 0.8, 1])
 def test_captcha_v3_token_validation_failed_success(container: punq.Container, expected_score: int | float):
     """GoogleV3CaptchaService.
@@ -85,7 +82,6 @@ def test_captcha_v3_token_validation_failed_success(container: punq.Container, e
         service.validate_token(token='token', version='v3')
 
 
-@pytest.mark.django_db
 def test_captcha_v2_token_validation_failed_success(container: punq.Container):
     """GoogleV2CaptchaService.
 
@@ -107,7 +103,6 @@ def test_captcha_v2_token_validation_failed_success(container: punq.Container):
         service.validate_token(token='token', version='v2_visible')
 
 
-@pytest.mark.django_db
 def test_captcha_v2_token_not_provided(container: punq.Container):
     """Test that an exception CaptchaTokenNotProvidedError when the token is
     not provided."""
@@ -125,7 +120,6 @@ def test_captcha_v2_token_not_provided(container: punq.Container):
         service.validate_token(token=None, version='v2_visible')
 
 
-@pytest.mark.django_db
 def test_captcha_v3_token_not_provided(container: punq.Container):
     """Test that an exception CaptchaTokenNotProvidedError when the token is
     not provided."""

@@ -54,7 +54,7 @@ def test_playlist_permission_error(
     playlist_videos_use_case: GetPlaylistVideosUseCase,
     channel: Channel,
 ):
-    """Test that user can't access and load videos from PRIVATE playlist if he
+    """Test that user cannot access and load videos from PRIVATE playlist if he
     is not the author of that playlist."""
 
     playlist = PlaylistModelFactory.create(status=Playlist.StatusChoices.PRIVATE)
@@ -70,7 +70,7 @@ def test_playlist_permission_error(
 def test_playlist_anonymous_permission_error(
     playlist_videos_use_case: GetPlaylistVideosUseCase,
 ):
-    """Test that user can't access and load videos from PRIVATE playlist if he
+    """Test that user cannot access and load videos from PRIVATE playlist if he
     is anonymous."""
 
     playlist = PlaylistModelFactory.create(status=Playlist.StatusChoices.PRIVATE)

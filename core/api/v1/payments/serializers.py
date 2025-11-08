@@ -6,15 +6,15 @@ from core.apps.payments.enums import StripeSubscriptionPaidTiersEnum, StripeSubs
 class StripeSubscriptionInSerializer(serializers.Serializer):
     sub_tier = serializers.ChoiceField(
         choices=StripeSubscriptionPaidTiersEnum.choices,
-        help_text='Stripe Subscription Tier',
+        help_text='Subscription tier',
     )
 
 
 class StripeCustomerPortalUrlSerializer(serializers.Serializer):
-    customer_portal_url = serializers.URLField()
+    customer_portal_url = serializers.URLField(help_text='Stripe customer portal URL')
 
 
-class StripeSubcriptionSerializer(serializers.Serializer):
+class StripeSubscriptionSerializer(serializers.Serializer):
     subscription_id = serializers.CharField(
         min_length=28,
         max_length=28,
@@ -34,7 +34,7 @@ class StripeSubcriptionSerializer(serializers.Serializer):
         max_length=30,
         help_text='Unique identifier for the subscription price',
     )
-    price_id = serializers.ChoiceField(
+    tier = serializers.ChoiceField(
         choices=StripeSubscriptionPaidTiersEnum.choices,
         help_text='Subscription tier',
     )
@@ -55,4 +55,4 @@ class StripeSubcriptionSerializer(serializers.Serializer):
 
 
 class StripeSubscriptionStateOutSerializer(StripeCustomerPortalUrlSerializer):
-    sub_state = StripeSubcriptionSerializer()
+    sub_state = StripeSubscriptionSerializer()

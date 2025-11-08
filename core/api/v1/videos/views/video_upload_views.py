@@ -111,7 +111,7 @@ class CreateMultipartUploadView(generics.GenericAPIView):
 
         except ClientError as error:
             logger.error(
-                "S3 client can't create multipart upload",
+                'S3 client cannot create multipart upload',
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
@@ -174,7 +174,7 @@ class GenerateUploadPartUrlView(generics.GenericAPIView):
 
         except ClientError as error:
             logger.error(
-                "S3 client can't generate presigned url for video upload",
+                'S3 client cannot generate presigned url for video upload',
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
@@ -236,7 +236,7 @@ class GenerateDownloadVideoUrlView(generics.GenericAPIView):
 
         except ClientError as error:
             logger.error(
-                "S3 client can't generate presigned url for video download",
+                'S3 client cannot generate presigned url for video download',
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
@@ -298,7 +298,7 @@ class AbortMultipartUploadView(generics.GenericAPIView):
 
         except ClientError as error:
             logger.error(
-                "S3 client can't abort multipart upload",
+                'S3 client cannot abort multipart upload',
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
@@ -368,7 +368,7 @@ class CompleteMultipartUploadView(generics.GenericAPIView):
 
         except ClientError as error:
             logger.error(
-                "S3 client can't complete multipart upload",
+                'S3 client cannot complete multipart upload',
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(

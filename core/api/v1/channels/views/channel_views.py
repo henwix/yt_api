@@ -69,7 +69,7 @@ from core.project.containers import get_container
             204: None,
             400: OpenApiResponse(
                 response=DetailOutSerializer,
-                description='You cannot delete your channel because you have an active subscription',
+                description='The user cannot delete the channel due to an active subscription',
             ),
         },
         examples=[

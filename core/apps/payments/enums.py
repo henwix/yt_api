@@ -13,10 +13,10 @@ class StripeSubscriptionAllTiersEnum(TextChoices):
 
 
 class StripeSubscriptionStatusesEnum(TextChoices):
-    INCOMPLETE = 'incomplete', 'Incomplete'
-    INCOMPLETE_EXPIRED = 'incomplete_expired', 'Incomplete expired'
     TRIALING = 'trialing', 'Trialing'
     ACTIVE = 'active', 'Active'
+    INCOMPLETE = 'incomplete', 'Incomplete'
+    INCOMPLETE_EXPIRED = 'incomplete_expired', 'Incomplete expired'
     PAST_DUE = 'past_due', 'Past due'
     CANCELED = 'canceled', 'Canceled'
     UNPAID = 'unpaid', 'Unpaid'

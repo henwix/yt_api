@@ -10,6 +10,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from core.apps.channels.models import Channel
 from core.apps.common.providers.senders import BaseSenderProvider
 from core.apps.common.services.encoding import BaseEncodingService
+from core.apps.payments.providers.stripe_provider import BaseStripeProvider
 from core.apps.posts.models import (
     Post,
     PostCommentItem,
@@ -30,6 +31,7 @@ from core.tests.factories.posts import (
 )
 from core.tests.factories.videos import VideoModelFactory
 from core.tests.mocks.common.providers.senders import DummySenderProvider
+from core.tests.mocks.payments.stripe import DummyStripeProvider
 
 User = get_user_model()
 
@@ -37,7 +39,9 @@ User = get_user_model()
 @pytest.fixture(autouse=True)
 def change_redis_database_number_and_clear_cache(settings: SettingsWrapper):
     """Change Redis database number and clear the cache before each test to avoid unpredictable caching
-    behavior."""
+    behavior.
+    Cache settings can also be changed using the new Django settings file in pyproject.toml instead of using fixture,
+    but you won't be able to clear the cache before each test run"""
     settings.CACHES = {
         'default': {
             'BACKEND': 'django_redis.cache.RedisCache',
@@ -51,7 +55,9 @@ def change_redis_database_number_and_clear_cache(settings: SettingsWrapper):
 def disable_silk_middleware(settings: SettingsWrapper):
     """Fixture to disable Silk middleware when DEBUG == True.
 
-    If it's enabled, it may impact test results
+    If it's enabled, it may impact test results.
+
+    Can also be changed using the new Django settings file in pyproject.toml instead of using fixture
 
     """
     silk_middleware = 'silk.middleware.SilkyMiddleware'
@@ -78,6 +84,7 @@ def mock_container() -> Container:
     """
     container: punq.Container = _initialize_container()
 
+    container.register(BaseStripeProvider, DummyStripeProvider)
     container.register(BaseSenderProvider, DummySenderProvider)
 
     return container

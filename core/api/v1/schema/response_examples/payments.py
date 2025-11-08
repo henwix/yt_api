@@ -1,6 +1,7 @@
 from drf_spectacular.utils import OpenApiExample, OpenApiResponse
 
 from core.api.v1.schema.response_examples.common import detail_response_example
+from core.apps.payments.enums import StripeSubscriptionPaidTiersEnum, StripeSubscriptionStatusesEnum
 
 
 def retrieve_subscription_state_response_example() -> OpenApiResponse:
@@ -8,9 +9,9 @@ def retrieve_subscription_state_response_example() -> OpenApiResponse:
         'sub_state': {
             'subscription_id': 'string',
             'customer_id': 'string',
-            'status': 'active',
+            'status': StripeSubscriptionStatusesEnum.ACTIVE,
             'price_id': 'string',
-            'tier': 'pro',
+            'tier': StripeSubscriptionPaidTiersEnum.PRO,
             'current_period_start': 1762374438,
             'current_period_end': 1764966438,
             'cancel_at_period_end': False,

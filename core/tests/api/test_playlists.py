@@ -138,7 +138,7 @@ def test_video_deleted_from_playlist(client: APIClient, jwt_and_channel: tuple):
 
 @pytest.mark.django_db
 def test_video_deleted_from_playlist_permission_denied(client: APIClient, jwt_and_channel: tuple):
-    """Test that other user can't delete video from playlist if he is not
+    """Test that other user cannot delete video from playlist if he is not
     author."""
 
     jwt, channel = jwt_and_channel

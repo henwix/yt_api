@@ -13,8 +13,9 @@ from core.apps.common.services.cache import BaseCacheService
 from core.apps.payments.constants import (
     STRIPE_ALLOWED_EVENTS,
     STRIPE_SUBSCRIPTION_TIER_PRICES,
+    STRIPE_SUBSCRIPTION_TRIAL_DAYS,
 )
-from core.apps.payments.enums import StripeSubscriptionAllTiersEnum
+from core.apps.payments.enums import StripeSubscriptionAllTiersEnum, StripeSubscriptionStatusesEnum
 from core.apps.payments.exceptions import (
     StripeCustomerIdNotStringError,
     StripeInvalidSubPriceError,
@@ -58,7 +59,7 @@ class BaseStripeSubAlreadyExistsValidatorService(ABC):
 
 class StripeSubAlreadyExistsValidatorService(BaseStripeSubAlreadyExistsValidatorService):
     def validate(self, sub: dict | None) -> None:
-        if sub is not None and sub['status'] != 'canceled':
+        if sub is not None and sub['status'] != StripeSubscriptionStatusesEnum.CANCELED:
             raise StripeSubAlreadyExistsError(customer_id=sub['customer_id'])
 
 
@@ -69,7 +70,7 @@ class BaseStripeSubDoesNotExistValidatorService(ABC):
 
 class StripeSubDoesNotExistValidatorService(BaseStripeSubDoesNotExistValidatorService):
     def validate(self, sub: dict | None) -> None:
-        if sub is None or sub['status'] == 'canceled':
+        if sub is None or sub['status'] == StripeSubscriptionStatusesEnum.CANCELED:
             raise StripeSubDoesNotExistError()
 
 
@@ -139,35 +140,36 @@ class StripeService(BaseStripeService):
         return saved
 
     def save_sub_state_by_customer_id(self, customer_id: str, data: dict) -> bool:
-        sub_data_cache_key = f'{self._STRIPE_SUB_DATA_CACHE_KEY_PREFIX}{customer_id}'
-        saved = self.cache_service.set(key=sub_data_cache_key, data=data)
+        sub_state_cache_key = f'{self._STRIPE_SUB_DATA_CACHE_KEY_PREFIX}{customer_id}'
+        saved = self.cache_service.set(key=sub_state_cache_key, data=data)
         return saved
 
     def update_customer_sub_state(self, customer_id: str, sub: stripe.Subscription) -> bool:
         sub_data = {
-            'subscription_id': sub.id,
+            'subscription_id': sub['id'],
             'customer_id': customer_id,
-            'status': sub.status,
+            'status': sub['status'],
             'price_id': sub['items']['data'][0]['price']['id'],
             'tier': self.get_sub_tier_by_sub_price(sub_price=sub['items']['data'][0]['price']['id']),
             'current_period_start': sub['items']['data'][0]['current_period_start'],
             'current_period_end': sub['items']['data'][0]['current_period_end'],
-            'cancel_at_period_end': sub.cancel_at_period_end,
+            'cancel_at_period_end': sub['cancel_at_period_end'],
             'payment_method': {
-                'brand': sub.default_payment_method.card.brand,
-                'last4': sub.default_payment_method.card.last4,
+                'brand': sub['default_payment_method']['card']['brand'],
+                'last4': sub['default_payment_method']['card']['last4'],
             }
-            if sub.default_payment_method and isinstance(sub.default_payment_method, stripe.PaymentMethod)
+            if sub['default_payment_method'] and isinstance(sub['default_payment_method'], stripe.PaymentMethod)
             else None,
         }
         return self.save_sub_state_by_customer_id(customer_id=customer_id, data=sub_data)
 
+    # TODO: сделать валидатор на доступность trial и динамическую передачу trial_days в создание сессии
     def create_checkout_session(self, customer_id: str, user_id: int, sub_tier: str) -> stripe.checkout.Session:
         session = self.stripe_provider.create_checkout_session(
             customer_id=customer_id,
             user_id=user_id,
             sub_price=self.get_sub_price_by_sub_tier(sub_tier=sub_tier),
-            trial_days=7,
+            trial_days=STRIPE_SUBSCRIPTION_TRIAL_DAYS,
         )
         self.logger.info(
             'Stripe checkout session has been created',
@@ -203,7 +205,10 @@ class StripeService(BaseStripeService):
 
         sub_data = self.get_sub_state_by_customer_id(customer_id=self.get_customer_id(user_id=user.id))
 
-        if not sub_data or sub_data['status'] not in ['active', 'trialing']:
+        if not sub_data or sub_data['status'] not in [
+            StripeSubscriptionStatusesEnum.ACTIVE,
+            StripeSubscriptionStatusesEnum.TRIALING,
+        ]:
             return StripeSubscriptionAllTiersEnum.FREE
         else:
             return sub_data['tier']
@@ -220,12 +225,12 @@ class StripeService(BaseStripeService):
         if customer_id is None:
             return None
 
-        sub_data_cache_key = f'{self._STRIPE_SUB_DATA_CACHE_KEY_PREFIX}{customer_id}'
-        return self.cache_service.get(key=sub_data_cache_key)
+        sub_state_cache_key = f'{self._STRIPE_SUB_DATA_CACHE_KEY_PREFIX}{customer_id}'
+        return self.cache_service.get(key=sub_state_cache_key)
 
     def delete_sub_state_by_customer_id(self, customer_id: str) -> bool:
-        sub_data_cache_key = f'{self._STRIPE_SUB_DATA_CACHE_KEY_PREFIX}{customer_id}'
-        return self.cache_service.delete(key=sub_data_cache_key)
+        sub_state_cache_key = f'{self._STRIPE_SUB_DATA_CACHE_KEY_PREFIX}{customer_id}'
+        return self.cache_service.delete(key=sub_state_cache_key)
 
     def get_subs_list_by_customer_id(self, customer_id: str) -> list[stripe.Subscription]:
         return self.stripe_provider.get_subs_list(
@@ -262,5 +267,5 @@ class StripeSubStillActiveValidatorService(BaseStripeSubStillActiveValidatorServ
         sub = self.stripe_service.get_sub_state_by_customer_id(
             customer_id=self.stripe_service.get_customer_id(user_id=user.id)
         )
-        if sub is not None and sub['status'] != 'canceled':
+        if sub is not None and sub['status'] != StripeSubscriptionStatusesEnum.CANCELED:
             raise StripeSubStillActiveError(user_id=user.id)

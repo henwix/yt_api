@@ -25,4 +25,4 @@ class AnonymousUserEntity:
     is_staff: bool = False
     is_superuser: bool = False
     is_active: bool = False
-    is_anonymous: bool = False
+    is_anonymous: bool = True

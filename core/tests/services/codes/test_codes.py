@@ -16,7 +16,6 @@ from core.apps.users.services.codes import BaseCodeService
 from core.tests.factories.channels import UserModelFactory
 
 
-@pytest.mark.django_db
 def test_otp_code_generated_and_cached(code_service: BaseCodeService):
     """Test that the otp code has been generated and cached."""
 
@@ -27,7 +26,6 @@ def test_otp_code_generated_and_cached(code_service: BaseCodeService):
     assert code is not None
 
 
-@pytest.mark.django_db
 def test_otp_code_validated(code_service: BaseCodeService):
     """Test that the otp code has been validated and cache deleted."""
 
@@ -39,7 +37,6 @@ def test_otp_code_validated(code_service: BaseCodeService):
     assert len(cache.keys('*')) == 0
 
 
-@pytest.mark.django_db
 def test_otp_code_not_provided_error(code_service: BaseCodeService):
     """Test that an error has been raised when the otp code is not provided."""
 
@@ -49,7 +46,6 @@ def test_otp_code_not_provided_error(code_service: BaseCodeService):
         code_service.validate_email_otp_code(email, None)
 
 
-@pytest.mark.django_db
 def test_otp_code_not_equal_error(code_service: BaseCodeService):
     """Test that an error has been raised when the otp code is not equal."""
 

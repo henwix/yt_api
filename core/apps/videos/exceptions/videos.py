@@ -67,7 +67,7 @@ class PrivateVideoPermissionError(ServiceException):
 @dataclass
 class PrivateVideoOrUploadingError(ServiceException):
     status_code = status.HTTP_403_FORBIDDEN
-    default_detail = {'detail': "You can't perform actions if the video is private or still uploading"}
+    default_detail = {'detail': 'You cannot perform actions if the video is private or still uploading'}
 
     video_id: str
     channel_id: int

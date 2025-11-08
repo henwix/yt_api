@@ -18,3 +18,5 @@ STRIPE_SUBSCRIPTION_TIER_PRICES = {
     StripeSubscriptionPaidTiersEnum.PRO: settings.STRIPE_SUB_PRICE_PRO,
     StripeSubscriptionPaidTiersEnum.PREMIUM: settings.STRIPE_SUB_PRICE_PREMIUM,
 }
+
+STRIPE_SUBSCRIPTION_TRIAL_DAYS: int | None = 7

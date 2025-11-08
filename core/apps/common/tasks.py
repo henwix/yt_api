@@ -90,7 +90,7 @@ def delete_s3_objects_task(self, objects: list[dict], cache_keys: list | None) -
 
     except ClientError as error:
         logger.error(
-            "AWS S3 can't delete objects",
+            'AWS S3 cannot delete objects',
             extra={'log_meta': orjson.dumps({'number_of_files': len(objects)}).decode(), 'detail': str(error)},
         )
         raise self.retry(countdown=60)

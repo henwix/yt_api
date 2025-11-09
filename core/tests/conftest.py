@@ -11,6 +11,7 @@ from core.apps.channels.models import Channel
 from core.apps.common.providers.senders import BaseSenderProvider
 from core.apps.common.services.encoding import BaseEncodingService
 from core.apps.payments.providers.stripe_provider import BaseStripeProvider
+from core.apps.payments.services.stripe_service import BaseStripeService
 from core.apps.posts.models import (
     Post,
     PostCommentItem,
@@ -154,3 +155,8 @@ def code_service(container: punq.Container) -> BaseCodeService:
 @pytest.fixture
 def encoding_service(container: punq.Container) -> BaseEncodingService:
     return container.resolve(BaseEncodingService)
+
+
+@pytest.fixture
+def stripe_service(container: punq.Container) -> BaseStripeService:
+    return container.resolve(BaseStripeService)

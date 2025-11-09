@@ -32,7 +32,7 @@ CACHE_KEYS = {
     'password_reset': 'email:user_password_reset:',
     'activate_user': 'email:activate_user:',
     'stripe_customer_id': 'stripe:user:',
-    'stripe_sub_data': 'stripe:customer:',
+    'stripe_sub_state': 'stripe:customer:',
     'stripe_customer_portal': 'stripe:customer_portal:',
 }
 

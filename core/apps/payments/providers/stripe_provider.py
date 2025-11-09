@@ -2,6 +2,7 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from typing import Literal
 
 import stripe
 from django.db.utils import settings
@@ -21,6 +22,7 @@ class BaseStripeProvider(ABC):
         user_id: int,
         sub_price: str,
         trial_days: int | None = None,
+        billing_address_collection: Literal['auto', 'required'] = 'auto',
     ) -> stripe.checkout.Session: ...
 
     @abstractmethod
@@ -59,6 +61,7 @@ class StripeProvider(BaseStripeProvider):
         user_id: int,
         sub_price: str,
         trial_days: int | None = None,
+        billing_address_collection: Literal['auto', 'required'] = 'auto',
     ) -> stripe.checkout.Session:
         return stripe.checkout.Session.create(
             api_key=self._STRIPE_SECRET_KEY,
@@ -76,9 +79,10 @@ class StripeProvider(BaseStripeProvider):
                 'metadata': {
                     'user_id': user_id,
                 },
-                'trial_days': trial_days,
+                'trial_period_days': trial_days,
             },
             allow_promotion_codes=True,
+            billing_address_collection=billing_address_collection,
         )
 
     def construct_event(self, payload: bytes, signature: str) -> stripe.Event:

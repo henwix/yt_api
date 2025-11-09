@@ -83,7 +83,19 @@ class BaseStripeService(ABC):
     def save_customer_id(self, user_id: int, customer_id: str) -> bool: ...
 
     @abstractmethod
+    def get_customer_id(self, user_id: int) -> str | None: ...
+
+    @abstractmethod
+    def delete_customer_id(self, user_id: int) -> bool: ...
+
+    @abstractmethod
     def save_sub_state_by_customer_id(self, customer_id: str, data: dict) -> bool: ...
+
+    @abstractmethod
+    def get_sub_state_by_customer_id(self, customer_id: str | None) -> dict | None: ...
+
+    @abstractmethod
+    def delete_sub_state_by_customer_id(self, customer_id: str) -> bool: ...
 
     @abstractmethod
     def update_customer_sub_state(self, customer_id: str, sub: stripe.Subscription) -> bool: ...
@@ -104,18 +116,6 @@ class BaseStripeService(ABC):
     def get_sub_tier_by_user(self, user: UserEntity | AnonymousUserEntity) -> str: ...
 
     @abstractmethod
-    def get_customer_id(self, user_id: int) -> str | None: ...
-
-    @abstractmethod
-    def delete_customer_id(self, user_id: int) -> bool: ...
-
-    @abstractmethod
-    def get_sub_state_by_customer_id(self, customer_id: str | None) -> dict | None: ...
-
-    @abstractmethod
-    def delete_sub_state_by_customer_id(self, customer_id: str) -> bool: ...
-
-    @abstractmethod
     def get_subs_list_by_customer_id(self, customer_id: str) -> list[stripe.Subscription]: ...
 
     @abstractmethod
@@ -129,7 +129,7 @@ class BaseStripeService(ABC):
 class StripeService(BaseStripeService):
     logger: Logger
     _STRIPE_CUSTOMER_ID_CACHE_KEY_PREFIX = CACHE_KEYS['stripe_customer_id']
-    _STRIPE_SUB_DATA_CACHE_KEY_PREFIX = CACHE_KEYS['stripe_sub_data']
+    _STRIPE_SUB_STATE_CACHE_KEY_PREFIX = CACHE_KEYS['stripe_sub_state']
     _STRIPE_CUSTOMER_PORTAL_CACHE_KEY_PREFIX = CACHE_KEYS['stripe_customer_portal']
     _STRIPE_SUBSCRIPTION_TIER_PRICES = STRIPE_SUBSCRIPTION_TIER_PRICES
     _STRIPE_SUBSCRIPTION_TIER_PRICES_INVERTED = {v: k for k, v in _STRIPE_SUBSCRIPTION_TIER_PRICES.items()}
@@ -139,13 +139,32 @@ class StripeService(BaseStripeService):
         saved = self.cache_service.set(key=customer_id_cache_key, data=customer_id)
         return saved
 
+    def get_customer_id(self, user_id: int) -> str | None:
+        customer_id_cache_key = f'{self._STRIPE_CUSTOMER_ID_CACHE_KEY_PREFIX}{user_id}'
+        return self.cache_service.get(key=customer_id_cache_key)
+
+    def delete_customer_id(self, user_id: int) -> bool:
+        customer_id_cache_key = f'{self._STRIPE_CUSTOMER_ID_CACHE_KEY_PREFIX}{user_id}'
+        return self.cache_service.delete(key=customer_id_cache_key)
+
     def save_sub_state_by_customer_id(self, customer_id: str, data: dict) -> bool:
-        sub_state_cache_key = f'{self._STRIPE_SUB_DATA_CACHE_KEY_PREFIX}{customer_id}'
+        sub_state_cache_key = f'{self._STRIPE_SUB_STATE_CACHE_KEY_PREFIX}{customer_id}'
         saved = self.cache_service.set(key=sub_state_cache_key, data=data)
         return saved
 
+    def get_sub_state_by_customer_id(self, customer_id: str | None) -> dict | None:
+        if customer_id is None:
+            return None
+
+        sub_state_cache_key = f'{self._STRIPE_SUB_STATE_CACHE_KEY_PREFIX}{customer_id}'
+        return self.cache_service.get(key=sub_state_cache_key)
+
+    def delete_sub_state_by_customer_id(self, customer_id: str) -> bool:
+        sub_state_cache_key = f'{self._STRIPE_SUB_STATE_CACHE_KEY_PREFIX}{customer_id}'
+        return self.cache_service.delete(key=sub_state_cache_key)
+
     def update_customer_sub_state(self, customer_id: str, sub: stripe.Subscription) -> bool:
-        sub_data = {
+        sub_state = {
             'subscription_id': sub['id'],
             'customer_id': customer_id,
             'status': sub['status'],
@@ -161,7 +180,7 @@ class StripeService(BaseStripeService):
             if sub['default_payment_method'] and isinstance(sub['default_payment_method'], stripe.PaymentMethod)
             else None,
         }
-        return self.save_sub_state_by_customer_id(customer_id=customer_id, data=sub_data)
+        return self.save_sub_state_by_customer_id(customer_id=customer_id, data=sub_state)
 
     # TODO: сделать валидатор на доступность trial и динамическую передачу trial_days в создание сессии
     def create_checkout_session(self, customer_id: str, user_id: int, sub_tier: str) -> stripe.checkout.Session:
@@ -203,34 +222,15 @@ class StripeService(BaseStripeService):
         if user.is_anonymous:
             return StripeSubscriptionAllTiersEnum.FREE
 
-        sub_data = self.get_sub_state_by_customer_id(customer_id=self.get_customer_id(user_id=user.id))
+        sub_state = self.get_sub_state_by_customer_id(customer_id=self.get_customer_id(user_id=user.id))
 
-        if not sub_data or sub_data['status'] not in [
+        if not sub_state or sub_state['status'] not in [
             StripeSubscriptionStatusesEnum.ACTIVE,
             StripeSubscriptionStatusesEnum.TRIALING,
         ]:
             return StripeSubscriptionAllTiersEnum.FREE
         else:
-            return sub_data['tier']
-
-    def get_customer_id(self, user_id: int) -> str | None:
-        customer_id_cache_key = f'{self._STRIPE_CUSTOMER_ID_CACHE_KEY_PREFIX}{user_id}'
-        return self.cache_service.get(key=customer_id_cache_key)
-
-    def delete_customer_id(self, user_id: int) -> bool:
-        customer_id_cache_key = f'{self._STRIPE_CUSTOMER_ID_CACHE_KEY_PREFIX}{user_id}'
-        return self.cache_service.delete(key=customer_id_cache_key)
-
-    def get_sub_state_by_customer_id(self, customer_id: str | None) -> dict | None:
-        if customer_id is None:
-            return None
-
-        sub_state_cache_key = f'{self._STRIPE_SUB_DATA_CACHE_KEY_PREFIX}{customer_id}'
-        return self.cache_service.get(key=sub_state_cache_key)
-
-    def delete_sub_state_by_customer_id(self, customer_id: str) -> bool:
-        sub_state_cache_key = f'{self._STRIPE_SUB_DATA_CACHE_KEY_PREFIX}{customer_id}'
-        return self.cache_service.delete(key=sub_state_cache_key)
+            return sub_state['tier']
 
     def get_subs_list_by_customer_id(self, customer_id: str) -> list[stripe.Subscription]:
         return self.stripe_provider.get_subs_list(

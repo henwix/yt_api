@@ -2,7 +2,6 @@ import uuid
 from typing import Any
 
 import pytest
-from django.contrib.auth import get_user_model
 from django.core.cache import cache
 
 from core.apps.common.constants import CACHE_KEYS
@@ -30,8 +29,7 @@ from core.apps.payments.services.stripe_service import (
 )
 from core.apps.users.converters.users import user_to_entity
 from core.apps.users.entities import AnonymousUserEntity
-
-User = get_user_model()
+from core.apps.users.models import CustomUser
 
 
 @pytest.mark.parametrize(
@@ -346,7 +344,7 @@ def test_checkout_session_created(
         customer_id=expected_customer_id, user_id=expected_user_id, sub_tier=StripeSubscriptionPaidTiersEnum.PRO
     )
 
-    assert expected_checkout_url == session
+    assert expected_checkout_url == session.url
 
 
 @pytest.mark.parametrize(
@@ -430,7 +428,7 @@ def test_sub_tier_retrieved_for_anonymous_user(stripe_service: BaseStripeService
 
 
 @pytest.mark.django_db
-def test_sub_tier_retrieved_for_user_with_no_sub_state(stripe_service: BaseStripeService, user: User):
+def test_sub_tier_retrieved_for_user_with_no_sub_state(stripe_service: BaseStripeService, user: CustomUser):
     retrieved_sub_tier = stripe_service.get_sub_tier_by_user(user=user_to_entity(user=user))
     assert retrieved_sub_tier == StripeSubscriptionAllTiersEnum.FREE
 
@@ -448,7 +446,7 @@ def test_sub_tier_retrieved_for_user_with_no_sub_state(stripe_service: BaseStrip
     ],
 )
 def test_sub_tier_retrieved_and_status_is_not_active_or_trialing(
-    stripe_service: BaseStripeService, user: User, expected_sub_status: str
+    stripe_service: BaseStripeService, user: CustomUser, expected_sub_status: str
 ):
     expected_customer_id = 'cus_123456789'
     stripe_service.save_customer_id(user.pk, customer_id=expected_customer_id)
@@ -475,7 +473,7 @@ def test_sub_tier_retrieved_and_status_is_not_active_or_trialing(
     ],
 )
 def test_sub_tier_retrieved_with_active_and_trialing_status(
-    stripe_service: BaseStripeService, user: User, expected_sub_tier: str, expected_sub_status: str
+    stripe_service: BaseStripeService, user: CustomUser, expected_sub_tier: str, expected_sub_status: str
 ):
     expected_customer_id = 'cus_123456789'
     stripe_service.save_customer_id(user.pk, customer_id=expected_customer_id)
@@ -489,15 +487,12 @@ def test_sub_tier_retrieved_with_active_and_trialing_status(
 
 def test_subs_list_retrieved(stripe_service_with_dummy_provider: BaseStripeService):
     expected_customer_id = 'cus_123456789'
-    expected_subs = {
-        'status': 'all',
-        'customer_id': expected_customer_id,
-        'limit': 1,
-        'expand': ['data.default_payment_method'],
-    }
 
     subs_retrieved = stripe_service_with_dummy_provider.get_subs_list_by_customer_id(customer_id=expected_customer_id)
-    assert subs_retrieved == expected_subs
+    assert subs_retrieved.status == 'all'
+    assert subs_retrieved.customer_id == expected_customer_id
+    assert subs_retrieved.limit == 1
+    assert subs_retrieved.expand == ['data.default_payment_method']
 
 
 @pytest.mark.parametrize(
@@ -506,12 +501,12 @@ def test_subs_list_retrieved(stripe_service_with_dummy_provider: BaseStripeServi
 def test_event_constructed(
     stripe_service_with_dummy_provider: BaseStripeService, expected_payload: str, expected_signature: str
 ):
-    expected_event = {'payload': expected_payload, 'signature': expected_signature}
     retrieved_event = stripe_service_with_dummy_provider.construct_event(
         payload=expected_payload, signature=expected_signature
     )
 
-    assert expected_event == retrieved_event
+    assert expected_payload == retrieved_event['payload']
+    assert expected_signature == retrieved_event['signature']
 
 
 @pytest.mark.parametrize(argnames='expected_customer_id', argvalues=['cus_724242525', 'cus_111111111', 'cus_246824244'])
@@ -556,10 +551,10 @@ def test_portal_session_url_retrieved_and_cached(
 
 
 @pytest.mark.django_db
-def test_stripe_sub_still_active_validator_service_not_raised_with_canceled_status(
+def test_sub_still_active_validator_not_raised_with_canceled_status(
     stripe_service: BaseStripeService,
     stripe_sub_still_active_validator_service: BaseStripeSubStillActiveValidatorService,
-    user: User,
+    user: CustomUser,
 ):
     stripe_service.save_customer_id(user.pk, customer_id='cus_123456789')
     stripe_service.save_sub_state_by_customer_id(customer_id='cus_123456789', data={'status': 'canceled'})
@@ -567,9 +562,9 @@ def test_stripe_sub_still_active_validator_service_not_raised_with_canceled_stat
 
 
 @pytest.mark.django_db
-def test_stripe_sub_still_active_validator_service_not_raised_with_no_state(
+def test_sub_still_active_validator_not_raised_with_no_state(
     stripe_sub_still_active_validator_service: BaseStripeSubStillActiveValidatorService,
-    user: User,
+    user: CustomUser,
 ):
     stripe_sub_still_active_validator_service.validate(user=user_to_entity(user=user))
 
@@ -587,10 +582,10 @@ def test_stripe_sub_still_active_validator_service_not_raised_with_no_state(
         'paused',
     ],
 )
-def test_stripe_sub_still_active_validator_service_raised_with_not_allowed_statuses(
+def test_sub_still_active_validator_raised_with_not_allowed_statuses(
     stripe_service: BaseStripeService,
     stripe_sub_still_active_validator_service: BaseStripeSubStillActiveValidatorService,
-    user: User,
+    user: CustomUser,
     expected_status: str,
 ):
     stripe_service.save_customer_id(user.pk, customer_id='cus_123456789')
@@ -612,34 +607,34 @@ def test_stripe_sub_still_active_validator_service_raised_with_not_allowed_statu
         'paused',
     ],
 )
-def test_stripe_does_not_exist_validator_not_raised_with_allowed_statuses(
+def test_does_not_exist_validator_not_raised_with_allowed_statuses(
     stripe_sub_does_not_exist_validator_service: BaseStripeSubDoesNotExistValidatorService,
     expected_status: str,
 ):
     stripe_sub_does_not_exist_validator_service.validate(sub={'status': expected_status})
 
 
-def test_stripe_does_not_exist_validator_raised_with_no_state(
+def test_does_not_exist_validator_raised_with_no_state(
     stripe_sub_does_not_exist_validator_service: BaseStripeSubDoesNotExistValidatorService,
 ):
     with pytest.raises(StripeSubDoesNotExistError):
         stripe_sub_does_not_exist_validator_service.validate(sub=None)
 
 
-def test_stripe_does_not_exist_validator_raised_with_canceled_status(
+def test_does_not_exist_validator_raised_with_canceled_status(
     stripe_sub_does_not_exist_validator_service: BaseStripeSubDoesNotExistValidatorService,
 ):
     with pytest.raises(StripeSubDoesNotExistError):
         stripe_sub_does_not_exist_validator_service.validate(sub={'status': 'canceled'})
 
 
-def test_stripe_already_exists_validator_not_raised_with_canceled_status(
+def test_already_exists_validator_not_raised_with_canceled_status(
     stripe_sub_already_exists_validator_service: BaseStripeSubAlreadyExistsValidatorService,
 ):
     stripe_sub_already_exists_validator_service.validate(sub={'status': 'canceled'})
 
 
-def test_stripe_already_exists_validator_not_raised_with_no_state(
+def test_already_exists_validator_not_raised_with_no_state(
     stripe_sub_already_exists_validator_service: BaseStripeSubAlreadyExistsValidatorService,
 ):
     stripe_sub_already_exists_validator_service.validate(sub=None)
@@ -657,7 +652,7 @@ def test_stripe_already_exists_validator_not_raised_with_no_state(
         'paused',
     ],
 )
-def test_stripe_already_exists_validator_raised_with_not_allowed_statuses(
+def test_already_exists_validator_raised_with_not_allowed_statuses(
     stripe_sub_already_exists_validator_service: BaseStripeSubAlreadyExistsValidatorService,
     expected_status: str,
 ):
@@ -665,14 +660,14 @@ def test_stripe_already_exists_validator_raised_with_not_allowed_statuses(
         stripe_sub_already_exists_validator_service.validate(sub={'status': expected_status, 'customer_id': 'cus_123'})
 
 
-def test_stripe_customer_id_validator_not_raised_with_allowed_type(
+def test_customer_id_validator_not_raised_with_allowed_type(
     stripe_customer_id_validator_service: BaseCustomerIdValidatorService,
 ):
     stripe_customer_id_validator_service.validate(customer_id='cus_218647826')
 
 
 @pytest.mark.parametrize('expected_customer_id', [[], {}, 123, ()])
-def test_stripe_customer_id_validator_raised_with_not_allowed_type(
+def test_customer_id_validator_raised_with_not_allowed_type(
     stripe_customer_id_validator_service: BaseCustomerIdValidatorService,
     expected_customer_id: Any,
 ):

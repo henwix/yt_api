@@ -1,5 +1,4 @@
 import factory
-from django.contrib.auth import get_user_model
 from factory.django import DjangoModelFactory
 from faker import Faker
 
@@ -7,16 +6,15 @@ from core.apps.channels.models import (
     Channel,
     SubscriptionItem,
 )
+from core.apps.users.models import CustomUser
 from core.tests.factories.common import factory_lazy_function
-
-User = get_user_model()
 
 fake = Faker()
 
 
 class UserModelFactory(DjangoModelFactory):
     class Meta:
-        model = User
+        model = CustomUser
 
     username = factory.Faker('user_name')
     email = factory.Faker('email')

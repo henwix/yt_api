@@ -1,5 +1,4 @@
 import pytest
-from django.contrib.auth import get_user_model
 
 from core.apps.channels.exceptions.channels import ChannelNotFoundError
 from core.apps.channels.models import Channel
@@ -13,15 +12,14 @@ from core.apps.posts.models import (
 )
 from core.apps.posts.use_cases.posts_comments.like_delete import PostCommentLikeDeleteUseCase
 from core.apps.users.converters.users import user_to_entity
+from core.apps.users.models import CustomUser
 from core.tests.factories.posts import PostCommentLikeModelFactory
-
-User = get_user_model()
 
 
 @pytest.mark.django_db
 def test_post_delete_like_channel_not_found_error(
     post_comment_like_delete_use_case: PostCommentLikeDeleteUseCase,
-    user: User,
+    user: CustomUser,
 ):
     """That that an 'ChannelNotFoundError' error has been raised."""
 

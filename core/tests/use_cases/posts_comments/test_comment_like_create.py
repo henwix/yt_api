@@ -1,5 +1,4 @@
 import pytest
-from django.contrib.auth import get_user_model
 
 from core.apps.channels.exceptions.channels import ChannelNotFoundError
 from core.apps.channels.models import Channel
@@ -10,15 +9,14 @@ from core.apps.posts.models import (
 )
 from core.apps.posts.use_cases.posts_comments.like_create import PostCommentLikeCreateUseCase
 from core.apps.users.converters.users import user_to_entity
+from core.apps.users.models import CustomUser
 from core.tests.factories.posts import PostCommentLikeModelFactory
-
-User = get_user_model()
 
 
 @pytest.mark.django_db
 def test_post_comment_like_create_channel_exception(
     post_comment_like_create_use_case: PostCommentLikeCreateUseCase,
-    user: User,
+    user: CustomUser,
 ):
     """Test that an exception is raised when the channel is not found."""
 

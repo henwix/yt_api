@@ -1,5 +1,4 @@
 import pytest
-from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 
 from core.apps.channels.converters.channels import (
@@ -36,8 +35,6 @@ from core.tests.factories.channels import (
 )
 from core.tests.factories.videos import VideoModelFactory
 
-User = get_user_model()
-
 
 @pytest.mark.django_db
 def test_channel_not_found_error(channel_service: BaseChannelService):
@@ -49,7 +46,7 @@ def test_channel_not_found_error(channel_service: BaseChannelService):
 
 
 @pytest.mark.django_db
-def test_channel_retrieved_from_channel_or_404(channel_service: BaseChannelService, user_with_channel: User):
+def test_channel_retrieved_from_channel_or_404(channel_service: BaseChannelService, user_with_channel: CustomUser):
     """Test get_channel when a user has an existing channel in database."""
 
     channel_dto = channel_from_entity(
@@ -68,7 +65,7 @@ def test_channel_is_none(channel_service: BaseChannelService):
 
 
 @pytest.mark.django_db
-def test_channel_retrieved_from_channel_or_none(channel_service: BaseChannelService, user_with_channel: User):
+def test_channel_retrieved_from_channel_or_none(channel_service: BaseChannelService, user_with_channel: CustomUser):
     """Test get_channel when a user has an existing channel in database."""
 
     channel_dto = channel_from_entity(
@@ -80,18 +77,18 @@ def test_channel_retrieved_from_channel_or_none(channel_service: BaseChannelServ
 
 
 @pytest.mark.django_db
-def test_channel_and_user_delete(channel_service: BaseChannelService, user_with_channel: User):
+def test_channel_and_user_delete(channel_service: BaseChannelService, user_with_channel: CustomUser):
     """Test deleting a user and their channel from database."""
 
     assert Channel.objects.filter(user_id=user_with_channel.pk).exists()
-    assert User.objects.filter(id=user_with_channel.pk).exists()
+    assert CustomUser.objects.filter(id=user_with_channel.pk).exists()
 
     channel_service.delete_channel_by_user(
         user=user_to_entity(user_with_channel),
     )
 
     assert not Channel.objects.filter(user_id=user_with_channel.pk).exists()
-    assert not User.objects.filter(id=user_with_channel.pk).exists()
+    assert not CustomUser.objects.filter(id=user_with_channel.pk).exists()
 
 
 @pytest.mark.django_db

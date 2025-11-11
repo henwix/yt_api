@@ -1,5 +1,4 @@
 import pytest
-from django.contrib.auth import get_user_model
 from punq import Container
 
 from core.apps.channels.services.channels import (
@@ -12,9 +11,8 @@ from core.apps.channels.services.s3_channels import (
     BaseAvatarFilenameValidatorService,
     BaseAvatarValidatorService,
 )
+from core.apps.users.models import CustomUser
 from core.tests.factories.channels import ChannelModelFactory
-
-User = get_user_model()
 
 
 @pytest.fixture
@@ -38,7 +36,7 @@ def channel_main_service(container: Container) -> BaseChannelMainService:
 
 
 @pytest.fixture
-def user_with_channel() -> User:
+def user_with_channel() -> CustomUser:
     channel = ChannelModelFactory()
     return channel.user
 

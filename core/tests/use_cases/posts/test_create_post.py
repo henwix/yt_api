@@ -1,17 +1,15 @@
 import pytest
-from django.contrib.auth import get_user_model
 
 from core.apps.channels.exceptions.channels import ChannelNotFoundError
 from core.apps.channels.models import Channel
 from core.apps.posts.models import Post
 from core.apps.posts.use_cases.posts.create_post import PostCreateUseCase
 from core.apps.users.converters.users import user_to_entity
-
-User = get_user_model()
+from core.apps.users.models import CustomUser
 
 
 @pytest.mark.django_db
-def test_create_post_channel_not_found_error(create_post_use_case: PostCreateUseCase, user: User):
+def test_create_post_channel_not_found_error(create_post_use_case: PostCreateUseCase, user: CustomUser):
     """Test that an error has been raised when the channel is not found."""
 
     with pytest.raises(ChannelNotFoundError):

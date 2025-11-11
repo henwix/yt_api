@@ -1,6 +1,5 @@
 import punq
 import pytest
-from django.contrib.auth import get_user_model
 from pytest_django.fixtures import SettingsWrapper
 from rest_framework.test import APIClient
 
@@ -23,8 +22,6 @@ from core.apps.users.services.users import (
 )
 from core.project.containers import get_container
 from core.tests.factories.channels import UserModelFactory
-
-User = get_user_model()
 
 
 @pytest.mark.django_db
@@ -64,7 +61,7 @@ def test_user_not_found():
 
 
 @pytest.mark.django_db
-def test_get_user_by_email(user_service: BaseUserService, user: User):
+def test_get_user_by_email(user_service: BaseUserService, user: CustomUser):
     """Test that the user has been retrieved by email from database."""
 
     user_dto = user_from_entity(user_service.get_by_email_or_404(user.email))
@@ -81,7 +78,7 @@ def test_get_user_by_email_404_error(user_service: BaseUserService):
 
 
 @pytest.mark.django_db
-def test_get_user_by_id(user_service: BaseUserService, user: User):
+def test_get_user_by_id(user_service: BaseUserService, user: CustomUser):
     """Test that the user has been retrieved by id from database."""
 
     user_dto = user_from_entity(user_service.get_by_id_or_404(user_id=user.pk))
@@ -97,7 +94,7 @@ def test_get_user_by_id_404_error(user_service: BaseUserService):
 
 
 @pytest.mark.django_db
-def test_jwt_generated_for_user(user_service: BaseUserService, client: APIClient, user: User):
+def test_jwt_generated_for_user(user_service: BaseUserService, client: APIClient, user: CustomUser):
     """Test that JWT token is correctly generated for user."""
 
     tokens = user_service.generate_jwt(user=user)

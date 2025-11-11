@@ -1,7 +1,6 @@
 import punq
 import pytest
 
-from core.apps.payments.enums import StripeSubscriptionStatusesEnum
 from core.apps.payments.services.stripe_service import (
     BaseCustomerIdValidatorService,
     BaseStripeEventValidatorService,
@@ -49,26 +48,3 @@ def stripe_customer_id_validator_service(container: punq.Container) -> BaseCusto
 @pytest.fixture
 def stripe_event_type_validator_service(container: punq.Container) -> BaseStripeEventValidatorService:
     return container.resolve(BaseStripeEventValidatorService)
-
-
-@pytest.fixture
-def dummy_stripe_sub_object(request) -> dict:
-    params = getattr(request, 'param', {})
-
-    return {
-        'id': params.get('id', 'sub_123456789'),
-        'status': params.get('status', StripeSubscriptionStatusesEnum.ACTIVE),
-        'cancel_at_period_end': params.get('cancel_at_period_end', False),
-        'default_payment_method': params.get('default_payment_method', '123'),
-        'items': {
-            'data': [
-                {
-                    'price': {
-                        'id': params.get('price_id', 'price_123456789'),
-                    },
-                    'current_period_start': params.get('current_period_start', 1762366397),
-                    'current_period_end': params.get('current_period_end', 1764958397),
-                },
-            ],
-        },
-    }

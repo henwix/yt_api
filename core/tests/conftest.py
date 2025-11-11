@@ -1,6 +1,5 @@
 import punq
 import pytest
-from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from punq import Container
 from pytest_django.fixtures import SettingsWrapper
@@ -10,12 +9,14 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from core.apps.channels.models import Channel
 from core.apps.common.providers.senders import BaseSenderProvider
 from core.apps.common.services.encoding import BaseEncodingService
+from core.apps.payments.enums import StripeSubscriptionStatusesEnum
 from core.apps.payments.providers.stripe_provider import BaseStripeProvider
 from core.apps.payments.services.stripe_service import BaseStripeService
 from core.apps.posts.models import (
     Post,
     PostCommentItem,
 )
+from core.apps.users.models import CustomUser
 from core.apps.users.services.codes import BaseCodeService
 from core.apps.videos.models import Video
 from core.project.containers import (
@@ -33,8 +34,6 @@ from core.tests.factories.posts import (
 from core.tests.factories.videos import VideoModelFactory
 from core.tests.mocks.common.providers.senders import DummySenderProvider
 from core.tests.mocks.payments.stripe import DummyStripeProvider
-
-User = get_user_model()
 
 
 @pytest.fixture(autouse=True)
@@ -133,7 +132,7 @@ def video() -> Video:
 
 
 @pytest.fixture
-def user() -> User:
+def user() -> CustomUser:
     return UserModelFactory()
 
 
@@ -160,3 +159,26 @@ def encoding_service(container: punq.Container) -> BaseEncodingService:
 @pytest.fixture
 def stripe_service(container: punq.Container) -> BaseStripeService:
     return container.resolve(BaseStripeService)
+
+
+@pytest.fixture
+def dummy_stripe_sub_object(request) -> dict:
+    params = getattr(request, 'param', {})
+
+    return {
+        'id': params.get('id', 'sub_123456789'),
+        'status': params.get('status', StripeSubscriptionStatusesEnum.ACTIVE),
+        'cancel_at_period_end': params.get('cancel_at_period_end', False),
+        'default_payment_method': params.get('default_payment_method', '123'),
+        'items': {
+            'data': [
+                {
+                    'price': {
+                        'id': params.get('price_id', 'price_123456789'),
+                    },
+                    'current_period_start': params.get('current_period_start', 1762366397),
+                    'current_period_end': params.get('current_period_end', 1764958397),
+                },
+            ],
+        },
+    }

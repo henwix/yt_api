@@ -98,10 +98,15 @@ class BaseStripeService(ABC):
     def delete_sub_state_by_customer_id(self, customer_id: str) -> bool: ...
 
     @abstractmethod
+    def extract_sub_payment_method_info(self, pm: stripe.PaymentMethod) -> dict | None: ...
+
+    @abstractmethod
     def update_customer_sub_state(self, customer_id: str, sub: stripe.Subscription) -> bool: ...
 
     @abstractmethod
-    def create_checkout_session(self, customer_id: str, user_id: int, sub_tier: str) -> stripe.checkout.Session: ...
+    def create_checkout_session(
+        self, customer_id: str, user_id: int, sub_tier: str, trial_days: int | None = None
+    ) -> stripe.checkout.Session: ...
 
     @abstractmethod
     def create_customer(self, email: str, user_id: int) -> stripe.Customer: ...
@@ -123,6 +128,9 @@ class BaseStripeService(ABC):
 
     @abstractmethod
     def construct_event(self, payload: bytes, signature: str) -> stripe.Event: ...
+
+    @abstractmethod
+    def get_sub_trial_days(self, sub_state: dict | None = None) -> int | None: ...
 
 
 @dataclass
@@ -163,6 +171,22 @@ class StripeService(BaseStripeService):
         sub_state_cache_key = f'{self._STRIPE_SUB_STATE_CACHE_KEY_PREFIX}{customer_id}'
         return self.cache_service.delete(key=sub_state_cache_key)
 
+    def extract_sub_payment_method_info(self, pm: stripe.PaymentMethod | str) -> dict | None:
+        if not pm or not isinstance(pm, stripe.PaymentMethod):
+            return None
+
+        pm_type: str | None = pm.get('type')
+        pm_data: dict = pm.get(pm_type, {})
+
+        return {
+            'type': pm_type,
+            'brand': pm_data.get('brand'),
+            'last4': pm_data.get('last4'),
+            'bank': pm_data.get('bank'),
+            'bank_name': pm_data.get('bank_name'),
+            'email': pm_data.get('email'),
+        }
+
     def update_customer_sub_state(self, customer_id: str, sub: stripe.Subscription) -> bool:
         sub_state = {
             'subscription_id': sub['id'],
@@ -173,22 +197,18 @@ class StripeService(BaseStripeService):
             'current_period_start': sub['items']['data'][0]['current_period_start'],
             'current_period_end': sub['items']['data'][0]['current_period_end'],
             'cancel_at_period_end': sub['cancel_at_period_end'],
-            'payment_method': {
-                'brand': sub['default_payment_method']['card']['brand'],
-                'last4': sub['default_payment_method']['card']['last4'],
-            }
-            if sub['default_payment_method'] and isinstance(sub['default_payment_method'], stripe.PaymentMethod)
-            else None,
+            'payment_method': self.extract_sub_payment_method_info(pm=sub.get('default_payment_method')),
         }
         return self.save_sub_state_by_customer_id(customer_id=customer_id, data=sub_state)
 
-    # TODO: сделать валидатор на доступность trial и динамическую передачу trial_days в создание сессии
-    def create_checkout_session(self, customer_id: str, user_id: int, sub_tier: str) -> stripe.checkout.Session:
+    def create_checkout_session(
+        self, customer_id: str, user_id: int, sub_tier: str, trial_days: int | None = None
+    ) -> stripe.checkout.Session:
         session = self.stripe_provider.create_checkout_session(
             customer_id=customer_id,
             user_id=user_id,
             sub_price=self.get_sub_price_by_sub_tier(sub_tier=sub_tier),
-            trial_days=STRIPE_SUBSCRIPTION_TRIAL_DAYS,
+            trial_days=trial_days,
         )
         self.logger.info(
             'Stripe checkout session has been created',
@@ -252,6 +272,9 @@ class StripeService(BaseStripeService):
 
     def construct_event(self, payload: bytes, signature: str) -> stripe.Event:
         return self.stripe_provider.construct_event(payload=payload, signature=signature)
+
+    def get_sub_trial_days(self, sub_state: dict | None = None) -> int | None:
+        return STRIPE_SUBSCRIPTION_TRIAL_DAYS if sub_state is None else None
 
 
 class BaseStripeSubStillActiveValidatorService(ABC):

@@ -42,6 +42,7 @@ def test_get_sub_state_error_raised_with_sub_state_canceled(
         get_sub_state_use_case_with_mocks.execute(user=user_to_entity(user=user))
 
 
+# FIXME: fix test
 @pytest.mark.parametrize(
     argnames='expected_customer_id, expected_sub_status, expected_customer_portal_url',
     argvalues=[

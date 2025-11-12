@@ -198,7 +198,7 @@ def test_webhook_sub_state_updated_with_no_subs(
     stripe_service: BaseStripeService,
 ):
     expected_customer_id = 'cus_374829102'
-    expected_sub_state = {'status': None}
+    expected_sub_state = {'status': 'canceled', 'customer_id': expected_customer_id}
     webhook_use_case_with_mock_service_and_provider.stripe_service.stripe_provider.expected_event_type = (
         'payment_intent.canceled'
     )

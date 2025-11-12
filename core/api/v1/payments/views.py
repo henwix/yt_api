@@ -65,7 +65,11 @@ class GetStripeSubStateView(APIView):
                 'Stripe Error has been raised in GetStripeSubStateView',
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
-            return Response({'detail': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # TODO: update api docs with this response
+            return Response(
+                {'detail': 'An error occured while retrieving subscription state'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})
@@ -118,7 +122,11 @@ class CreateCheckoutSessionView(APIView):
                 'Stripe Error has been raised in CreateCheckoutSessionView',
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
-            return Response({'detail': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                # TODO: add this response in docs
+                {'detail': 'An error occured while creating a checkout session'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         except ServiceException as error:
             logger.error(error.message, extra={'log_meta': orjson.dumps(error).decode()})

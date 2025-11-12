@@ -19,14 +19,17 @@ class CreateCheckoutSessionUseCase:
             new_customer = self.stripe_service.create_customer(email=user.email, user_id=user.id)
             self.stripe_service.save_customer_id(user_id=user.id, customer_id=new_customer.id)
             stripe_customer_id = new_customer.id
+            trial_days = self.stripe_service.get_sub_trial_days()
         else:
             existing_sub = self.stripe_service.get_sub_state_by_customer_id(customer_id=stripe_customer_id)
             self.sub_validator_service.validate(sub=existing_sub)
+            trial_days = self.stripe_service.get_sub_trial_days(sub_state=existing_sub)
 
         session = self.stripe_service.create_checkout_session(
             customer_id=stripe_customer_id,
             user_id=user.id,
             sub_tier=sub_tier,
+            trial_days=trial_days,
         )
 
         return session.url

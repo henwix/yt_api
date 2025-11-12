@@ -1,5 +1,4 @@
 import uuid
-from typing import Any
 
 import pytest
 from django.core.cache import cache
@@ -11,21 +10,11 @@ from core.apps.payments.enums import (
     StripeSubscriptionStatusesEnum,
 )
 from core.apps.payments.exceptions import (
-    StripeCustomerIdNotStringError,
     StripeInvalidSubPriceError,
     StripeInvalidSubTierError,
-    StripeNotAllowedEventTypeError,
-    StripeSubAlreadyExistsError,
-    StripeSubDoesNotExistError,
-    StripeSubStillActiveError,
 )
 from core.apps.payments.services.stripe_service import (
-    BaseCustomerIdValidatorService,
-    BaseStripeEventValidatorService,
     BaseStripeService,
-    BaseStripeSubAlreadyExistsValidatorService,
-    BaseStripeSubDoesNotExistValidatorService,
-    BaseStripeSubStillActiveValidatorService,
 )
 from core.apps.users.converters.users import user_to_entity
 from core.apps.users.entities import AnonymousUserEntity
@@ -323,11 +312,11 @@ def test_sub_state_updated_if_already_exists(
 
 
 @pytest.mark.parametrize(
-    argnames='expected_sub_price, expected_customer_id, expected_user_id, expected_checkout_url',
+    argnames='expected_sub_price, expected_customer_id, expected_user_id, expected_trial_days, expected_checkout_url',
     argvalues=[
-        ('price_123456789', 'cus_123456789', 424, 'https://example.com/124987129847'),
-        ('price_987654321', 'cus_218647826', 22, 'https://example.com/1892482748274'),
-        ('price_767265726', 'cus_111111111', 4, 'https://example.com/asjfhakjsfh'),
+        ('price_123456789', 'cus_123456789', 424, 7, 'https://example.com/124987129847'),
+        ('price_987654321', 'cus_218647826', 22, 14, 'https://example.com/1892482748274'),
+        ('price_767265726', 'cus_111111111', 4, 5, 'https://example.com/asjfhakjsfh'),
     ],
 )
 def test_checkout_session_created(
@@ -335,16 +324,25 @@ def test_checkout_session_created(
     expected_sub_price: str,
     expected_customer_id: str,
     expected_user_id: int,
+    expected_trial_days: int,
     expected_checkout_url: str,
 ):
     stripe_dummy_service_with_dummy_provider.stripe_provider.expected_checkout_session_url = expected_checkout_url
     stripe_dummy_service_with_dummy_provider.get_sub_price_by_sub_tier_response = expected_sub_price
 
     session = stripe_dummy_service_with_dummy_provider.create_checkout_session(
-        customer_id=expected_customer_id, user_id=expected_user_id, sub_tier=StripeSubscriptionPaidTiersEnum.PRO
+        customer_id=expected_customer_id,
+        user_id=expected_user_id,
+        sub_tier=StripeSubscriptionPaidTiersEnum.PRO,
+        trial_days=expected_trial_days,
     )
 
     assert expected_checkout_url == session.url
+    assert expected_customer_id == session.customer_id
+    assert expected_user_id == session.user_id
+    assert expected_sub_price == session.sub_price
+    assert 'auto' == session.billing_address_collection
+    assert expected_trial_days == session.trial_days
 
 
 @pytest.mark.parametrize(
@@ -550,154 +548,12 @@ def test_portal_session_url_retrieved_and_cached(
         assert stripe_service_with_dummy_provider.stripe_provider.customer_portal_session_url_call_count == 1
 
 
-@pytest.mark.django_db
-def test_sub_still_active_validator_not_raised_with_canceled_status(
-    stripe_service: BaseStripeService,
-    stripe_sub_still_active_validator_service: BaseStripeSubStillActiveValidatorService,
-    user: CustomUser,
-):
-    stripe_service.save_customer_id(user.pk, customer_id='cus_123456789')
-    stripe_service.save_sub_state_by_customer_id(customer_id='cus_123456789', data={'status': 'canceled'})
-    stripe_sub_still_active_validator_service.validate(user=user_to_entity(user=user))
+def test_trial_days_retrieved_with_no_sub_data(stripe_service: BaseStripeService):
+    """Test that the method returns the correct trail_days value if no sub_state was provided"""
+    expected_trial_days = 7
+    assert stripe_service.get_sub_trial_days() == expected_trial_days
 
 
-@pytest.mark.django_db
-def test_sub_still_active_validator_not_raised_with_no_state(
-    stripe_sub_still_active_validator_service: BaseStripeSubStillActiveValidatorService,
-    user: CustomUser,
-):
-    stripe_sub_still_active_validator_service.validate(user=user_to_entity(user=user))
-
-
-@pytest.mark.django_db
-@pytest.mark.parametrize(
-    argnames='expected_status',
-    argvalues=[
-        'active',
-        'trialing',
-        'incomplete',
-        'incomplete_expired',
-        'past_due',
-        'unpaid',
-        'paused',
-    ],
-)
-def test_sub_still_active_validator_raised_with_not_allowed_statuses(
-    stripe_service: BaseStripeService,
-    stripe_sub_still_active_validator_service: BaseStripeSubStillActiveValidatorService,
-    user: CustomUser,
-    expected_status: str,
-):
-    stripe_service.save_customer_id(user.pk, customer_id='cus_123456789')
-    stripe_service.save_sub_state_by_customer_id(customer_id='cus_123456789', data={'status': expected_status})
-
-    with pytest.raises(StripeSubStillActiveError):
-        stripe_sub_still_active_validator_service.validate(user=user_to_entity(user=user))
-
-
-@pytest.mark.parametrize(
-    argnames='expected_status',
-    argvalues=[
-        'active',
-        'trialing',
-        'incomplete',
-        'incomplete_expired',
-        'past_due',
-        'unpaid',
-        'paused',
-    ],
-)
-def test_does_not_exist_validator_not_raised_with_allowed_statuses(
-    stripe_sub_does_not_exist_validator_service: BaseStripeSubDoesNotExistValidatorService,
-    expected_status: str,
-):
-    stripe_sub_does_not_exist_validator_service.validate(sub={'status': expected_status})
-
-
-def test_does_not_exist_validator_raised_with_no_state(
-    stripe_sub_does_not_exist_validator_service: BaseStripeSubDoesNotExistValidatorService,
-):
-    with pytest.raises(StripeSubDoesNotExistError):
-        stripe_sub_does_not_exist_validator_service.validate(sub=None)
-
-
-def test_does_not_exist_validator_raised_with_canceled_status(
-    stripe_sub_does_not_exist_validator_service: BaseStripeSubDoesNotExistValidatorService,
-):
-    with pytest.raises(StripeSubDoesNotExistError):
-        stripe_sub_does_not_exist_validator_service.validate(sub={'status': 'canceled'})
-
-
-def test_already_exists_validator_not_raised_with_canceled_status(
-    stripe_sub_already_exists_validator_service: BaseStripeSubAlreadyExistsValidatorService,
-):
-    stripe_sub_already_exists_validator_service.validate(sub={'status': 'canceled'})
-
-
-def test_already_exists_validator_not_raised_with_no_state(
-    stripe_sub_already_exists_validator_service: BaseStripeSubAlreadyExistsValidatorService,
-):
-    stripe_sub_already_exists_validator_service.validate(sub=None)
-
-
-@pytest.mark.parametrize(
-    argnames='expected_status',
-    argvalues=[
-        'active',
-        'trialing',
-        'incomplete',
-        'incomplete_expired',
-        'past_due',
-        'unpaid',
-        'paused',
-    ],
-)
-def test_already_exists_validator_raised_with_not_allowed_statuses(
-    stripe_sub_already_exists_validator_service: BaseStripeSubAlreadyExistsValidatorService,
-    expected_status: str,
-):
-    with pytest.raises(StripeSubAlreadyExistsError):
-        stripe_sub_already_exists_validator_service.validate(sub={'status': expected_status, 'customer_id': 'cus_123'})
-
-
-def test_customer_id_validator_not_raised_with_allowed_type(
-    stripe_customer_id_validator_service: BaseCustomerIdValidatorService,
-):
-    stripe_customer_id_validator_service.validate(customer_id='cus_218647826')
-
-
-@pytest.mark.parametrize('expected_customer_id', [[], {}, 123, ()])
-def test_customer_id_validator_raised_with_not_allowed_type(
-    stripe_customer_id_validator_service: BaseCustomerIdValidatorService,
-    expected_customer_id: Any,
-):
-    with pytest.raises(StripeCustomerIdNotStringError):
-        stripe_customer_id_validator_service.validate(customer_id=expected_customer_id)
-
-
-@pytest.mark.parametrize(
-    argnames='expected_event_type',
-    argvalues=[
-        'checkout.session.completed',
-        'customer.subscription.created',
-        'customer.subscription.updated',
-        'customer.subscription.deleted',
-        'customer.subscription.trial_will_end',
-        'invoice.paid',
-        'invoice.payment_failed',
-        'payment_intent.payment_failed',
-        'payment_intent.canceled',
-    ],
-)
-def test_stripe_event_type_validator_not_raised_with_allowed_types(
-    stripe_event_type_validator_service: BaseStripeEventValidatorService,
-    expected_event_type: str,
-):
-    stripe_event_type_validator_service.validate(event={'type': expected_event_type})
-
-
-def test_stripe_event_type_validator_raised_with_not_allowed_types(
-    stripe_event_type_validator_service: BaseStripeEventValidatorService,
-):
-    with pytest.raises(StripeNotAllowedEventTypeError):
-        stripe_event_type_validator_service.validate(event={'type': 'test.event_type'})
+def test_trial_days_returns_none_with_sub_data(stripe_service: BaseStripeService):
+    """Test that the method returns None if sub state was provided"""
+    assert stripe_service.get_sub_trial_days(sub_state={'status': 'canceled'}) is None

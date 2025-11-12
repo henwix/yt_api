@@ -3,6 +3,7 @@ from logging import Logger
 
 import orjson
 
+from core.apps.payments.enums import StripeSubscriptionStatusesEnum
 from core.apps.payments.services.stripe_service import (
     BaseCustomerIdValidatorService,
     BaseStripeEventValidatorService,
@@ -28,7 +29,10 @@ class StripeWebhookUseCase:
 
         if len(subscriptions) == 0:
             # Customer has no active subscription - could be cancelled or never subscribed
-            self.stripe_service.save_sub_state_by_customer_id(customer_id=customer_id, data={'status': None})
+            self.stripe_service.save_sub_state_by_customer_id(
+                customer_id=customer_id,
+                data={'status': StripeSubscriptionStatusesEnum.CANCELED, 'customer_id': customer_id},
+            )
         else:
             self.stripe_service.update_customer_sub_state(customer_id=customer_id, sub=subscriptions.data[0])
 

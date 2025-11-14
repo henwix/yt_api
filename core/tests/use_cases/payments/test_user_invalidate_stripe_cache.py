@@ -25,7 +25,7 @@ def test_user_stripe_cache_invalidated(
     assert cache.get(sub_state_cache_key) is None
 
     stripe_service.save_customer_id(expected_user_id, customer_id=expected_customer_id)
-    stripe_service.save_sub_state_by_customer_id(customer_id=expected_customer_id, data=expected_sub_state)
+    stripe_service.save_sub_state_by_customer_id(customer_id=expected_customer_id, state=expected_sub_state)
     assert cache.get(customer_id_cache_key) == expected_customer_id
     assert cache.get(sub_state_cache_key) == expected_sub_state
 

@@ -89,7 +89,7 @@ class BaseStripeService(ABC):
     def delete_customer_id(self, user_id: int) -> bool: ...
 
     @abstractmethod
-    def save_sub_state_by_customer_id(self, customer_id: str, data: dict) -> bool: ...
+    def save_sub_state_by_customer_id(self, customer_id: str, state: dict) -> bool: ...
 
     @abstractmethod
     def get_sub_state_by_customer_id(self, customer_id: str | None) -> dict | None: ...
@@ -98,10 +98,10 @@ class BaseStripeService(ABC):
     def delete_sub_state_by_customer_id(self, customer_id: str) -> bool: ...
 
     @abstractmethod
-    def extract_sub_payment_method_info(self, pm: stripe.PaymentMethod) -> dict | None: ...
+    def extract_sub_payment_method_info(self, pm: stripe.PaymentMethod | str) -> dict | None: ...
 
     @abstractmethod
-    def update_customer_sub_state(self, customer_id: str, sub: stripe.Subscription) -> bool: ...
+    def build_sub_state(self, customer_id: str, sub: stripe.Subscription) -> dict: ...
 
     @abstractmethod
     def create_checkout_session(
@@ -155,9 +155,9 @@ class StripeService(BaseStripeService):
         customer_id_cache_key = f'{self._STRIPE_CUSTOMER_ID_CACHE_KEY_PREFIX}{user_id}'
         return self.cache_service.delete(key=customer_id_cache_key)
 
-    def save_sub_state_by_customer_id(self, customer_id: str, data: dict) -> bool:
+    def save_sub_state_by_customer_id(self, customer_id: str, state: dict) -> bool:
         sub_state_cache_key = f'{self._STRIPE_SUB_STATE_CACHE_KEY_PREFIX}{customer_id}'
-        saved = self.cache_service.set(key=sub_state_cache_key, data=data)
+        saved = self.cache_service.set(key=sub_state_cache_key, data=state)
         return saved
 
     def get_sub_state_by_customer_id(self, customer_id: str | None) -> dict | None:
@@ -187,19 +187,21 @@ class StripeService(BaseStripeService):
             'email': pm_data.get('email'),
         }
 
-    def update_customer_sub_state(self, customer_id: str, sub: stripe.Subscription) -> bool:
-        sub_state = {
+    def build_sub_state(self, customer_id: str, sub: stripe.Subscription) -> dict:
+        sub_item_data = sub['items']['data'][0]
+        sub_price_id = sub_item_data['price']['id']
+
+        return {
             'subscription_id': sub['id'],
             'customer_id': customer_id,
             'status': sub['status'],
-            'price_id': sub['items']['data'][0]['price']['id'],
-            'tier': self.get_sub_tier_by_sub_price(sub_price=sub['items']['data'][0]['price']['id']),
-            'current_period_start': sub['items']['data'][0]['current_period_start'],
-            'current_period_end': sub['items']['data'][0]['current_period_end'],
+            'price_id': sub_price_id,
+            'tier': self.get_sub_tier_by_sub_price(sub_price=sub_price_id),
+            'current_period_start': sub_item_data['current_period_start'],
+            'current_period_end': sub_item_data['current_period_end'],
             'cancel_at_period_end': sub['cancel_at_period_end'],
             'payment_method': self.extract_sub_payment_method_info(pm=sub.get('default_payment_method')),
         }
-        return self.save_sub_state_by_customer_id(customer_id=customer_id, data=sub_state)
 
     def create_checkout_session(
         self, customer_id: str, user_id: int, sub_tier: str, trial_days: int | None = None

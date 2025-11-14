@@ -1,9 +1,11 @@
 import pytest
+import stripe
 from django.core.cache import cache
 
 from core.apps.common.constants import CACHE_KEYS
 from core.apps.payments.services.stripe_service import BaseStripeService
 from core.apps.payments.use_cases.webhook import StripeWebhookUseCase
+from core.tests.conftest import make_stripe_pm
 
 
 @pytest.mark.parametrize(
@@ -11,165 +13,176 @@ from core.apps.payments.use_cases.webhook import StripeWebhookUseCase
         'expected_event_type',
         'expected_customer_id',
         'expected_sub_tier',
-        'expected_sub_id',
-        'expected_sub_status',
-        'expected_sub_cancel_at_period_end',
-        'expected_sub_payment_method',
-        'expected_sub_price_id',
-        'expected_sub_current_period_start',
-        'expected_sub_current_period_end',
+        'dummy_stripe_sub_object',
     ],
     argvalues=(
         [
             'checkout.session.completed',
             'cus_918273645',
             'pro',
-            'sub_746382223',
-            'trialing',
-            False,
-            '5532',
-            'price_192837465',
-            1736112000,
-            1738790400,
+            {
+                'id': 'sub_746382223',
+                'status': 'trialing',
+                'cancel_at_period_end': False,
+                'default_payment_method': 'pm_5874284724',
+                'price_id': 'price_192837465',
+                'current_period_start': 1736112000,
+                'current_period_end': 1738790400,
+            },
         ],
         [
             'customer.subscription.created',
             'cus_564738291',
             'premium',
-            'sub_56438291',
-            'active',
-            True,
-            '9081',
-            'price_837261945',
-            1719792000,
-            1722470400,
+            {
+                'id': 'sub_56438291',
+                'status': 'active',
+                'cancel_at_period_end': True,
+                'default_payment_method': make_stripe_pm(
+                    'us_bank_account', {'test_123_field_2': 'askja', 'test_field_1': '123'}
+                ),
+                'price_id': 'price_837261945',
+                'current_period_start': 1719792000,
+                'current_period_end': 1722470400,
+            },
         ],
         [
             'customer.subscription.updated',
             'cus_837261945',
             'pro',
-            'sub_92837455',
-            'incomplete',
-            True,
-            '6207',
-            'price_564738291',
-            1727827200,
-            1730505600,
+            {
+                'id': 'sub_92837455',
+                'status': 'incomplete',
+                'cancel_at_period_end': True,
+                'default_payment_method': make_stripe_pm('card', {'last4': '5544', 'brand': 'mastercard'}),
+                'price_id': 'price_564738291',
+                'current_period_start': 1727827200,
+                'current_period_end': 1730505600,
+            },
         ],
         [
             'customer.subscription.deleted',
             'cus_217465',
             'premium',
-            'sub_8102',
-            'incomplete_expired',
-            True,
-            '4740',
-            'price_3645',
-            1740960000,
-            1743638400,
+            {
+                'id': 'sub_8102',
+                'status': 'incomplete_expired',
+                'cancel_at_period_end': True,
+                'default_payment_method': make_stripe_pm('card', {'last4': '1234', 'brand': 'testercard'}),
+                'price_id': 'price_3645',
+                'current_period_start': 1740960000,
+                'current_period_end': 1743638400,
+            },
         ],
         [
             'customer.subscription.trial_will_end',
             'cus_6574820',
             'premium',
-            'sub_01928346',
-            'past_due',
-            False,
-            '3951',
-            'price_46382910',
-            1725148800,
-            1727827200,
+            {
+                'id': 'sub_01928346',
+                'status': 'past_due',
+                'cancel_at_period_end': False,
+                'default_payment_method': make_stripe_pm('link', {'email': 'user@example.com'}),
+                'price_id': 'price_46382910',
+                'current_period_start': 1725148800,
+                'current_period_end': 1727827200,
+            },
         ],
         [
             'invoice.paid',
             'cus_829102746',
             'pro',
-            'sub_283746192',
-            'canceled',
-            False,
-            '7772',
-            'price_293847561',
-            1733088000,
-            1735766400,
+            {
+                'id': 'sub_283746192',
+                'status': 'canceled',
+                'cancel_at_period_end': False,
+                'default_payment_method': make_stripe_pm(
+                    'us_bank_account', {'last4': '8242', 'bank': 'test bank', 'bank_name': 'STRIPE TEST BANK'}
+                ),
+                'price_id': 'price_293847561',
+                'current_period_start': 1733088000,
+                'current_period_end': 1735766400,
+            },
         ],
         [
             'invoice.payment_failed',
             'cus_374829102',
             'premium',
-            'sub_91827645',
-            'unpaid',
-            False,
-            '8820',
-            'price_87261945',
-            1746307200,
-            1748899200,
+            {
+                'id': 'sub_91827645',
+                'status': 'unpaid',
+                'cancel_at_period_end': False,
+                'default_payment_method': make_stripe_pm('exp', {'bank': 'test_bank_123'}),
+                'price_id': 'price_87261945',
+                'current_period_start': 1746307200,
+                'current_period_end': 1748899200,
+            },
         ],
         [
             'payment_intent.payment_failed',
             'cus_546372819',
             'pro',
-            'sub_192837465',
-            'paused',
-            True,
-            '1204',
-            'price_564738291',
-            1717200000,
-            1719878400,
+            {
+                'id': 'sub_192837465',
+                'status': 'paused',
+                'cancel_at_period_end': True,
+                'default_payment_method': make_stripe_pm(
+                    'us_bank_account', {'bank': 'hellworld', 'bank_name': 'hellworld bank'}
+                ),
+                'price_id': 'price_564738291',
+                'current_period_start': 1717200000,
+                'current_period_end': 1719878400,
+            },
         ],
         [
             'payment_intent.canceled',
             'cus_982592582',
             'premium',
-            'sub_192837465',
-            'paused',
-            True,
-            '2555',
-            'price_564738291',
-            1717200000,
-            1719878400,
+            {
+                'id': 'sub_192837465',
+                'status': 'paused',
+                'cancel_at_period_end': True,
+                'default_payment_method': make_stripe_pm('card', {'last4': '4242', 'brand': 'visa'}),
+                'price_id': 'price_564738291',
+                'current_period_start': 1717200000,
+                'current_period_end': 1719878400,
+            },
         ],
     ),
+    indirect=['dummy_stripe_sub_object'],
 )
 def test_webhook_sub_state_updated(
     webhook_use_case_with_mock_service_and_provider: StripeWebhookUseCase,
     stripe_service: BaseStripeService,
     expected_event_type: str,
     expected_customer_id: str,
-    expected_sub_id: str,
     expected_sub_tier: str,
-    expected_sub_status: str,
-    expected_sub_cancel_at_period_end: bool,
-    expected_sub_payment_method: str,
-    expected_sub_price_id: str,
-    expected_sub_current_period_start: int,
-    expected_sub_current_period_end: int,
+    dummy_stripe_sub_object: stripe.Subscription,
 ):
-    stripe_sub_object = {
-        'id': expected_sub_id,
-        'status': expected_sub_status,
-        'cancel_at_period_end': expected_sub_cancel_at_period_end,
-        'default_payment_method': expected_sub_payment_method,
-        'items': {
-            'data': [
-                {
-                    'price': {'id': expected_sub_price_id},
-                    'current_period_start': expected_sub_current_period_start,
-                    'current_period_end': expected_sub_current_period_end,
-                },
-            ],
-        },
-    }
     expected_sub_state = {
-        'subscription_id': expected_sub_id,
+        'subscription_id': dummy_stripe_sub_object['id'],
         'customer_id': expected_customer_id,
-        'status': expected_sub_status,
-        'price_id': expected_sub_price_id,
+        'status': dummy_stripe_sub_object['status'],
+        'price_id': dummy_stripe_sub_object['items']['data'][0]['price']['id'],
         'tier': expected_sub_tier,
-        'current_period_start': expected_sub_current_period_start,
-        'current_period_end': expected_sub_current_period_end,
-        'cancel_at_period_end': expected_sub_cancel_at_period_end,
+        'current_period_start': dummy_stripe_sub_object['items']['data'][0]['current_period_start'],
+        'current_period_end': dummy_stripe_sub_object['items']['data'][0]['current_period_end'],
+        'cancel_at_period_end': dummy_stripe_sub_object['cancel_at_period_end'],
         'payment_method': None,
     }
+
+    if isinstance(dummy_stripe_sub_object['default_payment_method'], stripe.PaymentMethod):
+        pm_type = dummy_stripe_sub_object['default_payment_method'].get('type')
+        pm_data: dict = dummy_stripe_sub_object['default_payment_method'].get(pm_type, {})
+
+        expected_sub_state['payment_method'] = {
+            'type': pm_type,
+            'brand': pm_data.get('brand'),
+            'last4': pm_data.get('last4'),
+            'bank': pm_data.get('bank'),
+            'bank_name': pm_data.get('bank_name'),
+            'email': pm_data.get('email'),
+        }
 
     webhook_use_case_with_mock_service_and_provider.stripe_service.stripe_provider.expected_event_type = (
         expected_event_type
@@ -178,7 +191,7 @@ def test_webhook_sub_state_updated(
         expected_customer_id
     )
     webhook_use_case_with_mock_service_and_provider.stripe_service.stripe_provider.stripe_subs_data = [
-        stripe_sub_object
+        dummy_stripe_sub_object
     ]
     webhook_use_case_with_mock_service_and_provider.stripe_service.get_sub_tier_by_sub_price_response = (
         expected_sub_tier

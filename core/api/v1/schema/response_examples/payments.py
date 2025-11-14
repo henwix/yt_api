@@ -15,7 +15,14 @@ def retrieve_subscription_state_response_example() -> OpenApiResponse:
             'current_period_start': 1762374438,
             'current_period_end': 1764966438,
             'cancel_at_period_end': False,
-            'payment_method': {'brand': 'visa', 'last4': '4242'},
+            'payment_method': {
+                'type': 'card',
+                'brand': 'visa',
+                'last4': '4242',
+                'bank': 'test_bank',
+                'bank_name': 'test_bank_name',
+                'email': 'email@example.com',
+            },
         },
         'customer_portal_url': 'string',
     }
@@ -27,5 +34,5 @@ def retrieve_subscription_state_response_example() -> OpenApiResponse:
     )
 
 
-def stripe_error_response_example(code: int) -> OpenApiExample:
-    return detail_response_example(name=f'Stripe {code} error', value='string', status_code=code)
+def stripe_error_response_example(code: int, value: str) -> OpenApiExample:
+    return detail_response_example(name=f'Stripe {code} error', value=value, status_code=code)

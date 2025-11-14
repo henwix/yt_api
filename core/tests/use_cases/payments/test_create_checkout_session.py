@@ -32,7 +32,7 @@ def test_checkout_session_created_with_existing_sub_state_canceled(
         expected_url
     )
     stripe_service.save_customer_id(user_id=user.id, customer_id=expected_customer_id)
-    stripe_service.save_sub_state_by_customer_id(customer_id=expected_customer_id, data=expected_sub_state)
+    stripe_service.save_sub_state_by_customer_id(customer_id=expected_customer_id, state=expected_sub_state)
 
     assert expected_customer_id == cache.get(f'{CACHE_KEYS["stripe_customer_id"]}{user.id}')
     assert expected_sub_state == cache.get(f'{CACHE_KEYS["stripe_sub_state"]}{expected_customer_id}')
@@ -69,7 +69,7 @@ def test_checkout_session_error_raised_with_existing_sub_state_and_active_status
 ):
     expected_sub_state = {'status': expected_sub_status, 'customer_id': expected_customer_id}
     stripe_service.save_customer_id(user_id=user.id, customer_id=expected_customer_id)
-    stripe_service.save_sub_state_by_customer_id(customer_id=expected_customer_id, data=expected_sub_state)
+    stripe_service.save_sub_state_by_customer_id(customer_id=expected_customer_id, state=expected_sub_state)
 
     with pytest.raises(StripeSubAlreadyExistsError):
         create_checkout_session_use_case_with_mocks.execute(sub_tier=expected_sub_tier, user=user_to_entity(user=user))
@@ -97,7 +97,7 @@ def test_checkout_session_error_raised_with_wrong_sub_tier(
 ):
     expected_sub_state = {'status': 'canceled', 'customer_id': expected_customer_id}
     stripe_service.save_customer_id(user_id=user.id, customer_id=expected_customer_id)
-    stripe_service.save_sub_state_by_customer_id(customer_id=expected_customer_id, data=expected_sub_state)
+    stripe_service.save_sub_state_by_customer_id(customer_id=expected_customer_id, state=expected_sub_state)
 
     with pytest.raises(StripeInvalidSubTierError):
         create_checkout_session_use_case_with_mocks.execute(sub_tier=expected_sub_tier, user=user_to_entity(user=user))

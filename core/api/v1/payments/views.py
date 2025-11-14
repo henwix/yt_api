@@ -45,7 +45,9 @@ from core.project.containers import get_container
     examples=[
         retrieve_subscription_state_response_example(),
         build_example_response_from_error(error=StripeSubDoesNotExistError),
-        stripe_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
+        stripe_error_response_example(
+            code=status.HTTP_500_INTERNAL_SERVER_ERROR, value='An error occured while retrieving subscription state'
+        ),
     ],
     summary='Get subscription state',
 )
@@ -65,7 +67,6 @@ class GetStripeSubStateView(APIView):
                 'Stripe Error has been raised in GetStripeSubStateView',
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
-            # TODO: update api docs with this response
             return Response(
                 {'detail': 'An error occured while retrieving subscription state'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -96,7 +97,9 @@ class GetStripeSubStateView(APIView):
     },
     examples=[
         build_example_response_from_error(error=StripeSubAlreadyExistsError),
-        stripe_error_response_example(code=status.HTTP_500_INTERNAL_SERVER_ERROR),
+        stripe_error_response_example(
+            code=status.HTTP_500_INTERNAL_SERVER_ERROR, value='An error occured while creating a checkout session'
+        ),
     ],
     summary='Create checkout session',
 )
@@ -123,7 +126,6 @@ class CreateCheckoutSessionView(APIView):
                 extra={'log_meta': orjson.dumps(str(error)).decode()},
             )
             return Response(
-                # TODO: add this response in docs
                 {'detail': 'An error occured while creating a checkout session'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

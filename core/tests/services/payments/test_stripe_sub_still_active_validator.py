@@ -13,7 +13,7 @@ def test_sub_still_active_validator_not_raised_with_canceled_status(
     user: CustomUser,
 ):
     stripe_service.save_customer_id(user.pk, customer_id='cus_123456789')
-    stripe_service.save_sub_state_by_customer_id(customer_id='cus_123456789', data={'status': 'canceled'})
+    stripe_service.save_sub_state_by_customer_id(customer_id='cus_123456789', state={'status': 'canceled'})
     stripe_sub_still_active_validator_service.validate(user=user_to_entity(user=user))
 
 
@@ -45,7 +45,7 @@ def test_sub_still_active_validator_raised_with_not_allowed_statuses(
     expected_status: str,
 ):
     stripe_service.save_customer_id(user.pk, customer_id='cus_123456789')
-    stripe_service.save_sub_state_by_customer_id(customer_id='cus_123456789', data={'status': expected_status})
+    stripe_service.save_sub_state_by_customer_id(customer_id='cus_123456789', state={'status': expected_status})
 
     with pytest.raises(StripeSubStillActiveError):
         stripe_sub_still_active_validator_service.validate(user=user_to_entity(user=user))

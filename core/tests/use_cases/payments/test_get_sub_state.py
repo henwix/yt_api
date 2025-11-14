@@ -33,7 +33,7 @@ def test_get_sub_state_error_raised_with_sub_state_canceled(
     assert cache.get(f'{CACHE_KEYS["stripe_sub_state"]}{expected_customer_id}') is None
 
     stripe_service.save_customer_id(user_id=user.pk, customer_id=expected_customer_id)
-    stripe_service.save_sub_state_by_customer_id(customer_id=expected_customer_id, data=expected_sub_state)
+    stripe_service.save_sub_state_by_customer_id(customer_id=expected_customer_id, state=expected_sub_state)
 
     assert cache.get(f'{CACHE_KEYS["stripe_customer_id"]}{user.id}') == expected_customer_id
     assert cache.get(f'{CACHE_KEYS["stripe_sub_state"]}{expected_customer_id}') == expected_sub_state
@@ -42,7 +42,6 @@ def test_get_sub_state_error_raised_with_sub_state_canceled(
         get_sub_state_use_case_with_mocks.execute(user=user_to_entity(user=user))
 
 
-# FIXME: fix test
 @pytest.mark.parametrize(
     argnames='expected_customer_id, expected_sub_status, expected_customer_portal_url',
     argvalues=[
@@ -56,7 +55,7 @@ def test_get_sub_state_error_raised_with_sub_state_canceled(
     ],
 )
 @pytest.mark.django_db
-def test_get_sub_state_error_raised_with_sub_state_active(
+def test_get_sub_state_retrieved_with_sub_state_active(
     get_sub_state_use_case_with_mocks: GetStripeSubStateUseCase,
     stripe_service: BaseStripeService,
     user: CustomUser,
@@ -73,7 +72,7 @@ def test_get_sub_state_error_raised_with_sub_state_active(
     assert cache.get(f'{CACHE_KEYS["stripe_sub_state"]}{expected_customer_id}') is None
 
     stripe_service.save_customer_id(user_id=user.pk, customer_id=expected_customer_id)
-    stripe_service.save_sub_state_by_customer_id(customer_id=expected_customer_id, data=expected_sub_state)
+    stripe_service.save_sub_state_by_customer_id(customer_id=expected_customer_id, state=expected_sub_state)
 
     assert cache.get(f'{CACHE_KEYS["stripe_customer_id"]}{user.id}') == expected_customer_id
     assert cache.get(f'{CACHE_KEYS["stripe_sub_state"]}{expected_customer_id}') == expected_sub_state

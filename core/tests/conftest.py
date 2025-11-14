@@ -1,5 +1,6 @@
 import punq
 import pytest
+import stripe
 from django.core.cache import cache
 from punq import Container
 from pytest_django.fixtures import SettingsWrapper
@@ -161,24 +162,37 @@ def stripe_service(container: punq.Container) -> BaseStripeService:
     return container.resolve(BaseStripeService)
 
 
+def make_stripe_pm(pm_type: str | None = None, pm_values: dict | None = None) -> stripe.PaymentMethod:
+    """You can specify both parameters for this factory to work, or neither. You cannot specify only one of them"""
+
+    if pm_type is None or pm_values is None:
+        values = {'type': 'card', 'card': {'brand': 'visa', 'last4': '4242'}}
+    else:
+        values = {'type': pm_type, pm_type: pm_values}
+    return stripe.PaymentMethod.construct_from(key=None, values=values)
+
+
 @pytest.fixture
-def dummy_stripe_sub_object(request) -> dict:
+def dummy_stripe_sub_object(request) -> stripe.Subscription:
     params = getattr(request, 'param', {})
 
-    return {
-        'id': params.get('id', 'sub_123456789'),
-        'status': params.get('status', StripeSubscriptionStatusesEnum.ACTIVE),
-        'cancel_at_period_end': params.get('cancel_at_period_end', False),
-        'default_payment_method': params.get('default_payment_method', '123'),
-        'items': {
-            'data': [
-                {
-                    'price': {
-                        'id': params.get('price_id', 'price_123456789'),
+    return stripe.Subscription.construct_from(
+        key=None,
+        values={
+            'id': params.get('id', 'sub_123456789'),
+            'status': params.get('status', StripeSubscriptionStatusesEnum.ACTIVE),
+            'cancel_at_period_end': params.get('cancel_at_period_end', False),
+            'default_payment_method': params.get('default_payment_method', 'pm_123456789'),
+            'items': {
+                'data': [
+                    {
+                        'price': {
+                            'id': params.get('price_id', 'price_123456789'),
+                        },
+                        'current_period_start': params.get('current_period_start', 1762366397),
+                        'current_period_end': params.get('current_period_end', 1764958397),
                     },
-                    'current_period_start': params.get('current_period_start', 1762366397),
-                    'current_period_end': params.get('current_period_end', 1764958397),
-                },
-            ],
+                ],
+            },
         },
-    }
+    )

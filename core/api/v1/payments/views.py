@@ -20,6 +20,7 @@ from core.api.v1.schema.response_examples.payments import (
 )
 from core.apps.common.exceptions.exceptions import ServiceException
 from core.apps.payments.exceptions import StripeSubAlreadyExistsError, StripeSubDoesNotExistError
+from core.apps.payments.throttles import CheckoutSessionThrottle
 from core.apps.payments.use_cases.create_checkout_session import CreateCheckoutSessionUseCase
 from core.apps.payments.use_cases.get_stripe_sub_state import GetStripeSubStateUseCase
 from core.apps.payments.use_cases.webhook import StripeWebhookUseCase
@@ -105,6 +106,7 @@ class GetStripeSubStateView(APIView):
 )
 class CreateCheckoutSessionView(APIView):
     permission_classes = [IsAuthenticated]
+    throttle_classes = [CheckoutSessionThrottle]
 
     def post(self, request):
         serializer = StripeSubscriptionInSerializer(data=request.data)

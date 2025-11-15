@@ -47,8 +47,13 @@ class DummyStripeProvider(StripeProvider):
             billing_address_collection=billing_address_collection,
         )
 
-    def create_customer(self, email: str, user_id: int) -> SimpleNamespace:
-        return SimpleNamespace(email=email, user_id=user_id, id=self.expected_customer_id)
+    def create_customer(self, email: str, user_id: int, idempotency_key: str | None = None):
+        return SimpleNamespace(
+            email=email,
+            user_id=user_id,
+            id=self.expected_customer_id,
+            idempotency_key=idempotency_key,
+        )
 
     def get_subs_list(
         self,

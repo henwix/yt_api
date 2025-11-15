@@ -13,7 +13,7 @@ from core.apps.payments.exceptions import StripeSignatureVerificationError
 
 class BaseStripeProvider(ABC):
     @abstractmethod
-    def create_customer(self, email: str, user_id: int) -> stripe.Customer: ...
+    def create_customer(self, email: str, user_id: int, idempotency_key: str | None = None) -> stripe.Customer: ...
 
     @abstractmethod
     def create_checkout_session(
@@ -45,15 +45,15 @@ class StripeProvider(BaseStripeProvider):
     _STRIPE_SECRET_KEY = settings.STRIPE_SECRET_KEY
     _STRIPE_WEBHOOK_KEY = settings.STRIPE_WEBHOOK_KEY
 
-    def create_customer(self, email: str, user_id: int) -> stripe.Customer:
-        customer: stripe.Customer = stripe.Customer.create(
+    def create_customer(self, email: str, user_id: int, idempotency_key: str | None = None) -> stripe.Customer:
+        return stripe.Customer.create(
             api_key=self._STRIPE_SECRET_KEY,
             email=email,
             metadata={
                 'user_id': user_id,
             },
+            idempotency_key=idempotency_key,
         )
-        return customer
 
     def create_checkout_session(
         self,
@@ -102,14 +102,13 @@ class StripeProvider(BaseStripeProvider):
         limit: int = 10,
         expand: list | None = None,
     ) -> list[stripe.Subscription]:
-        subscriptions = stripe.Subscription.list(
+        return stripe.Subscription.list(
             api_key=self._STRIPE_SECRET_KEY,
             customer=customer_id,
             limit=limit,
             status=status,
             expand=expand,
         )
-        return subscriptions
 
     def get_customer_portal_session_url(self, customer_id: str) -> str:
         return stripe.billing_portal.Session.create(

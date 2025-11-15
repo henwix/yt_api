@@ -269,10 +269,10 @@ def test_build_sub_state_with_stripe_pm_id_as_payment_method(
         'payment_method': None,
     }
 
-    build_state = stripe_dummy_service_with_dummy_provider.build_sub_state(
+    built_state = stripe_dummy_service_with_dummy_provider.build_sub_state(
         customer_id=expected_customer_id, sub=dummy_stripe_sub_object
     )
-    assert expected_sub_state == build_state
+    assert expected_sub_state == built_state
 
 
 @pytest.mark.parametrize(
@@ -320,10 +320,10 @@ def test_build_sub_state_with_stripe_pm_object_as_payment_method(
         },
     }
 
-    build_state = stripe_dummy_service_with_dummy_provider.build_sub_state(
+    built_state = stripe_dummy_service_with_dummy_provider.build_sub_state(
         customer_id=expected_customer_id, sub=dummy_stripe_sub_object
     )
-    assert expected_sub_state == build_state
+    assert expected_sub_state == built_state
 
 
 @pytest.mark.parametrize(
@@ -581,7 +581,7 @@ def test_sub_state_extracted_without_stripe_pm_object(stripe_service: BaseStripe
 
 
 @pytest.mark.parametrize(
-    argnames='expected_pm',
+    argnames='stripe_pm',
     argvalues=[
         make_stripe_pm('card', {'brand': 'amex', 'last4': '4242', 'country': 'TestCountry', 'exp_year': 2027}),
         make_stripe_pm(
@@ -644,11 +644,11 @@ def test_sub_state_extracted_without_stripe_pm_object(stripe_service: BaseStripe
 )
 def test_sub_state_extracted_with_stripe_pm_object(
     stripe_service: BaseStripeService,
-    expected_pm: stripe.PaymentMethod,
+    stripe_pm: stripe.PaymentMethod,
 ):
-    pm_type = expected_pm['type']
-    pm_data = expected_pm[pm_type]
-    expected_pm = {
+    pm_type = stripe_pm['type']
+    pm_data = stripe_pm[pm_type]
+    expected_extracted_pm = {
         'type': pm_type,
         'brand': pm_data.get('brand'),
         'last4': pm_data.get('last4'),
@@ -656,4 +656,4 @@ def test_sub_state_extracted_with_stripe_pm_object(
         'bank_name': pm_data.get('bank_name'),
         'email': pm_data.get('email'),
     }
-    assert stripe_service.extract_sub_payment_method_info(pm=expected_pm) is None
+    assert stripe_service.extract_sub_payment_method_info(pm=stripe_pm) == expected_extracted_pm

@@ -144,8 +144,7 @@ class StripeService(BaseStripeService):
 
     def save_customer_id(self, user_id: int, customer_id: str) -> bool:
         customer_id_cache_key = f'{self._STRIPE_CUSTOMER_ID_CACHE_KEY_PREFIX}{user_id}'
-        saved = self.cache_service.set(key=customer_id_cache_key, data=customer_id)
-        return saved
+        return self.cache_service.set(key=customer_id_cache_key, data=customer_id)
 
     def get_customer_id(self, user_id: int) -> str | None:
         customer_id_cache_key = f'{self._STRIPE_CUSTOMER_ID_CACHE_KEY_PREFIX}{user_id}'
@@ -157,8 +156,7 @@ class StripeService(BaseStripeService):
 
     def save_sub_state_by_customer_id(self, customer_id: str, state: dict) -> bool:
         sub_state_cache_key = f'{self._STRIPE_SUB_STATE_CACHE_KEY_PREFIX}{customer_id}'
-        saved = self.cache_service.set(key=sub_state_cache_key, data=state)
-        return saved
+        return self.cache_service.set(key=sub_state_cache_key, data=state)
 
     def get_sub_state_by_customer_id(self, customer_id: str | None) -> dict | None:
         if customer_id is None:
@@ -223,7 +221,11 @@ class StripeService(BaseStripeService):
         return session
 
     def create_customer(self, email: str, user_id: int) -> stripe.Customer:
-        new_customer = self.stripe_provider.create_customer(email=email, user_id=user_id)
+        new_customer = self.stripe_provider.create_customer(
+            email=email,
+            user_id=user_id,
+            idempotency_key=f'create_customer:{user_id}',
+        )
         self.logger.info(
             'New Stripe customer has been created',
             extra={'log_meta': orjson.dumps({'customer_id': new_customer.id, 'user_id': user_id}).decode()},

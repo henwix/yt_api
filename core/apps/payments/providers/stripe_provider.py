@@ -61,7 +61,7 @@ class StripeProvider(BaseStripeProvider):
         user_id: int,
         sub_price: str,
         trial_days: int | None = None,
-        billing_address_collection: Literal['auto', 'required'] = 'auto',
+        billing_address_collection: Literal['auto', 'required'] = 'required',
     ) -> stripe.checkout.Session:
         return stripe.checkout.Session.create(
             api_key=self._STRIPE_SECRET_KEY,
@@ -73,7 +73,8 @@ class StripeProvider(BaseStripeProvider):
                     'quantity': 1,
                 },
             ],
-            success_url=build_frontend_url(uri=settings.FRONTEND_PAYMENT_SUCCESS_URI),
+            success_url=build_frontend_url(uri=settings.FRONTEND_PAYMENT_SUCCESS_URI)
+            + '?session_id={CHECKOUT_SESSION_ID}',
             cancel_url=build_frontend_url(uri=settings.FRONTEND_PAYMENT_CANCEL_URI),
             subscription_data={
                 'metadata': {
@@ -83,6 +84,9 @@ class StripeProvider(BaseStripeProvider):
             },
             allow_promotion_codes=True,
             billing_address_collection=billing_address_collection,
+            automatic_tax={'enabled': True},
+            customer_update={'address': 'auto', 'name': 'auto'},
+            tax_id_collection={'enabled': True},
         )
 
     def construct_event(self, payload: bytes, signature: str) -> stripe.Event:

@@ -31,7 +31,7 @@ YT_API is a video sharing platform API created as a pet project.
 * 📝 [Celery](https://github.com/celery/celery) and [Celery Beat](https://github.com/celery/django-celery-beat) for task queuing and scheduling.
 * 🖧 [Nginx](https://nginx.org/en/) &ndash; web and proxy server.
 * 🐳 [Docker Compose](https://www.docker.com/) for development and production.
-* ☁️ [AWS S3](https://aws.amazon.com/s3/) && [CloudFront](https://aws.amazon.com/cloudfront/) &ndash; cloud storage service and CDN.
+* ☁️ [AWS S3](https://aws.amazon.com/s3/) & [CloudFront](https://aws.amazon.com/cloudfront/) &ndash; cloud storage service and CDN.
 * 💸 [Stripe](https://stripe.com/) for payments.
 * 🤖 [Certbot](https://certbot.eff.org/) for SSL certificates.
 * ✅ [Pytest](https://docs.pytest.org/en/stable/) for testing.
